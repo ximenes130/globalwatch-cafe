@@ -1,0 +1,354 @@
+{
+  "versao": "1.0",
+  "gerado_em": "2026-10-30",
+  "item": "S2B_T23KLS_20260110T131730_L2A",
+  "fonte_stac": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-c1-l2a/items/S2B_T23KLS_20260110T131730_L2A",
+  "aquisicao_utc": "2026-01-10T13:18:10.279000Z",
+  "crs": "EPSG:32723",
+  "shape": [
+    4,
+    512,
+    512
+  ],
+  "resolucao_m": 10.0,
+  "area_total_recorte_ha": 2621.44,
+  "nodata": 0,
+  "armazenamento": "DN original; reflectancia = DN * scale + offset, exceto nodata",
+  "bandas": [
+    {
+      "indice": 1,
+      "banda": "B02",
+      "nome": "blue",
+      "scale": 0.0001,
+      "offset": -0.1,
+      "fonte": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/23/K/LS/2026/1/S2B_T23KLS_20260110T131730_L2A/B02.tif"
+    },
+    {
+      "indice": 2,
+      "banda": "B03",
+      "nome": "green",
+      "scale": 0.0001,
+      "offset": -0.1,
+      "fonte": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/23/K/LS/2026/1/S2B_T23KLS_20260110T131730_L2A/B03.tif"
+    },
+    {
+      "indice": 3,
+      "banda": "B04",
+      "nome": "red",
+      "scale": 0.0001,
+      "offset": -0.1,
+      "fonte": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/23/K/LS/2026/1/S2B_T23KLS_20260110T131730_L2A/B04.tif"
+    },
+    {
+      "indice": 4,
+      "banda": "B08",
+      "nome": "nir",
+      "scale": 0.0001,
+      "offset": -0.1,
+      "fonte": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/23/K/LS/2026/1/S2B_T23KLS_20260110T131730_L2A/B08.tif"
+    }
+  ],
+  "scl": {
+    "arquivo": "qualidade_scl.tif",
+    "resolucao_m": 20.0,
+    "nota": "Classificação de cena/qualidade do Sentinel-2, não classificação de café.",
+    "fonte": "https://e84-earth-search-sentinel-data.s3.us-west-2.amazonaws.com/sentinel-2-c1-l2a/23/K/LS/2026/1/S2B_T23KLS_20260110T131730_L2A/SCL.tif"
+  },
+  "alteracoes": [
+    "Recorte espacial sem reamostragem, na grade do kit do desafio",
+    "Empilhamento das quatro bandas nativas de 10 m",
+    "Metadados radiométricos lidos do item STAC (raster:bands)",
+    "SCL mantida na resolução nativa de 20 m"
+  ],
+  "selecao": {
+    "criterio": "menor fração de pixels com problema de aquisição na SCL no recorte; desempate por eo:cloud_cover da cena",
+    "classes_com_problema": [
+      0,
+      1,
+      3,
+      8,
+      9,
+      10,
+      11
+    ],
+    "candidatas": [
+      {
+        "item": "S2B_T23KLS_20260110T131730_L2A",
+        "problem_fraction": 0.0,
+        "cloud_cover": 0.185179
+      },
+      {
+        "item": "S2B_T23KLS_20251201T131235_L2A",
+        "problem_fraction": 0.0,
+        "cloud_cover": 0.334106
+      },
+      {
+        "item": "S2B_T23KLS_20260324T132348_L2A",
+        "problem_fraction": 0.0,
+        "cloud_cover": 8.052648
+      },
+      {
+        "item": "S2C_T23KLS_20251226T131249_L2A",
+        "problem_fraction": 0.0,
+        "cloud_cover": 15.743804
+      },
+      {
+        "item": "S2C_T23KLS_20260329T132613_L2A",
+        "problem_fraction": 0.0,
+        "cloud_cover": 22.148038
+      },
+      {
+        "item": "S2C_T23KLS_20260128T132229_L2A",
+        "problem_fraction": 0.0,
+        "cloud_cover": 27.455515
+      },
+      {
+        "item": "S2A_T23KLS_20260328T131301_L2A",
+        "problem_fraction": 0.0007,
+        "cloud_cover": 5.995406
+      },
+      {
+        "item": "S2C_T23KLS_20260316T131704_L2A",
+        "problem_fraction": 0.0047,
+        "cloud_cover": 4.251772
+      },
+      {
+        "item": "S2C_T23KLS_20251229T132240_L2A",
+        "problem_fraction": 0.0149,
+        "cloud_cover": 36.832994
+      },
+      {
+        "item": "S2A_T23KLS_20251228T131532_L2A",
+        "problem_fraction": 0.0203,
+        "cloud_cover": 6.947412
+      },
+      {
+        "item": "S2B_T23KLS_20251221T131240_L2A",
+        "problem_fraction": 0.0272,
+        "cloud_cover": 41.628131
+      },
+      {
+        "item": "S2C_T23KLS_20260217T132621_L2A",
+        "problem_fraction": 0.1289,
+        "cloud_cover": 3.715103
+      },
+      {
+        "item": "S2B_T23KLS_20260331T131240_L2A",
+        "problem_fraction": 0.1755,
+        "cloud_cover": 39.741284
+      },
+      {
+        "item": "S2B_T23KLS_20260301T131637_L2A",
+        "problem_fraction": 0.2021,
+        "cloud_cover": 17.562181
+      },
+      {
+        "item": "S2B_T23KLS_20260304T132541_L2A",
+        "problem_fraction": 0.3104,
+        "cloud_cover": 35.581496
+      },
+      {
+        "item": "S2C_T23KLS_20251206T131249_L2A",
+        "problem_fraction": 0.3461,
+        "cloud_cover": 37.328506
+      },
+      {
+        "item": "S2B_T23KLS_20260222T132631_L2A",
+        "problem_fraction": 0.3688,
+        "cloud_cover": 79.89589
+      },
+      {
+        "item": "S2A_T23KLS_20260331T132733_L2A",
+        "problem_fraction": 0.4294,
+        "cloud_cover": 29.928523
+      },
+      {
+        "item": "S2B_T23KLS_20251224T132300_L2A",
+        "problem_fraction": 0.4341,
+        "cloud_cover": 16.211002
+      },
+      {
+        "item": "S2B_T23KLS_20260212T132226_L2A",
+        "problem_fraction": 0.54,
+        "cloud_cover": 74.920774
+      },
+      {
+        "item": "S2B_T23KLS_20260314T132540_L2A",
+        "problem_fraction": 0.5585,
+        "cloud_cover": 61.188918
+      },
+      {
+        "item": "S2B_T23KLS_20260321T131425_L2A",
+        "problem_fraction": 0.6009,
+        "cloud_cover": 33.7538
+      },
+      {
+        "item": "S2A_T23KLS_20251211T132246_L2A",
+        "problem_fraction": 0.6626,
+        "cloud_cover": 55.782557
+      },
+      {
+        "item": "S2C_T23KLS_20260105T131247_L2A",
+        "problem_fraction": 0.7088,
+        "cloud_cover": 66.701114
+      },
+      {
+        "item": "S2B_T23KLS_20260219T131552_L2A",
+        "problem_fraction": 0.7151,
+        "cloud_cover": 70.100468
+      },
+      {
+        "item": "S2C_T23KLS_20260319T132235_L2A",
+        "problem_fraction": 0.7239,
+        "cloud_cover": 74.413657
+      },
+      {
+        "item": "S2C_T23KLS_20260125T131240_L2A",
+        "problem_fraction": 0.7887,
+        "cloud_cover": 74.780321
+      },
+      {
+        "item": "S2A_T23KLS_20251208T131512_L2A",
+        "problem_fraction": 0.7951,
+        "cloud_cover": 78.118485
+      },
+      {
+        "item": "S2B_T23KLS_20260103T132231_L2A",
+        "problem_fraction": 0.8152,
+        "cloud_cover": 97.360688
+      },
+      {
+        "item": "S2C_T23KLS_20260227T132524_L2A",
+        "problem_fraction": 0.8554,
+        "cloud_cover": 63.730752
+      },
+      {
+        "item": "S2B_T23KLS_20251211T131702_L2A",
+        "problem_fraction": 0.8647,
+        "cloud_cover": 48.085481
+      },
+      {
+        "item": "S2C_T23KLS_20260326T131551_L2A",
+        "problem_fraction": 0.8873,
+        "cloud_cover": 89.885783
+      },
+      {
+        "item": "S2B_T23KLS_20251204T132612_L2A",
+        "problem_fraction": 0.9277,
+        "cloud_cover": 48.08799
+      },
+      {
+        "item": "S2C_T23KLS_20260118T132233_L2A",
+        "problem_fraction": 0.9456,
+        "cloud_cover": 85.220128
+      },
+      {
+        "item": "S2B_T23KLS_20260120T131736_L2A",
+        "problem_fraction": 0.9464,
+        "cloud_cover": 82.520831
+      },
+      {
+        "item": "S2C_T23KLS_20260108T132237_L2A",
+        "problem_fraction": 0.9852,
+        "cloud_cover": 77.335787
+      },
+      {
+        "item": "S2C_T23KLS_20260306T131242_L2A",
+        "problem_fraction": 0.9979,
+        "cloud_cover": 53.185016
+      },
+      {
+        "item": "S2C_T23KLS_20260214T131623_L2A",
+        "problem_fraction": 0.9997,
+        "cloud_cover": 59.680367
+      },
+      {
+        "item": "S2C_T23KLS_20260115T131242_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 88.523293
+      },
+      {
+        "item": "S2C_T23KLS_20260207T132233_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 93.404627
+      },
+      {
+        "item": "S2B_T23KLS_20260113T132453_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 96.491218
+      },
+      {
+        "item": "S2B_T23KLS_20251214T132458_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 97.618401
+      },
+      {
+        "item": "S2C_T23KLS_20260224T131428_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 98.338038
+      },
+      {
+        "item": "S2C_T23KLS_20251219T132240_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 98.387766
+      },
+      {
+        "item": "S2B_T23KLS_20260209T131503_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 99.075854
+      },
+      {
+        "item": "S2C_T23KLS_20260204T131241_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 99.169016
+      },
+      {
+        "item": "S2B_T23KLS_20260123T132246_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 99.682224
+      },
+      {
+        "item": "S2B_T23KLS_20260130T131236_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 99.767113
+      },
+      {
+        "item": "S2C_T23KLS_20260309T132538_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 99.999988
+      },
+      {
+        "item": "S2B_T23KLS_20260311T131529_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 100
+      },
+      {
+        "item": "S2B_T23KLS_20260202T132256_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 100
+      },
+      {
+        "item": "S2A_T23KLS_20251231T132254_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 100
+      },
+      {
+        "item": "S2B_T23KLS_20251231T131240_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 100
+      },
+      {
+        "item": "S2C_T23KLS_20251216T131249_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 100
+      },
+      {
+        "item": "S2C_T23KLS_20251209T132240_L2A",
+        "problem_fraction": 1.0,
+        "cloud_cover": 100
+      }
+    ]
+  },
+  "rotulos_cafe": null,
+  "nota": "Imagem real de uma região produtora; presença e limites de cafezais neste recorte não foram verificados em campo."
+}

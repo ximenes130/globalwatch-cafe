@@ -17,7 +17,7 @@ aprovação.
     shape (4, 512, 512), CRS e transform iguais aos do kit; `read_image` aceita
     o arquivo e a área total é 2.621,44 ha; `--item` de outro tile para sem
     gravar.
-- [ ] **T3.2** (P0) Atribuição, metadados e SHA256 da cena adicional, versionados.
+- [x] **T3.2** (P0) Atribuição, metadados e SHA256 da cena adicional, versionados.
   - _Req: R3.6_
   - Arquivos: `data/adicional/<item_id>/`
   - Verificação: `sha256sum -c SHA256SUMS.txt`.
