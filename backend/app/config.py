@@ -29,8 +29,8 @@ class Settings(BaseSettings):
     # Documentação da API (/docs, /redoc, /openapi.json): só no desenvolvimento (R6.1).
     api_docs: bool = False
     # Limites diários por usuário (R6.8, R6.9).
-    max_uploads_per_day: int = 5
-    max_messages_per_day: int = 30
+    max_uploads_per_day: int = 20
+    max_messages_per_day: int = 50
 
     @property
     def cors_origins_list(self) -> list[str]:
