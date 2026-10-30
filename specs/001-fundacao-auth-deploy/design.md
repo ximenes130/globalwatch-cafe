@@ -1,7 +1,7 @@
 ---
 id: "001"
 titulo: Fundação, autenticação com Google e deploy
-status: rascunho
+status: aprovado
 ---
 
 # 001 — Fundação, autenticação e deploy: design
