@@ -9,13 +9,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import db
 from app.auth import CurrentUser, current_user
 from app.config import get_settings
+from app.routes import analyses
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    db.open_pool(settings.database_url)
+    # Lido na subida, não na importação: os testes trocam o ambiente antes de
+    # subir o app, e assim nunca conectam no banco real do `.env`.
+    db.open_pool(get_settings().database_url)
     yield
     db.close_pool()
 
@@ -27,7 +30,11 @@ app.add_middleware(
     allow_origins=settings.cors_origins_list,
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
+    # O POST /analyses devolve a URL da análise criada (R2.22).
+    expose_headers=["Location"],
 )
+
+app.include_router(analyses.router)
 
 
 @app.get("/health")

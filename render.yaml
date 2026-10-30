@@ -59,6 +59,9 @@ services:
         value: authenticated
       - key: DATABASE_URL
         sync: false
+      # Chave secreta do Supabase (service role ou sb_secret_…), só para o Storage.
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       # Origem do front, ex.: https://globalwatch-cafe.onrender.com
       - key: CORS_ORIGINS
         sync: false

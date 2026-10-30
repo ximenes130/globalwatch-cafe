@@ -15,6 +15,7 @@ dependencies = [
     "shapely>=2.2,<3",
     "pyproj>=3.8,<4",
     "pillow>=12.3,<13",
+    "python-multipart>=0.0.32,<1",
     "rasterio>=1.5.2,<2",
 ]
 
