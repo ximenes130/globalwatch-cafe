@@ -1,6 +1,6 @@
 import { ArrowUp, RotateCw } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react'
-import { ChatCards } from '@/components/ChatCards'
+import { ChatCards, type ShowPolygon } from '@/components/ChatCards'
 import { Button } from '@/components/ui/button'
 import { type ChatTurn, sendChat } from '@/lib/api'
 import { type ChatEntry, loadChat, saveChat } from '@/lib/chat-store'
@@ -15,13 +15,13 @@ const HISTORY_CHARS = 4000
 const SUGGESTIONS = ['Por que tanta área ficou de fora?', 'Qual a confiança deste resultado?', 'Fale do polígono 1.']
 const SECOND_DATE_SUGGESTION = 'O que a segunda data mudou no resultado?'
 
-type Props = { analysisId: string; hasSecondDate: boolean }
+type Props = { analysisId: string; hasSecondDate: boolean; onShowPolygon: ShowPolygon }
 
 /**
  * Conversa sobre a análise (R5.1, R5.7, R5.8). Na primeira abertura pede a apresentação;
  * cada resposta traz os cards do que o assistente consultou (R5.14).
  */
-export function Chat({ analysisId, hasSecondDate }: Props) {
+export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
   const [entries, setEntries] = useState<ChatEntry[]>(() => loadChat(analysisId))
   const [pending, setPending] = useState(false)
   const [introError, setIntroError] = useState<string | null>(null)
@@ -127,7 +127,7 @@ export function Chat({ analysisId, hasSecondDate }: Props) {
               ref={i === entries.length - 1 ? lastAnswer : undefined}
               className="scroll-mt-14 space-y-3 duration-(--duration-slow) animate-in fade-in slide-in-from-bottom-1"
             >
-              <ChatCards cards={entry.cards ?? []} />
+              <ChatCards cards={entry.cards ?? []} onShowPolygon={onShowPolygon} />
               <div className="space-y-2.5 text-sm leading-relaxed">{renderMarkdown(entry.content)}</div>
             </li>
           ),

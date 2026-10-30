@@ -41,7 +41,7 @@ e "Ver no mapa". Se às 18h não estiver de pé: fallback sem ferramentas (ver d
   - Arquivos: `supabase/migrations/` (coluna `cards jsonb` em `chat_messages`),
     `backend/app/routes/chat.py`
   - Verificação: recarregar a página mantém a conversa e os cards.
-- [ ] **T5.6** (P1) "Ver no mapa" no card de polígono.
+- [x] **T5.6** (P1) "Ver no mapa" no card de polígono.
   - _Req: R5.15_
   - Arquivos: `frontend/src/components/ChatCards.tsx`, `frontend/src/components/MapView.tsx`
   - Verificação: manual; o polígono destacado tem o mesmo id do card e do popup.

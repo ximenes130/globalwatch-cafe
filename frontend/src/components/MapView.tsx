@@ -1,6 +1,8 @@
 import {
   type FilterSpecification,
+  type GeoJSONSource,
   LngLatBounds,
+  type LngLatLike,
   Map as MapLibre,
   type MapGeoJSONFeature,
   NavigationControl,
@@ -40,6 +42,9 @@ const LOCALE = {
 
 export type Overlay = 'rgb' | 'classification'
 
+/** Polígono pedido pelo card do chat (R5.15); `seq` repete o pedido para o mesmo id. */
+export type Focus = { id: number; centroid: [number, number]; seq: number }
+
 type Props = {
   corners: Corners
   urls: ResultUrls
@@ -49,6 +54,7 @@ type Props = {
   intro: boolean
   /** Chamado quando overlay e polígonos terminam de aparecer; o painel entra depois. */
   onRevealed: () => void
+  focus: Focus | null
 }
 
 const FILL_OPACITY = 0.18
@@ -65,6 +71,7 @@ const FILL_OPACITY = 0.18
 export default function MapView(props: Props) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibre | null>(null)
+  const popupRef = useRef<Popup | null>(null)
   const latest = useRef(props)
   const revealed = useRef(false)
 
@@ -146,6 +153,9 @@ export default function MapView(props: Props) {
       // Realce do polígono sob o cursor: camadas filtradas pelo id, por cima das outras.
       map.addLayer({ id: 'potential-hover-fill', type: 'fill', source: 'potential', filter: NO_FEATURE, paint: { 'fill-color': CHERRY, 'fill-opacity': 0.25 } })
       map.addLayer({ id: 'potential-hover-line', type: 'line', source: 'potential', filter: NO_FEATURE, paint: { 'line-color': CHERRY, 'line-width': 2.5 } })
+      // Polígono escolhido no chat: contorno escuro, que fica até outra escolha.
+      map.addLayer({ id: 'potential-selected-fill', type: 'fill', source: 'potential', filter: NO_FEATURE, paint: { 'fill-color': CHERRY, 'fill-opacity': 0.35 } })
+      map.addLayer({ id: 'potential-selected-line', type: 'line', source: 'potential', filter: NO_FEATURE, paint: { 'line-color': INK, 'line-width': 2.5 } })
 
       const flown = new Promise<void>((resolve) => {
         if (!fly) return resolve()
@@ -176,11 +186,7 @@ export default function MapView(props: Props) {
     map.on('mouseleave', 'potential-fill', () => setHover(undefined))
     map.on('click', 'potential-fill', (event) => {
       const feature = event.features?.[0]
-      if (!feature) return
-      new Popup({ maxWidth: '16rem', className: 'potential-popup' })
-        .setLngLat(event.lngLat)
-        .setDOMContent(popupContent(feature))
-        .addTo(map)
+      if (feature) openPopup(map, popupRef, event.lngLat, feature)
     })
 
     return () => {
@@ -190,12 +196,42 @@ export default function MapView(props: Props) {
     }
   }, [])
 
-  const { overlay, opacity } = props
+  const { overlay, opacity, focus } = props
   useEffect(() => {
     latest.current = { ...latest.current, overlay, opacity }
     const map = mapRef.current
     if (map?.getLayer('rgb') && revealed.current) applyOverlay(map, overlay, opacity)
   }, [overlay, opacity])
+
+  // "Ver no mapa" (R5.15): enquadra o polígono, destaca e abre o mesmo popup do clique.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!focus || !map?.getLayer('potential-selected-line')) return
+    const filter = ['==', ['id'], focus.id] as FilterSpecification
+    map.setFilter('potential-selected-fill', filter)
+    map.setFilter('potential-selected-line', filter)
+    const duration = prefersReducedMotion() ? 0 : FLY_MS
+    let cancelled = false
+    // Lido do GeoJSON da fonte, não dos tiles: o polígono pode estar fora da tela.
+    void map
+      .getSource<GeoJSONSource>('potential')
+      ?.getData()
+      .then((data) => {
+        if (cancelled) return
+        const feature = (data as PotentialCollection).features.find((f) => f.properties.id === focus.id)
+        if (!feature) {
+          map.flyTo({ center: focus.centroid, zoom: Math.max(map.getZoom(), 15), duration })
+          return
+        }
+        const box = new LngLatBounds()
+        for (const point of outerRings(feature.geometry)) box.extend(point as [number, number])
+        map.fitBounds(box, { padding: 80, maxZoom: 16.5, duration, easing: easeOut })
+        openPopup(map, popupRef, focus.centroid, feature)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [focus])
 
   return (
     <div
@@ -208,6 +244,27 @@ export default function MapView(props: Props) {
 }
 
 const NO_FEATURE: FilterSpecification = ['==', ['id'], -1]
+
+/** Um popup por vez: o do clique e o do chat se substituem. */
+function openPopup(map: MapLibre, popupRef: { current: Popup | null }, at: LngLatLike, feature: PopupFeature) {
+  popupRef.current?.remove()
+  popupRef.current = new Popup({ maxWidth: '16rem', className: 'potential-popup' })
+    .setLngLat(at)
+    .setDOMContent(popupContent(feature))
+    .addTo(map)
+}
+
+type PopupFeature = Pick<MapGeoJSONFeature, 'properties'>
+type PotentialCollection = {
+  features: { properties: { id: number }; geometry: { type: string; coordinates?: unknown } }[]
+}
+
+/** Anéis externos de um polígono ou multipolígono; bastam para o enquadramento. */
+function outerRings(geometry: { type: string; coordinates?: unknown }): number[][] {
+  if (geometry.type === 'Polygon') return (geometry.coordinates as number[][][])[0]
+  if (geometry.type === 'MultiPolygon') return (geometry.coordinates as number[][][][]).flatMap((polygon) => polygon[0])
+  return []
+}
 
 function sourceLoaded(map: MapLibre, id: string) {
   return new Promise<void>((resolve) => {
@@ -236,7 +293,7 @@ function boundary(corners: Corners) {
 }
 
 /** Conteúdo montado com nós de texto: nada do GeoJSON vira HTML. */
-function popupContent(feature: MapGeoJSONFeature): HTMLElement {
+function popupContent(feature: PopupFeature): HTMLElement {
   const { id, area_ha, ndvi_mean } = feature.properties as { id: number; area_ha: number; ndvi_mean: number }
   const root = document.createElement('div')
   const rows: [string, string][] = [

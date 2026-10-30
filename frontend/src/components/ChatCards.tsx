@@ -1,4 +1,6 @@
+import { MapPin } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Button } from '@/components/ui/button'
 import type { ChatCard, ExclusionLevel, LimitationsCard, PolygonCard, SummaryCard } from '@/lib/api'
 import { formatHa, formatImageDate, formatIndex } from '@/lib/format'
 
@@ -20,7 +22,9 @@ const LIMITATIONS_SHOWN = 3
  * Dados que o assistente consultou para responder (R5.14). Vêm do retorno das
  * ferramentas, montados no backend: são a referência para conferir o texto.
  */
-export function ChatCards({ cards }: { cards: ChatCard[] }) {
+export type ShowPolygon = (id: number, centroid: [number, number]) => void
+
+export function ChatCards({ cards, onShowPolygon }: { cards: ChatCard[]; onShowPolygon?: ShowPolygon }) {
   if (cards.length === 0) return null
   return (
     <section aria-label="Dados do processamento" className="space-y-2">
@@ -28,7 +32,7 @@ export function ChatCards({ cards }: { cards: ChatCard[] }) {
       {cards.map((card, i) => {
         // Tipo desconhecido (backend mais novo que o front): não mostra nada.
         if (card.kind === 'summary') return <Summary key={i} card={card} />
-        if (card.kind === 'polygon') return <Polygon key={i} card={card} />
+        if (card.kind === 'polygon') return <Polygon key={i} card={card} onShow={onShowPolygon} />
         if (card.kind === 'limitations') return <Limitations key={i} card={card} />
         return null
       })}
@@ -81,7 +85,7 @@ function Summary({ card: { data } }: { card: SummaryCard }) {
   )
 }
 
-function Polygon({ card: { data } }: { card: PolygonCard }) {
+function Polygon({ card: { data }, onShow }: { card: PolygonCard; onShow?: ShowPolygon }) {
   const [lon, lat] = data.centroid
   return (
     <Card title={`Área potencial nº ${data.id}`}>
@@ -96,7 +100,14 @@ function Polygon({ card: { data } }: { card: PolygonCard }) {
       <p className="mt-2 font-mono text-[11px] text-muted-foreground">
         Centróide lat {coordinate.format(lat)} · lon {coordinate.format(lon)}
       </p>
-      <p className="mt-1 text-[11px] text-muted-foreground">Não validada em campo.</p>
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <p className="text-[11px] text-muted-foreground">Não validada em campo.</p>
+        {onShow && (
+          <Button size="xs" variant="outline" onClick={() => onShow(data.id, data.centroid)}>
+            <MapPin /> Ver no mapa
+          </Button>
+        )}
+      </div>
     </Card>
   )
 }

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Tabs } from 'radix-ui'
 import { Chat } from '@/components/Chat'
@@ -11,7 +11,7 @@ import { Processing } from '@/components/states/Processing'
 import { Summary } from '@/components/Summary'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Overlay } from '@/components/MapView'
+import type { Focus, Overlay } from '@/components/MapView'
 import { type Analysis as AnalysisData, ApiError, getAnalysis } from '@/lib/api'
 import { analysesKey, analysisKey } from '@/lib/query'
 import { useDocumentTitle } from '@/lib/use-document-title'
@@ -112,6 +112,13 @@ function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean })
   }
   const [overlay, setOverlay] = useState<Overlay>('rgb')
   const [opacity, setOpacity] = useState(1)
+  const [focus, setFocus] = useState<Focus | null>(null)
+  const mapBox = useRef<HTMLDivElement>(null)
+  const showPolygon = (id: number, centroid: [number, number]) => {
+    setFocus({ id, centroid, seq: (focus?.seq ?? 0) + 1 })
+    // No celular o mapa fica acima do chat: sobe até ele.
+    if (window.matchMedia('(max-width: 1023px)').matches) mapBox.current?.scrollIntoView({ block: 'start' })
+  }
   const { bounds_wgs84: corners, urls } = analysis
   const hasMap = Boolean(corners && urls)
   // O painel entra depois do mapa (R4.19); sem mapa, entra direto.
@@ -126,7 +133,7 @@ function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean })
     // No desktop o mapa ocupa a altura que sobra abaixo do cabeçalho (57 px) e o painel rola.
     // `flex-none` e linha `minmax(0, 1fr)`: sem eles, o painel comprido estica o main e o mapa.
     <main className="flex flex-1 flex-col lg:grid lg:h-[calc(100dvh-57px)] lg:flex-none lg:grid-cols-[minmax(0,1fr)_26rem] lg:grid-rows-[minmax(0,1fr)]">
-      <div className="relative h-[60svh] border-b border-border lg:h-full lg:border-r lg:border-b-0">
+      <div ref={mapBox} className="relative h-[60svh] scroll-mt-2 border-b border-border lg:h-full lg:border-r lg:border-b-0">
         {corners && urls ? (
           <Suspense fallback={<Skeleton className="size-full rounded-none" />}>
             <MapView
@@ -137,6 +144,7 @@ function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean })
               opacity={opacity}
               intro={intro}
               onRevealed={() => setRevealed(true)}
+              focus={focus}
             />
           </Suspense>
         ) : (
@@ -186,7 +194,13 @@ function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean })
             )}
           </Tabs.Content>
           <Tabs.Content value="chat" forceMount className="outline-none data-[state=inactive]:hidden lg:h-[calc(100%-45px)]">
-            {chatOpened && <Chat analysisId={analysis.id} hasSecondDate={Boolean(analysis.stats?.second_acquired_at)} />}
+            {chatOpened && (
+              <Chat
+                analysisId={analysis.id}
+                hasSecondDate={Boolean(analysis.stats?.second_acquired_at)}
+                onShowPolygon={showPolygon}
+              />
+            )}
           </Tabs.Content>
         </Tabs.Root>
       </aside>
