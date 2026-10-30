@@ -1,7 +1,7 @@
 ---
 id: "005"
 titulo: Chat com IA sobre a análise
-status: em-implementacao
+status: concluido
 desafio: [5]
 pontos: Chatbot e coerência dos resultados (10)
 prioridade: P0 (versão mínima e cards) / P1 (histórico persistido, card ligado ao mapa)

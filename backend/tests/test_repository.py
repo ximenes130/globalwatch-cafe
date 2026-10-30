@@ -1,4 +1,4 @@
-"""SQL de `analyses` contra Postgres de verdade (T2.10, R2.24, C3.2).
+"""SQL de `analyses` e `chat_messages` contra Postgres de verdade (T2.10, T5.5, R2.24, C3.2).
 
 Precisa de `TEST_DATABASE_URL` apontando para um banco com as migrations e o
 stub de `supabase/tests/` (o `rls_test` que o `run.sh` cria). Sem a variável,
@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.processing.pipeline import AnalysisResult
-from app.repository import STALE_MESSAGE, AnalysisRepository
+from app.repository import STALE_MESSAGE, AnalysisRepository, ChatMessageRepository
 
 DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(not DATABASE_URL, reason="TEST_DATABASE_URL não definida")
@@ -139,3 +139,62 @@ def test_delete_own_analysis(pool, users):
 
     assert repo.delete(owner, analysis_id) is True
     assert repo.get(owner, analysis_id) is None
+
+
+CARD = {"kind": "polygon", "data": {"id": 31, "area_ha": 1.73, "centroid": [-46.68, -21.31]}}
+
+
+def test_chat_exchange_round_trip_in_order(pool, users):
+    owner, _ = users
+    analysis_id = AnalysisRepository(pool).create(owner, "kit.tif")
+    chat = ChatMessageRepository(pool)
+
+    intro = [{"role": "assistant", "content": "Apresentação.", "cards": []}]
+    chat.append(owner, analysis_id, intro)
+    chat.append(
+        owner,
+        analysis_id,
+        [
+            {"role": "user", "content": "Fale do 31"},
+            {"role": "assistant", "content": "O 31 tem 1,73 ha.", "cards": [CARD]},
+        ],
+    )
+
+    history = chat.history(owner, analysis_id)
+    assert [(m["role"], m["content"]) for m in history] == [
+        ("assistant", "Apresentação."),
+        ("user", "Fale do 31"),
+        ("assistant", "O 31 tem 1,73 ha."),
+    ]
+    assert history[1]["cards"] == []
+    assert history[2]["cards"] == [CARD]
+
+
+def test_chat_history_is_per_user_and_goes_with_the_analysis(pool, users):
+    owner, other = users
+    repo = AnalysisRepository(pool)
+    analysis_id = repo.create(owner, "kit.tif")
+    chat = ChatMessageRepository(pool)
+    chat.append(owner, analysis_id, [{"role": "assistant", "content": "Oi.", "cards": []}])
+
+    assert chat.history(other, analysis_id) == []
+    repo.delete(owner, analysis_id)
+    assert chat.history(owner, analysis_id) == []
+
+
+def test_chat_exchange_is_all_or_nothing(pool, users):
+    owner, _ = users
+    analysis_id = AnalysisRepository(pool).create(owner, "kit.tif")
+    chat = ChatMessageRepository(pool)
+
+    with pytest.raises(Exception):  # noqa: B017 - qualquer erro do banco serve
+        chat.append(
+            owner,
+            analysis_id,
+            [
+                {"role": "user", "content": "Pergunta"},
+                {"role": "system", "content": "papel inválido"},
+            ],
+        )
+
+    assert chat.history(owner, analysis_id) == []

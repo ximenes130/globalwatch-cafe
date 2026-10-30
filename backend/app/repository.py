@@ -119,3 +119,42 @@ class AnalysisRepository:
                 "delete from analyses where id = %s and user_id = %s", (analysis_id, user_id)
             )
             return cursor.rowcount == 1
+
+
+class ChatRepository(Protocol):
+    def history(self, user_id: UUID, analysis_id: UUID) -> list[dict]: ...
+
+    def append(self, user_id: UUID, analysis_id: UUID, messages: list[dict]) -> None: ...
+
+
+class ChatMessageRepository:
+    """Conversa de uma análise em `chat_messages` (T5.5, R5.9), sempre filtrada por `user_id`."""
+
+    def __init__(self, pool: ConnectionPool):
+        self.pool = pool
+
+    def history(self, user_id: UUID, analysis_id: UUID) -> list[dict]:
+        # Cursor próprio com `dict_row`: mudar a conexão afetaria quem a pegar depois no pool.
+        with self.pool.connection() as conn, conn.cursor(row_factory=dict_row) as cursor:
+            return cursor.execute(
+                """
+                select id, role, content, cards, created_at from chat_messages
+                where user_id = %s and analysis_id = %s
+                order by created_at, id
+                """,
+                (user_id, analysis_id),
+            ).fetchall()
+
+    def append(self, user_id: UUID, analysis_id: UUID, messages: list[dict]) -> None:
+        """Pergunta e resposta juntas: numa transação, nenhuma fica sem a outra."""
+        with self.pool.connection() as conn, conn.transaction(), conn.cursor() as cursor:
+            cursor.executemany(
+                """
+                insert into chat_messages (analysis_id, user_id, role, content, cards)
+                values (%s, %s, %s, %s, %s)
+                """,
+                [
+                    (analysis_id, user_id, m["role"], m["content"], Jsonb(m.get("cards", [])))
+                    for m in messages
+                ],
+            )

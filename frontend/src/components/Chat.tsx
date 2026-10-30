@@ -2,8 +2,7 @@ import { ArrowUp, RotateCw } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { ChatCards, type ShowPolygon } from '@/components/ChatCards'
 import { Button } from '@/components/ui/button'
-import { type ChatTurn, sendChat } from '@/lib/api'
-import { type ChatEntry, loadChat, saveChat } from '@/lib/chat-store'
+import { type ChatCard, type ChatTurn, getChatHistory, sendChat } from '@/lib/api'
 import { renderMarkdown } from '@/lib/markdown'
 import { prefersReducedMotion } from '@/lib/motion'
 
@@ -17,12 +16,24 @@ const SECOND_DATE_SUGGESTION = 'O que a segunda data mudou no resultado?'
 
 type Props = { analysisId: string; hasSecondDate: boolean; onShowPolygon: ShowPolygon }
 
+type ChatEntry = {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  cards?: ChatCard[]
+  /** Pergunta que não teve resposta: mensagem do backend, mostrada com "Tentar de novo". Não é gravada. */
+  error?: string
+}
+
 /**
  * Conversa sobre a análise (R5.1, R5.7, R5.8). Na primeira abertura pede a apresentação;
  * cada resposta traz os cards do que o assistente consultou (R5.14).
  */
 export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
-  const [entries, setEntries] = useState<ChatEntry[]>(() => loadChat(analysisId))
+  // `null` enquanto a conversa gravada carrega (T5.5).
+  const [stored, setEntries] = useState<ChatEntry[] | null>(null)
+  const entries = stored ?? []
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [introError, setIntroError] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
@@ -30,21 +41,19 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
   const lastAnswer = useRef<HTMLLIElement>(null)
   const started = useRef(false)
 
-  useEffect(() => saveChat(analysisId, entries), [analysisId, entries])
-
   useEffect(() => {
     const behavior = prefersReducedMotion() ? 'auto' : 'smooth'
     // Resposta nova abre pelo começo (cards e depois o texto); o resto rola até o fim.
-    if (!pending && entries.at(-1)?.role === 'assistant') lastAnswer.current?.scrollIntoView({ block: 'start', behavior })
+    if (!pending && stored?.at(-1)?.role === 'assistant') lastAnswer.current?.scrollIntoView({ block: 'start', behavior })
     else end.current?.scrollIntoView({ block: 'end', behavior })
-  }, [entries, pending])
+  }, [stored, pending])
 
   async function ask(message: string | null, before: ChatEntry[]) {
     setPending(true)
     try {
       const answer = await sendChat(analysisId, message, historyOf(before))
       setEntries((current) => [
-        ...current,
+        ...(current ?? []),
         { id: crypto.randomUUID(), role: 'assistant', content: answer.reply, cards: answer.cards },
       ])
       return null
@@ -60,23 +69,36 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
     setIntroError(await ask(null, []))
   }
 
+  async function load() {
+    setLoadError(null)
+    try {
+      const saved = await getChatHistory(analysisId)
+      setEntries(saved.map(({ id, role, content, cards }) => ({ id: String(id), role, content, cards })))
+      // Apresentação só numa conversa vazia.
+      if (saved.length === 0) await intro()
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Não foi possível carregar a conversa.')
+    }
+  }
+
   useEffect(() => {
-    // Apresentação só numa conversa vazia, uma vez (o modo estrito monta duas vezes).
-    if (started.current || entries.length > 0) return
+    // Uma vez por montagem (o modo estrito roda o efeito duas vezes).
+    if (started.current) return
     started.current = true
-    void intro()
+    void load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function send(text: string) {
     const message = text.trim()
-    if (!message || pending) return
+    // Antes de a conversa gravada chegar, o histórico enviado estaria incompleto.
+    if (!message || pending || stored === null) return
     const question: ChatEntry = { id: crypto.randomUUID(), role: 'user', content: message }
     const before = entries
     setEntries([...before, question])
     setDraft('')
     const error = await ask(message, before)
-    if (error) setEntries((current) => current.map((e) => (e.id === question.id ? { ...e, error } : e)))
+    if (error) setEntries((current) => (current ?? []).map((e) => (e.id === question.id ? { ...e, error } : e)))
   }
 
   async function retry(entry: ChatEntry) {
@@ -86,7 +108,7 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
     const question = { ...entry, error: undefined }
     setEntries([...before, ...entries.slice(index + 1), question])
     const error = await ask(entry.content, before)
-    if (error) setEntries((current) => current.map((e) => (e.id === question.id ? { ...e, error } : e)))
+    if (error) setEntries((current) => (current ?? []).map((e) => (e.id === question.id ? { ...e, error } : e)))
   }
 
   function onSubmit(event: FormEvent) {
@@ -131,6 +153,19 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
               <div className="space-y-2.5 text-sm leading-relaxed">{renderMarkdown(entry.content)}</div>
             </li>
           ),
+        )}
+        {stored === null && !loadError && (
+          <li role="status" className="py-1 text-sm text-muted-foreground">
+            Carregando a conversa…
+          </li>
+        )}
+        {loadError && (
+          <li role="alert" className="space-y-2 rounded-lg border border-border bg-card p-3 text-sm">
+            <p>{loadError}</p>
+            <Button size="sm" variant="outline" onClick={() => void load()}>
+              <RotateCw /> Tentar de novo
+            </Button>
+          </li>
         )}
         {pending && (
           <li role="status" className="flex items-center gap-1 py-1" aria-label="O assistente está escrevendo">
@@ -178,7 +213,7 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
             placeholder="Pergunte sobre áreas, polígonos ou limitações"
             className="min-h-10 flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
-          <Button type="submit" size="icon-lg" disabled={pending || !draft.trim()} aria-label="Enviar pergunta">
+          <Button type="submit" size="icon-lg" disabled={pending || stored === null || !draft.trim()} aria-label="Enviar pergunta">
             <ArrowUp />
           </Button>
         </form>

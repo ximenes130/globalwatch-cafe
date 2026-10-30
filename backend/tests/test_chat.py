@@ -19,10 +19,10 @@ from app.auth import CurrentUser, current_user
 from app.chat.client import BUSY, MAX_TOOL_ROUNDS, UNAVAILABLE
 from app.main import app
 from app.routes.analyses import get_repository, get_storage
-from app.routes.chat import HISTORY_LIMIT, HISTORY_OPENER, get_chat_client
+from app.routes.chat import HISTORY_LIMIT, HISTORY_OPENER, get_chat_client, get_chat_repository
 from app.storage import object_prefix
 from app.worker import run_analysis
-from tests.fakes import FakeRepository, FakeStorage
+from tests.fakes import FakeChatRepository, FakeRepository, FakeStorage
 from tests.rasters import KIT_IMAGE, KIT_SCL
 
 OWNER = CurrentUser(id=UUID("11111111-1111-1111-1111-111111111111"), email="dono@test")
@@ -84,18 +84,25 @@ def kit():
 def chat(kit):
     repository, storage, analysis_id = kit
     model = FakeModel()
+    stored = FakeChatRepository()
     state = {"user": OWNER}
     app.dependency_overrides[current_user] = lambda: state["user"]
     app.dependency_overrides[get_repository] = lambda: repository
     app.dependency_overrides[get_storage] = lambda: storage
     app.dependency_overrides[get_chat_client] = lambda: model
+    app.dependency_overrides[get_chat_repository] = lambda: stored
     with TestClient(app) as client:
 
         def post(body: dict, target=analysis_id):
             return client.post(f"/analyses/{target}/chat", json=body)
 
+        def history(target=analysis_id):
+            return client.get(f"/analyses/{target}/chat")
+
         yield SimpleNamespace(
             post=post,
+            history=history,
+            stored=stored,
             model=model,
             state=state,
             repository=repository,
@@ -311,3 +318,47 @@ def test_without_api_key_is_503(chat):
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Assistente indisponível."
+
+
+def test_exchange_is_stored_with_the_cards_and_read_back(chat):
+    chat.model.script = [calls(("get_analysis_summary", {})), reply("Apresentação.")]
+    intro = chat.post({"message": None}).json()
+    chat.model.script = [calls(("get_polygon", {"id": 31})), reply("O 31 tem 1,73 ha.")]
+    answer = chat.post({"message": "  Fale do 31  ", "history": []}).json()
+
+    stored = chat.history().json()
+
+    assert [(m["role"], m["content"]) for m in stored] == [
+        ("assistant", "Apresentação."),
+        ("user", "Fale do 31"),
+        ("assistant", "O 31 tem 1,73 ha."),
+    ]
+    # Os cards voltam iguais aos da resposta; a pergunta fica sem card.
+    assert stored[0]["cards"] == intro["cards"]
+    assert stored[1]["cards"] == []
+    assert stored[2]["cards"] == answer["cards"]
+
+
+def test_failed_answer_stores_nothing(chat):
+    chat.model.script = [anthropic.APITimeoutError(request=API_REQUEST)]
+
+    assert chat.post({"message": "Oi"}).status_code == 503
+    assert chat.history().json() == []
+
+
+def test_storage_failure_still_returns_the_answer(chat):
+    chat.stored.fail = True
+    chat.model.script = [reply("Resposta.")]
+
+    response = chat.post({"message": "Oi"})
+
+    assert response.status_code == 200
+    assert response.json()["reply"] == "Resposta."
+
+
+def test_other_users_history_is_404(chat):
+    chat.model.script = [reply("Resposta.")]
+    chat.post({"message": "Oi"})
+    chat.state["user"] = OTHER
+
+    assert chat.history().status_code == 404

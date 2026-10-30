@@ -12,10 +12,12 @@ import anthropic
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, model_validator
 
+from app import db
 from app.chat.client import ChatUnavailable, converse, make_client
 from app.chat.prompt import intro_content
 from app.chat.tools import AnalysisTools
 from app.config import Settings, get_settings
+from app.repository import ChatMessageRepository, ChatRepository
 from app.routes.analyses import NOT_FOUND, Config, Repo, Store, User
 from app.storage import StorageError, object_prefix
 
@@ -62,6 +64,24 @@ def get_chat_client(
 ChatClient = Annotated[anthropic.Anthropic, Depends(get_chat_client)]
 
 
+def get_chat_repository() -> ChatRepository:
+    pool = db.get_pool()
+    if pool is None:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Banco de dados indisponível.")
+    return ChatMessageRepository(pool)
+
+
+Messages = Annotated[ChatRepository, Depends(get_chat_repository)]
+
+
+@router.get("/{analysis_id}/chat")
+def chat_history(analysis_id: UUID, user: User, repository: Repo, messages: Messages) -> list:
+    """Conversa gravada da análise, com os cards de cada resposta (R5.9)."""
+    if repository.get(user.id, analysis_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, NOT_FOUND)
+    return messages.history(user.id, analysis_id)
+
+
 @router.post("/{analysis_id}/chat")
 def chat(
     analysis_id: UUID,
@@ -71,6 +91,7 @@ def chat(
     storage: Store,
     settings: Config,
     client: ChatClient,
+    stored: Messages,
 ) -> dict:
     repository.expire_stale(user.id, settings.stale_after_minutes)
     row = repository.get(user.id, analysis_id)
@@ -104,4 +125,13 @@ def chat(
         result = converse(client, tools, messages, force_summary=body.message is None)
     except ChatUnavailable as exc:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+
+    exchange = [{"role": "assistant", "content": result.reply, "cards": result.cards}]
+    if body.message is not None:
+        exchange.insert(0, {"role": "user", "content": body.message.strip()})
+    try:
+        stored.append(user.id, analysis_id, exchange)
+    except Exception:
+        # A resposta já existe e custou uma chamada ao modelo: entrega mesmo sem gravar.
+        log.exception("Chat: não foi possível gravar a conversa da análise %s", analysis_id)
     return {"reply": result.reply, "cards": result.cards}

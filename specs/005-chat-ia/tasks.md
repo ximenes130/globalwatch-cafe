@@ -1,7 +1,7 @@
 ---
 id: "005"
 titulo: Chat com IA sobre a análise
-status: em-implementacao
+status: concluido
 ---
 
 # 005 — Chat com IA: tarefas
@@ -36,7 +36,7 @@ e "Ver no mapa". Se às 18h não estiver de pé: fallback sem ferramentas (ver d
     `frontend/src/lib/api.ts`
   - Verificação: manual em 375 px e desktop; valores dos cards iguais aos do painel;
     nome de arquivo com HTML aparece como texto.
-- [ ] **T5.5** (P1) Persistência do histórico com os cards.
+- [x] **T5.5** (P1) Persistência do histórico com os cards.
   - _Req: R5.9_
   - Arquivos: `supabase/migrations/` (coluna `cards jsonb` em `chat_messages`),
     `backend/app/routes/chat.py`

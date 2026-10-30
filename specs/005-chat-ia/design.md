@@ -1,7 +1,7 @@
 ---
 id: "005"
 titulo: Chat com IA sobre a análise
-status: em-implementacao
+status: concluido
 ---
 
 # 005 — Chat com IA: design
@@ -49,7 +49,10 @@ POST /analyses/{id}/chat {message, history}
 }
 ```
 
-- `GET /analyses/{id}/chat` → histórico com os cards de cada resposta *(P1)*.
+- `GET /analyses/{id}/chat` → `[{"id", "role", "content", "cards", "created_at"}]` em ordem,
+  com os cards de cada resposta *(P1)*; análise alheia → 404.
+- Persistência *(P1)*: depois da resposta, a pergunta (se houver) e a resposta com
+  os cards entram numa transação só; a apresentação grava só a resposta.
 
 ### Ferramentas e o que cada uma devolve
 
@@ -101,8 +104,11 @@ o processamento já grava. Nenhuma ferramenta recebe `analysis_id` como argument
 - O chat fica no painel lateral da análise, em abas "Resultado" e "Assistente" (Radix
   Tabs, já instalado), com o mapa sempre visível ao lado; no celular, as abas ficam
   abaixo do mapa. A apresentação é pedida na primeira vez que a aba abre.
-- A conversa vive na sessão do navegador (`sessionStorage`, por análise) até a T5.5;
-  o histórico enviado à API leva só o texto das mensagens que deram certo.
+- A conversa fica em `chat_messages` (T5.5): o chat abre carregando
+  `GET /analyses/{id}/chat` e só pede a apresentação se a conversa estiver vazia.
+  O histórico enviado ao modelo continua saindo do front (só o texto das mensagens
+  que deram certo); se gravar a conversa falhar, a resposta ainda chega e o erro
+  fica no log. Pergunta que falhou não é gravada.
 - Markdown simples (parágrafos, listas, negrito e itálico) renderizado por um parser
   pequeno que monta elementos React: sem HTML vindo do modelo e sem dependência nova.
 - Erro do assistente (R5.7): a pergunta fica na conversa com a mensagem do backend e

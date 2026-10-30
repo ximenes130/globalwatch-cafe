@@ -225,3 +225,8 @@ export const sendChat = (id: string, message: string | null, history: ChatTurn[]
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, history }),
   })
+
+/** Mensagem gravada da conversa (T5.5), com os cards da resposta. */
+export type ChatMessage = { id: number; role: 'user' | 'assistant'; content: string; cards: ChatCard[]; created_at: string }
+
+export const getChatHistory = (id: string) => apiFetch<ChatMessage[]>(`/analyses/${id}/chat`)

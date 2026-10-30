@@ -119,3 +119,32 @@ class FakeRepository:
             del self.rows[analysis_id]
             return True
         return False
+
+
+class FakeChatRepository:
+    def __init__(self):
+        self.rows: list[dict] = []
+        self.fail = False
+
+    def history(self, user_id: UUID, analysis_id: UUID) -> list[dict]:
+        return [
+            {k: r[k] for k in ("id", "role", "content", "cards", "created_at")}
+            for r in self.rows
+            if r["user_id"] == user_id and r["analysis_id"] == analysis_id
+        ]
+
+    def append(self, user_id: UUID, analysis_id: UUID, messages: list[dict]) -> None:
+        if self.fail:
+            raise RuntimeError("banco fora do ar")
+        for message in messages:
+            self.rows.append(
+                {
+                    "id": len(self.rows) + 1,
+                    "user_id": user_id,
+                    "analysis_id": analysis_id,
+                    "role": message["role"],
+                    "content": message["content"],
+                    "cards": message.get("cards", []),
+                    "created_at": datetime.now(UTC),
+                }
+            )
