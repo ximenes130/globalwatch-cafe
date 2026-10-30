@@ -21,7 +21,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
   - _Req: R4.3, R4.4_
   - Arquivos: `frontend/src/components/Upload.tsx`, `frontend/src/pages/Analysis.tsx`
   - Verificação: `.png` e arquivo grande rejeitados; kit enviado abre a análise em "processando" e passa para o resultado sem recarregar; análise `failed` mostra a mensagem e a opção de reenviar.
-- [ ] **T4.4** (P0) Mapa com overlay, polígonos, limite e popup.
+- [x] **T4.4** (P0) Mapa com overlay, polígonos, limite e popup.
   - _Req: R4.5, R4.7_
   - Arquivos: `frontend/src/components/MapView.tsx`
   - Verificação: overlay alinhado ao limite da área de estudo.

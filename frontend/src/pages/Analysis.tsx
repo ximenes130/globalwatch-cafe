@@ -1,12 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorState } from '@/components/states/ErrorState'
 import { Processing } from '@/components/states/Processing'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ApiError, getAnalysis } from '@/lib/api'
+import type { Overlay } from '@/components/MapView'
+import { type Analysis as AnalysisData, ApiError, getAnalysis } from '@/lib/api'
 import { analysesKey, analysisKey } from '@/lib/query'
+
+// MapLibre pesa ~1 MB: só carrega quando uma análise concluída abre.
+const MapView = lazy(() => import('@/components/MapView'))
 
 export function Analysis() {
   const { id = '' } = useParams()
@@ -76,9 +80,33 @@ export function Analysis() {
     )
   }
 
+  return <Result analysis={data} />
+}
+
+function Result({ analysis }: { analysis: AnalysisData }) {
+  const [overlay] = useState<Overlay>('rgb')
+  const [opacity] = useState(1)
+  const { bounds_wgs84: corners, urls } = analysis
+
   return (
-    <main className="flex-1 p-4 sm:p-6">
-      <p className="font-mono text-sm">{data.filename}</p>
+    // No desktop o mapa ocupa a altura que sobra abaixo do cabeçalho (57 px) e o painel rola.
+    <main className="flex flex-1 flex-col lg:grid lg:h-[calc(100dvh-57px)] lg:grid-cols-[minmax(0,1fr)_26rem]">
+      <div className="relative h-[60svh] border-b border-border lg:h-full lg:border-r lg:border-b-0">
+        {corners && urls ? (
+          <Suspense fallback={<Skeleton className="size-full rounded-none" />}>
+            <MapView key={analysis.id} corners={corners} urls={urls} overlay={overlay} opacity={opacity} />
+          </Suspense>
+        ) : (
+          <div className="grid size-full place-items-center p-6 text-sm text-muted-foreground">
+            Mapa indisponível: a análise não tem limites gravados.
+          </div>
+        )}
+      </div>
+      <aside className="p-4 sm:p-6 lg:overflow-y-auto" aria-label="Resultado da análise">
+        <p className="truncate font-mono text-xs text-muted-foreground" title={analysis.filename}>
+          {analysis.filename}
+        </p>
+      </aside>
     </main>
   )
 }
