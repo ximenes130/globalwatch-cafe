@@ -36,7 +36,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
 - [x] **T4.7** (P1) Alternância RGB/classificação e opacidade.
   - _Req: R4.10_
   - Verificação: manual.
-- [ ] **T4.8** (P0) Revisão responsiva em 375 px e desktop.
+- [x] **T4.8** (P0) Revisão responsiva em 375 px e desktop.
   - _Req: R4.16_
   - Verificação: prints em `docs/evidencias/ui-375.png` e `ui-desktop.png`.
 - [ ] **T4.9** (P1) Movimento e acabamento: tokens de duração e curva, entrada
