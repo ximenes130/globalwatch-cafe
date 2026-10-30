@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { AlertDialog } from 'radix-ui'
 import { Button } from '@/components/ui/button'
 import { type AnalysisListItem, deleteAnalysis } from '@/lib/api'
+import { forgetChat } from '@/lib/chat-store'
 import { analysesKey, analysisKey } from '@/lib/query'
 
 /** Apagar com confirmação (R4.11): some a linha, os arquivos e a conversa. */
@@ -16,6 +17,7 @@ export function DeleteAnalysis({ id, filename }: { id: string; filename: string 
     mutationFn: () => deleteAnalysis(id),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: analysisKey(id) })
+      forgetChat(id)
       // A lista abre já sem o item, sem esperar a nova consulta.
       queryClient.setQueryData<AnalysisListItem[]>(analysesKey, (list) => list?.filter((item) => item.id !== id))
       queryClient.invalidateQueries({ queryKey: analysesKey, exact: true })

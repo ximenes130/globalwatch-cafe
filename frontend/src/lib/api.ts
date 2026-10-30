@@ -183,3 +183,45 @@ export async function createAnalysis(
 
 export const deleteAnalysis = (id: string) =>
   apiFetch<void>(`/analyses/${id}`, { method: 'DELETE' })
+
+/** Card de uma resposta do chat: o mesmo objeto que a ferramenta entregou ao modelo (spec 005). */
+export type SummaryCard = {
+  kind: 'summary'
+  data: {
+    filename: string
+    acquired_at: string | null
+    second_acquired_at: string | null
+    total_area_ha: number
+    valid_area_ha: number
+    masked_area_ha: number
+    potential_area_ha: number
+    polygon_count: number
+    excluded_area_ha: Partial<Record<ExclusionLevel, number>>
+    thresholds: { ndvi_min: number; ndvi_max: number; min_area_ha: number; ndvi_amplitude_max?: number }
+    method_version: string
+  }
+}
+
+export type PolygonCard = {
+  kind: 'polygon'
+  data: { id: number; area_ha: number; ndvi_mean: number; gndvi_mean: number | null; centroid: [number, number] }
+}
+
+export type LimitationsCard = {
+  kind: 'limitations'
+  data: { items: string[]; references: { citation: string; doi: string }[] }
+}
+
+export type ChatCard = SummaryCard | PolygonCard | LimitationsCard
+
+export type ChatTurn = { role: 'user' | 'assistant'; content: string }
+
+export type ChatAnswer = { reply: string; cards: ChatCard[] }
+
+/** `message: null` pede a apresentação (só com histórico vazio). */
+export const sendChat = (id: string, message: string | null, history: ChatTurn[]) =>
+  apiFetch<ChatAnswer>(`/analyses/${id}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, history }),
+  })

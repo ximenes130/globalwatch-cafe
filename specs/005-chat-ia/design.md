@@ -98,6 +98,15 @@ o processamento já grava. Nenhuma ferramenta recebe `analysis_id` como argument
 
 ### Interface
 
+- O chat fica no painel lateral da análise, em abas "Resultado" e "Assistente" (Radix
+  Tabs, já instalado), com o mapa sempre visível ao lado; no celular, as abas ficam
+  abaixo do mapa. A apresentação é pedida na primeira vez que a aba abre.
+- A conversa vive na sessão do navegador (`sessionStorage`, por análise) até a T5.5;
+  o histórico enviado à API leva só o texto das mensagens que deram certo.
+- Markdown simples (parágrafos, listas, negrito e itálico) renderizado por um parser
+  pequeno que monta elementos React: sem HTML vindo do modelo e sem dependência nova.
+- Erro do assistente (R5.7): a pergunta fica na conversa com a mensagem do backend e
+  "Tentar de novo", que reenvia a mesma pergunta.
 - Os cards ficam dentro da bolha da resposta, acima do texto (na ordem do que foi
   consultado e depois explicado), com o rótulo "Dados do processamento".
 - `summary`: datas (uma ou duas), área potencial em destaque, área total, válida

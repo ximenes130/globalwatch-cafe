@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { Tabs } from 'radix-ui'
+import { Chat } from '@/components/Chat'
 import { DeleteAnalysis } from '@/components/DeleteAnalysis'
 import { Downloads } from '@/components/Downloads'
 import { Legend } from '@/components/Legend'
@@ -94,7 +96,20 @@ export function Analysis() {
 // Se o mapa não carregar (basemap fora do ar), o painel aparece mesmo assim.
 const REVEAL_FALLBACK_MS = 4000
 
+type PanelTab = 'result' | 'chat'
+const PANEL_TABS: [PanelTab, string][] = [
+  ['result', 'Resultado'],
+  ['chat', 'Assistente'],
+]
+
 function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean }) {
+  const [tab, setTab] = useState<PanelTab>('result')
+  // O chat só monta (e pede a apresentação) na primeira vez que a aba abre.
+  const [chatOpened, setChatOpened] = useState(false)
+  const openTab = (value: PanelTab) => {
+    setTab(value)
+    if (value === 'chat') setChatOpened(true)
+  }
   const [overlay, setOverlay] = useState<Overlay>('rgb')
   const [opacity, setOpacity] = useState(1)
   const { bounds_wgs84: corners, urls } = analysis
@@ -130,28 +145,50 @@ function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean })
           </div>
         )}
       </div>
-      <aside className="p-4 sm:p-6 lg:overflow-y-auto" aria-label="Resultado da análise">
-        {analysis.stats && analysis.rationale ? (
-          <Summary
-            revealed={revealed}
-            analysis={analysis}
-            stats={analysis.stats}
-            rationale={analysis.rationale}
-            legend={
-              <Legend
+      <aside className="lg:overflow-y-auto" aria-label="Painel da análise">
+        <Tabs.Root value={tab} onValueChange={(value) => openTab(value as PanelTab)}>
+          <Tabs.List
+            aria-label="Conteúdo do painel"
+            className="z-10 flex gap-5 border-b border-border bg-background px-4 sm:px-6 lg:sticky lg:top-0"
+          >
+            {PANEL_TABS.map(([value, label]) => (
+              <Tabs.Trigger
+                key={value}
+                value={value}
+                className="-mb-px border-b-2 border-transparent py-3 text-sm text-muted-foreground transition-colors duration-(--duration-fast) outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=active]:border-foreground data-[state=active]:font-medium data-[state=active]:text-foreground"
+              >
+                {label}
+              </Tabs.Trigger>
+            ))}
+          </Tabs.List>
+          {/* `forceMount`: trocar de aba não perde a conversa nem uma resposta a caminho. */}
+          <Tabs.Content value="result" forceMount className="p-4 outline-none data-[state=inactive]:hidden sm:p-6">
+            {analysis.stats && analysis.rationale ? (
+              <Summary
+                revealed={revealed}
+                analysis={analysis}
                 stats={analysis.stats}
-                overlay={overlay}
-                onOverlayChange={setOverlay}
-                opacity={opacity}
-                onOpacityChange={setOpacity}
+                rationale={analysis.rationale}
+                legend={
+                  <Legend
+                    stats={analysis.stats}
+                    overlay={overlay}
+                    onOverlayChange={setOverlay}
+                    opacity={opacity}
+                    onOpacityChange={setOpacity}
+                  />
+                }
+                actions={<Downloads id={analysis.id} filename={analysis.filename} />}
+                footer={<DeleteAnalysis id={analysis.id} filename={analysis.filename} />}
               />
-            }
-            actions={<Downloads id={analysis.id} filename={analysis.filename} />}
-            footer={<DeleteAnalysis id={analysis.id} filename={analysis.filename} />}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground">A análise não tem estatísticas gravadas.</p>
-        )}
+            ) : (
+              <p className="text-sm text-muted-foreground">A análise não tem estatísticas gravadas.</p>
+            )}
+          </Tabs.Content>
+          <Tabs.Content value="chat" forceMount className="outline-none data-[state=inactive]:hidden lg:h-[calc(100%-45px)]">
+            {chatOpened && <Chat analysisId={analysis.id} hasSecondDate={Boolean(analysis.stats?.second_acquired_at)} />}
+          </Tabs.Content>
+        </Tabs.Root>
       </aside>
     </main>
   )

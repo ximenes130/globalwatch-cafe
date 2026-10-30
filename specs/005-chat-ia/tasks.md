@@ -30,7 +30,7 @@ e "Ver no mapa". Se às 18h não estiver de pé: fallback sem ferramentas (ver d
     (`tool_result` igual ao card, cards sem repetição e na ordem, `is_error` sem
     card, apresentação forçando o resumo, `tool_choice: none` na 5ª rodada,
     timeout devolve erro tratado, análise alheia → 404).
-- [ ] **T5.4** (P0) UI do chat com os cards.
+- [x] **T5.4** (P0) UI do chat com os cards.
   - _Req: R5.8, R5.14_
   - Arquivos: `frontend/src/components/Chat.tsx`, `frontend/src/components/ChatCards.tsx`,
     `frontend/src/lib/api.ts`
