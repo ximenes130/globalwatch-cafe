@@ -17,12 +17,12 @@ e "Ver no mapa". Se às 18h não estiver de pé: fallback sem ferramentas (ver d
     GeoJSON, segunda data presente, polígono inexistente vira `ToolError`, nenhuma
     ferramenta aceita id de análise). A conferência do dono é da rota: o 404 para
     análise alheia é testado na T5.3.
-- [ ] **T5.2** (P0) Prompt de sistema e apresentação com imagem.
+- [x] **T5.2** (P0) Prompt de sistema e apresentação com imagem.
   - _Req: R5.1, R5.3, R5.4_
   - Arquivos: `backend/app/chat/prompt.py`
   - Verificação: manual com perguntas armadilha; o texto cita números iguais aos
     cards e não repete o card inteiro; registro em `docs/evidencias/chat.md`.
-- [ ] **T5.3** (P0) Cliente da API, loop de tool use com coleta de cards, limites e erros.
+- [x] **T5.3** (P0) Cliente da API, loop de tool use com coleta de cards, limites e erros.
   - _Req: R5.1, R5.6, R5.7, R5.10, R5.11, R5.12, R5.13_
   - Arquivos: `backend/app/chat/client.py`, `backend/app/routes/chat.py`,
     `backend/tests/test_chat.py`

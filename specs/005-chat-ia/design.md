@@ -12,7 +12,7 @@ status: em-implementacao
 POST /analyses/{id}/chat {message, history}
   ├─ current_user + checa dono da análise (404 se não for)
   ├─ incrementa usage_daily.messages (429 se passar)
-  ├─ monta: system prompt + [PNG da classificação na apresentação] + histórico truncado
+  ├─ monta: system prompt + [polygons.png na apresentação] + histórico truncado
   ├─ loop de tool use com Claude (claude-haiku-5-5), ferramentas presas ao analysis_id da rota
   │    cada chamada → ToolOutput(data) ─┬─ tool_result (JSON) → modelo
   │                                     └─ card {kind, data}   → resposta ao front
@@ -122,6 +122,7 @@ o processamento já grava. Nenhuma ferramenta recebe `analysis_id` como argument
 | Mesmo objeto para modelo e card | Resumo em texto para o modelo e objeto para o card | Um único arredondamento: o número citado é o mesmo que aparece no card |
 | Cards fora do histórico enviado ao modelo | Reenviar `tool_use`/`tool_result` antigos | Histórico menor e sem montar pares de ferramenta; chamar a ferramenta de novo custa pouco |
 | Cards acima do texto | Cards depois do texto | Segue a ordem real: primeiro a consulta, depois a explicação |
+| `polygons.png` na apresentação | `classification.png` | O PNG da classificação é transparente fora da área potencial: sem a paisagem, a IA não tem o que descrever. O `polygons.png` traz a cor verdadeira e o número de cada polígono, o mesmo de `get_polygon`; números continuam só pelas ferramentas |
 
 Fallback se o tempo apertar: versão sem ferramentas que recebe o resumo da
 análise no prompt de sistema (ainda cumpre C2.1, pois o resumo vem do banco); a

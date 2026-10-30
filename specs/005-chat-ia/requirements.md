@@ -31,8 +31,9 @@ os mesmos dados num card ao lado da resposta e pode conferir o texto contra eles
 ### Conversa
 
 - **R5.1** — QUANDO o usuário abrir o chat de uma análise pela primeira vez, O
-  SISTEMA DEVE enviar ao modelo o PNG da classificação e devolver uma
-  apresentação da imagem e do resultado, acompanhada do card de resumo (R5.10).
+  SISTEMA DEVE enviar ao modelo a imagem do resultado (`polygons.png`: cor
+  verdadeira com as áreas potenciais numeradas) e devolver uma apresentação da
+  imagem e do resultado, acompanhada do card de resumo (R5.10).
 - **R5.2** — O modelo DEVE obter números e geometrias apenas por ferramentas
   do backend: `get_analysis_summary`, `get_polygon(id)` e
   `get_limitations`, que leem só a análise da rota, depois de conferir o dono.
