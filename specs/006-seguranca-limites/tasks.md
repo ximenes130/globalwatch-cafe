@@ -13,10 +13,10 @@ Corte se estourar: retenção automática (fica documentada).
   - _Req: R6.5, R6.6, R6.7_
   - Arquivos: `backend/app/validation.py`, `backend/tests/test_upload.py`
   - Verificação: `pytest backend/tests/test_upload.py`.
-- [ ] **T6.2** (P0) Isolamento: filtro por `user_id`, 404 para recurso alheio, storage privado e DELETE completo.
+- [x] **T6.2** (P0) Isolamento: filtro por `user_id`, 404 para recurso alheio, storage privado e DELETE completo.
   - _Req: R6.2, R6.3, R6.4, R6.14_
   - Arquivos: `backend/app/routes/analyses.py`, `backend/app/storage.py`, `backend/tests/test_isolation.py`
-  - Verificação: `pytest backend/tests/test_isolation.py`.
+  - Verificação: `pytest backend/tests/test_isolation.py` (matriz de rotas tirada do OpenAPI do app).
 - [ ] **T6.3** (P0) Teste que garante JWT em todas as rotas.
   - _Req: R6.1_
   - Arquivos: `backend/tests/test_auth.py`
