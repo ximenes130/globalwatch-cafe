@@ -33,7 +33,7 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
 - [ ] **T1.7** (P0) Deploy: back no Render, front no Vercel, redirects no Supabase e no Google, OAuth "In production".
   - _Req: R1.3, R1.8_
   - Verificação: login em aba anônima com outra conta Google em produção; `/me` responde.
-- [ ] **T1.8** (P0) CI: `ci.yml` com ruff, pytest e `npm run build`.
+- [x] **T1.8** (P0) CI: `ci.yml` com ruff, pytest e `npm run build`.
   - _Req: R1.11_
   - Arquivos: `.github/workflows/ci.yml`
   - Verificação: CI verde no push.
