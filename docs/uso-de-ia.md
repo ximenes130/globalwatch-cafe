@@ -13,6 +13,7 @@ Preenchido durante o trabalho, não no fim (C6.4). Requisito: R7.9.
 | 30/10 | Organização | Estrutura SDD e specs a partir do enunciado e do plano | Revisão manual das specs; checagem de rastreabilidade R → T | |
 | 30/10 | T1.1 | Criar repositório público e primeiro push via `gh` | `git log -p` sem padrões de chave (`sk-ant-`, JWT, `gh*_`, `AKIA`); só menções textuais nas specs | |
 | 30/10 | T1.2 | Backend mínimo (FastAPI, `/health` com `select 1`, Dockerfile) | `pytest` (3 testes, incluindo falha real de conexão), `ruff`, `docker build` + `curl /health` nas portas 8000 e 9000 (`PORT` do Render), container sem root | Spec não definia `/health` com banco fora: ajustado o design antes do código. Trocado `httpx` por `httpx2` após aviso de depreciação do Starlette 1.10 |
+| 30/10 | T1.3 | Migration `001_init.sql` com RLS e teste de isolamento | Teste SQL em Postgres 17 local e no Supabase (rollback, 0 linhas residuais); teste negativo com `update` indevido concedido falha como esperado; `/health` local com `db: ok` | Spec só dizia `user_id = auth.uid()`: política de escrita deixaria o usuário zerar `usage_daily`. Design ajustado para leitura apenas |
 
 ## Casos em que a IA errou
 

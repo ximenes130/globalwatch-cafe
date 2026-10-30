@@ -83,6 +83,13 @@ Backend (em `backend/`):
 - Lint e formatação: `.venv/bin/ruff check . && .venv/bin/ruff format --check .`
 - Docker: `docker build -t globalwatch-backend . && docker run -p 8000:8000 globalwatch-backend`
 
+Banco (Supabase, migrations em `supabase/migrations/`):
+
+- Teste de RLS local: subir `postgres:17-alpine`, aplicar `supabase/tests/local_auth_stub.sql`,
+  a migration e `supabase/tests/rls_isolation.sql` com `psql -v ON_ERROR_STOP=1`.
+- No Supabase: mesmos arquivos (sem o stub) com `psql "$DATABASE_URL"` lido de `backend/.env`;
+  migration com `--single-transaction`. O teste roda em transação com rollback.
+
 Frontend: a preencher no T1.5.
 
 Kit: integridade com `cd data/exemplo && sha256sum -c SHA256SUMS.txt`

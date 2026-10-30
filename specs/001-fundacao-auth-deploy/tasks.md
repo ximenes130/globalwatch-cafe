@@ -15,10 +15,10 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
   - _Req: R1.7_
   - Arquivos: `backend/app/main.py`, `backend/app/config.py`, `backend/Dockerfile`, `backend/pyproject.toml`
   - Verificação: `docker build` e `curl localhost:8000/health`.
-- [ ] **T1.3** (P0) Projeto Supabase: provedor Google, migration `001_init.sql` com RLS.
+- [x] **T1.3** (P0) Projeto Supabase: provedor Google, migration `001_init.sql` com RLS.
   - _Req: R1.3, R1.10_
   - Arquivos: `supabase/migrations/001_init.sql`
-  - Verificação: tabelas e políticas visíveis no painel; select com anon key de outro usuário vazio.
+  - Verificação: `supabase/tests/rls_isolation.sql` no Postgres local e no Supabase (`OK: isolamento da RLS verificado`).
 - [ ] **T1.4** (P0) `auth.py` com validação JWKS e rota `GET /me`; testes de 401.
   - _Req: R1.5, R1.6_
   - Arquivos: `backend/app/auth.py`, `backend/tests/test_auth.py`

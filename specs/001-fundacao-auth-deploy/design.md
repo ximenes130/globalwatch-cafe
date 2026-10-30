@@ -54,8 +54,16 @@ Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
   `content`, `created_at`.
 - `usage_daily`: `user_id`, `day date`, `uploads int`, `messages int`, pk
   `(user_id, day)`.
-- RLS ligada nas três, política `user_id = auth.uid()`. O backend usa service
-  role e **também** filtra por `user_id` (ver 006).
+- `user_id` referencia `auth.users(id) on delete cascade`; `status` restrito a
+  `processing`, `completed`, `failed`; `role` a `user`, `assistant`.
+- RLS ligada nas três, com política **só de leitura** para `authenticated`
+  (`user_id = auth.uid()`). `anon` não tem acesso. Toda escrita passa pelo
+  backend (service role): se o usuário pudesse escrever com a anon key,
+  zeraria o próprio `usage_daily` (fura R6.8/R6.9) ou alteraria `stats` (fere
+  C2). O backend **também** filtra por `user_id` (ver 006).
+- Teste de isolamento em `supabase/tests/rls_isolation.sql`: roda numa
+  transação com `rollback`, no Postgres local (com o stub
+  `supabase/tests/local_auth_stub.sql`) e no Supabase.
 
 ### Variáveis de ambiente
 
