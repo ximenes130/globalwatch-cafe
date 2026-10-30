@@ -50,7 +50,7 @@ export function Legend({ stats, overlay, onOverlayChange, opacity, onOpacityChan
               type="button"
               aria-pressed={overlay === option.value}
               onClick={() => onOverlayChange(option.value)}
-              className="rounded-md px-2.5 py-1 text-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-xs"
+              className="rounded-md px-2.5 py-1 text-sm text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:ring-1 aria-pressed:ring-border"
             >
               {option.label}
             </button>

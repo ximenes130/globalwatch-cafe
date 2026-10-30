@@ -67,6 +67,13 @@
 }
 
 :root {
+    /* Movimento (R4.18): entra devagar no fim, sai mais rápido. Espelho em lib/motion.ts. */
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 320ms;
+    --ease-out: cubic-bezier(0.2, 0, 0, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+
     /* Papel frio levemente verde, tinta verde-escura; o vermelho de cereja de café
        é o único acento e marca só o que é área potencial. */
     --paper: #f2f4ef;
@@ -124,7 +131,32 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
     }
   }
+}
+
+/* MapLibre: popup e controles na tipografia do app, popup entra com fade curto. */
+.maplibregl-map {
+  font: inherit;
+}
+.maplibregl-popup-content {
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1.75rem 0.75rem 0.875rem;
+  box-shadow: 0 4px 16px color-mix(in oklch, var(--ink) 14%, transparent);
+  color: var(--ink);
+}
+.maplibregl-popup-close-button {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1.125rem;
+  border-radius: var(--radius-md);
+}
+.potential-popup {
+  animation: popup-in var(--duration-fast) var(--ease-out);
+}
+@keyframes popup-in {
+  from { opacity: 0; }
 }

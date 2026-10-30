@@ -39,7 +39,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
 - [x] **T4.8** (P0) Revisão responsiva em 375 px e desktop.
   - _Req: R4.16_
   - Verificação: prints em `docs/evidencias/ui-375.png` e `ui-desktop.png`.
-- [ ] **T4.9** (P1) Movimento e acabamento: tokens de duração e curva, entrada
+- [x] **T4.9** (P1) Movimento e acabamento: tokens de duração e curva, entrada
   orquestrada do resultado, retorno das ações, movimento reduzido no mapa e
   revisão de detalhes visuais.
   - _Req: R4.17, R4.18, R4.19, R4.20, R4.21_

@@ -4,11 +4,13 @@ import { NdviRuler } from '@/components/NdviRuler'
 import { Wordmark } from '@/components/Wordmark'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
+import { useDocumentTitle } from '@/lib/use-document-title'
 
 type Status = 'idle' | 'redirecting' | 'error'
 
 export function Login() {
   const [status, setStatus] = useState<Status>('idle')
+  useDocumentTitle(null)
 
   async function signIn() {
     setStatus('redirecting')

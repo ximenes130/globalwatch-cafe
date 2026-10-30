@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { AlertDialog } from 'radix-ui'
 import { Button } from '@/components/ui/button'
-import { deleteAnalysis } from '@/lib/api'
+import { type AnalysisListItem, deleteAnalysis } from '@/lib/api'
 import { analysesKey, analysisKey } from '@/lib/query'
 
 /** Apagar com confirmação (R4.11): some a linha, os arquivos e a conversa. */
@@ -16,6 +16,8 @@ export function DeleteAnalysis({ id, filename }: { id: string; filename: string 
     mutationFn: () => deleteAnalysis(id),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: analysisKey(id) })
+      // A lista abre já sem o item, sem esperar a nova consulta.
+      queryClient.setQueryData<AnalysisListItem[]>(analysesKey, (list) => list?.filter((item) => item.id !== id))
       queryClient.invalidateQueries({ queryKey: analysesKey, exact: true })
       navigate('/')
     },
@@ -37,8 +39,8 @@ export function DeleteAnalysis({ id, filename }: { id: string; filename: string 
         </Button>
       </AlertDialog.Trigger>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 z-50 bg-foreground/30 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-5 shadow-lg data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
+        <AlertDialog.Overlay className="fixed inset-0 z-50 bg-foreground/30 duration-(--duration-base) data-[state=closed]:duration-(--duration-fast) data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 duration-(--duration-base) ease-(--ease-out) data-[state=closed]:duration-(--duration-fast) data-[state=closed]:ease-(--ease-in) w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-card p-5 shadow-lg data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
           <AlertDialog.Title className="font-heading text-xl font-[620] tracking-tight [font-stretch:80%]">
             Apagar esta análise?
           </AlertDialog.Title>

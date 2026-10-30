@@ -157,7 +157,7 @@ function DropZone({ file, disabled, onFiles, onClear }: DropZoneProps) {
   if (file) {
     return (
       <div className="flex min-h-36 items-center gap-3 rounded-md border border-border bg-background px-4">
-        <FileImage className="size-8 shrink-0 text-canopy" strokeWidth={1.5} aria-hidden />
+        <FileImage className="size-7 shrink-0 text-canopy" aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium" title={file.name}>{file.name}</p>
           <p className="font-mono text-xs text-muted-foreground">{formatSize(file.size)}</p>
@@ -181,7 +181,7 @@ function DropZone({ file, disabled, onFiles, onClear }: DropZoneProps) {
       data-over={over || undefined}
       className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-4 py-6 text-center transition-colors duration-150 has-focus-visible:ring-3 has-focus-visible:ring-ring/50 hover:border-canopy/60 data-over:border-solid data-over:border-canopy data-over:bg-canopy/5"
     >
-      <UploadIcon className="size-6 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+      <UploadIcon className="size-6 text-muted-foreground" aria-hidden />
       <span className="font-medium">Arraste a imagem Sentinel-2 aqui ou escolha o arquivo</span>
       <span className="text-sm text-muted-foreground">
         GeoTIFF com B02, B03, B04 e B08, até {MAX_UPLOAD_MB} MB. Solte a SCL junto, se tiver.

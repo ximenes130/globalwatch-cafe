@@ -108,7 +108,8 @@ progresso. Mudança de status anunciada por `aria-live="polite"`.
 - Polígono: realce no hover via `feature-state` (contorno mais grosso) e
   cursor de ponteiro; popup com fade de 120 ms.
 - Apagar: diálogo de confirmação do `radix-ui` (já instalado) com fade e zoom
-  de 200 ms; o item sai da lista com fade antes de o cache ser atualizado.
+  de 200 ms. A exclusão acontece na tela da análise; ao voltar, a lista já
+  abre sem o item (cache atualizado na hora, sem esperar a nova consulta).
 - Upload: zona de soltar muda de tracejada para contínua em `--canopy` ao
   arrastar por cima; arquivo recusado mostra o motivo na própria zona.
 
@@ -125,6 +126,11 @@ progresso. Mudança de status anunciada por `aria-live="polite"`.
 - `document.title` por tela ("Análise · arquivo.tif · Global Watch").
 - O estado vazio reaproveita a `NdviRuler` da tela de login como ilustração
   do método, em vez de uma imagem genérica.
+
+O voo do `fitBounds` só acontece quando a tela viu a análise em `processing`
+(R4.19); abrir uma análise já concluída enquadra direto e mantém só os fades
+do overlay, dos polígonos e do painel. Os fades do mapa esperam a imagem e o
+GeoJSON carregarem: sem isso a transição acabaria antes de haver o que mostrar.
 
 **Movimento reduzido (R4.20).** A regra global de `index.css` cobre CSS, mas
 não o MapLibre. `lib/motion.ts` expõe `prefersReducedMotion()` (lido de

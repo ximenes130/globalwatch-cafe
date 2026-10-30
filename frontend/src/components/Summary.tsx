@@ -4,6 +4,7 @@ import type { Analysis, Rationale, RationaleStep, Stats } from '@/lib/api'
 import { formatHa, formatImageDate, formatPercent } from '@/lib/format'
 
 type Props = {
+  revealed: boolean
   analysis: Analysis
   stats: Stats
   rationale: Rationale
@@ -13,42 +14,70 @@ type Props = {
 }
 
 /** Números, datas, aviso e justificativa da análise (R4.6, R4.9, R4.15). */
-export function Summary({ analysis, stats, rationale, legend, actions, footer }: Props) {
+export function Summary({ revealed, analysis, stats, rationale, legend, actions, footer }: Props) {
   const empty = stats.polygon_count === 0
+
+  let order = 0
+  // Ordem de leitura do painel; cada bloco entra 40 ms depois do anterior (R4.19).
+  const step = () => ({ show: revealed, index: order++ })
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="font-mono text-xs text-muted-foreground">
-          {analysis.acquired_at && <>Imagem de {formatImageDate(analysis.acquired_at)}</>}
-          {stats.second_acquired_at && <> · segunda data {formatImageDate(stats.second_acquired_at)}</>}
-        </p>
-        <p className="mt-0.5 truncate text-sm" title={analysis.filename}>{analysis.filename}</p>
-      </header>
+      <Reveal {...step()}>
+        <header>
+          <p className="font-mono text-xs text-muted-foreground">
+            {analysis.acquired_at && <>Imagem de {formatImageDate(analysis.acquired_at)}</>}
+            {stats.second_acquired_at && <> · segunda data {formatImageDate(stats.second_acquired_at)}</>}
+          </p>
+          <p className="mt-0.5 truncate text-sm" title={analysis.filename}>{analysis.filename}</p>
+        </header>
+      </Reveal>
+      <Reveal {...step()}>{empty ? <NoPotentialArea /> : <Headline stats={stats} />}</Reveal>
+      <Reveal {...step()}>
+        <dl className="grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-card">
+          <Stat label="Área potencial" value={formatHa(stats.potential_area_ha)} unit="ha" detail={formatPercent(stats.potential_area_ha, stats.total_area_ha)} />
+          <Stat label="Área total" value={formatHa(stats.total_area_ha)} unit="ha" />
+          <Stat label="Polígonos" value={String(stats.polygon_count)} />
+        </dl>
+      </Reveal>
+      <Reveal {...step()}>
+        <Notice />
+      </Reveal>
+      <Reveal {...step()}>{actions}</Reveal>
+      <Reveal {...step()}>
+        <section aria-labelledby="legend-title">
+          <h2 id="legend-title" className="mb-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
+            Legenda
+          </h2>
+          {legend}
+        </section>
+      </Reveal>
+      <Reveal {...step()}>
+        <Cascade stats={stats} rationale={rationale} />
+      </Reveal>
+      <Reveal {...step()}>
+        <Limitations items={rationale.limitations} />
+      </Reveal>
+      <Reveal {...step()}>
+        <References rationale={rationale} />
+      </Reveal>
+      <Reveal {...step()}>{footer}</Reveal>
+    </div>
+  )
+}
 
-      {empty ? <NoPotentialArea /> : <Headline stats={stats} />}
-
-      <dl className="grid grid-cols-3 divide-x divide-border rounded-lg border border-border bg-card">
-        <Stat label="Área potencial" value={formatHa(stats.potential_area_ha)} unit="ha" detail={formatPercent(stats.potential_area_ha, stats.total_area_ha)} />
-        <Stat label="Área total" value={formatHa(stats.total_area_ha)} unit="ha" />
-        <Stat label="Polígonos" value={String(stats.polygon_count)} />
-      </dl>
-
-      <Notice />
-
-      {actions}
-
-      <section aria-labelledby="legend-title">
-        <h2 id="legend-title" className="mb-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
-          Legenda
-        </h2>
-        {legend}
-      </section>
-
-      <Cascade stats={stats} rationale={rationale} />
-      <Limitations items={rationale.limitations} />
-      <References rationale={rationale} />
-      {footer}
+/** Antes de entrar, o bloco já ocupa o lugar (só transparente): nada pula (R4.21). */
+function Reveal({ show, index, children }: { show: boolean; index: number; children: ReactNode }) {
+  return (
+    <div
+      className={
+        show
+          ? 'duration-(--duration-base) ease-(--ease-out) animate-in fill-mode-both fade-in slide-in-from-bottom-1'
+          : 'opacity-0'
+      }
+      style={{ animationDelay: `${index * 40}ms` }}
+    >
+      {children}
     </div>
   )
 }

@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { Overlay } from '@/components/MapView'
 import { type Analysis as AnalysisData, ApiError, getAnalysis } from '@/lib/api'
 import { analysesKey, analysisKey } from '@/lib/query'
+import { useDocumentTitle } from '@/lib/use-document-title'
 
 // MapLibre pesa ~1 MB: só carrega quando uma análise concluída abre.
 const MapView = lazy(() => import('@/components/MapView'))
@@ -26,6 +27,12 @@ export function Analysis() {
     refetchInterval: (query) => (query.state.data?.status === 'processing' ? 2000 : false),
   })
   const status = analysis.data?.status
+  useDocumentTitle(analysis.data?.filename ?? 'Análise')
+
+  // Só quem acompanhou o processamento vê o voo até a imagem (R4.19). Atualizado no
+  // render, como manda o React para estado derivado de renders anteriores.
+  const [sawProcessing, setSawProcessing] = useState(false)
+  if (status === 'processing' && !sawProcessing) setSawProcessing(true)
 
   // Quando o processamento termina, a lista precisa refletir o novo status.
   useEffect(() => {
@@ -33,17 +40,13 @@ export function Analysis() {
   }, [status, queryClient])
 
   if (analysis.isPending) {
-    return (
-      <main className="flex-1 p-4 sm:p-6" aria-busy>
-        <Skeleton className="h-[50vh] w-full" />
-      </main>
-    )
+    return <ResultSkeleton />
   }
 
   if (analysis.isError) {
     const notFound = analysis.error instanceof ApiError && analysis.error.status === 404
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 duration-(--duration-base) animate-in fade-in sm:px-8">
         <ErrorState
           error={analysis.error}
           title={notFound ? 'Análise não encontrada' : undefined}
@@ -63,7 +66,7 @@ export function Analysis() {
 
   if (data.status === 'processing') {
     return (
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-8">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 duration-(--duration-base) animate-in fade-in sm:px-8">
         <Processing filename={data.filename} createdAt={data.created_at} />
       </main>
     )
@@ -71,7 +74,7 @@ export function Analysis() {
 
   if (data.status === 'failed') {
     return (
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-8">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 duration-(--duration-base) animate-in fade-in sm:px-8">
         <ErrorState
           error={new Error(data.error ?? 'O processamento falhou.')}
           title={`Não foi possível analisar ${data.filename}`}
@@ -85,13 +88,24 @@ export function Analysis() {
     )
   }
 
-  return <Result analysis={data} />
+  return <Result analysis={data} intro={sawProcessing} />
 }
 
-function Result({ analysis }: { analysis: AnalysisData }) {
+// Se o mapa não carregar (basemap fora do ar), o painel aparece mesmo assim.
+const REVEAL_FALLBACK_MS = 4000
+
+function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean }) {
   const [overlay, setOverlay] = useState<Overlay>('rgb')
   const [opacity, setOpacity] = useState(1)
   const { bounds_wgs84: corners, urls } = analysis
+  const hasMap = Boolean(corners && urls)
+  // O painel entra depois do mapa (R4.19); sem mapa, entra direto.
+  const [revealed, setRevealed] = useState(!hasMap)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setRevealed(true), REVEAL_FALLBACK_MS)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     // No desktop o mapa ocupa a altura que sobra abaixo do cabeçalho (57 px) e o painel rola.
@@ -100,7 +114,15 @@ function Result({ analysis }: { analysis: AnalysisData }) {
       <div className="relative h-[60svh] border-b border-border lg:h-full lg:border-r lg:border-b-0">
         {corners && urls ? (
           <Suspense fallback={<Skeleton className="size-full rounded-none" />}>
-            <MapView key={analysis.id} corners={corners} urls={urls} overlay={overlay} opacity={opacity} />
+            <MapView
+              key={analysis.id}
+              corners={corners}
+              urls={urls}
+              overlay={overlay}
+              opacity={opacity}
+              intro={intro}
+              onRevealed={() => setRevealed(true)}
+            />
           </Suspense>
         ) : (
           <div className="grid size-full place-items-center p-6 text-sm text-muted-foreground">
@@ -111,6 +133,7 @@ function Result({ analysis }: { analysis: AnalysisData }) {
       <aside className="p-4 sm:p-6 lg:overflow-y-auto" aria-label="Resultado da análise">
         {analysis.stats && analysis.rationale ? (
           <Summary
+            revealed={revealed}
             analysis={analysis}
             stats={analysis.stats}
             rationale={analysis.rationale}
@@ -130,6 +153,26 @@ function Result({ analysis }: { analysis: AnalysisData }) {
           <p className="text-sm text-muted-foreground">A análise não tem estatísticas gravadas.</p>
         )}
       </aside>
+    </main>
+  )
+}
+
+/** Mesma geometria do resultado: mapa e painel, para a tela não pular quando os dados chegam. */
+function ResultSkeleton() {
+  return (
+    <main
+      aria-busy
+      aria-label="Carregando a análise"
+      className="flex flex-1 flex-col lg:grid lg:h-[calc(100dvh-57px)] lg:flex-none lg:grid-cols-[minmax(0,1fr)_26rem] lg:grid-rows-[minmax(0,1fr)]"
+    >
+      <Skeleton className="h-[60svh] rounded-none lg:h-full" />
+      <div className="space-y-4 p-4 sm:p-6">
+        <Skeleton className="h-3 w-40" />
+        <Skeleton className="h-11 w-44" />
+        <Skeleton className="h-2 w-full" />
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-20 w-full" />
+      </div>
     </main>
   )
 }

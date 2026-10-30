@@ -11,11 +11,13 @@ import { type AnalysisListItem, listAnalyses } from '@/lib/api'
 import { formatDateTime, formatHa, formatImageDate } from '@/lib/format'
 import { KIT_IMAGE_URL, KIT_SCL_URL } from '@/lib/kit'
 import { analysesKey } from '@/lib/query'
+import { useDocumentTitle } from '@/lib/use-document-title'
 
 // Colunas da lista no desktop; no celular cada análise vira um bloco de duas linhas.
 const COLUMNS = 'sm:grid sm:grid-cols-[minmax(0,1fr)_9.5rem_9rem_7.5rem_7.5rem] sm:items-center sm:gap-4'
 
 export function Analyses() {
+  useDocumentTitle('Suas análises')
   const analyses = useQuery({
     queryKey: analysesKey,
     queryFn: listAnalyses,
@@ -25,7 +27,7 @@ export function Analyses() {
   })
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-8">
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 duration-(--duration-base) animate-in fade-in sm:px-8">
       <h1 className="font-heading text-4xl font-[640] tracking-tight [font-stretch:75%]">
         Suas análises
       </h1>

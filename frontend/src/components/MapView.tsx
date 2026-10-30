@@ -1,4 +1,5 @@
 import {
+  type FilterSpecification,
   LngLatBounds,
   Map as MapLibre,
   type MapGeoJSONFeature,
@@ -12,6 +13,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { useEffect, useRef } from 'react'
 import type { Corners, ResultUrls } from '@/lib/api'
 import { formatHa, formatIndex } from '@/lib/format'
+import { DURATION, easeOut, FLY_MS, prefersReducedMotion } from '@/lib/motion'
 
 // O MapLibre procura o worker ao lado do próprio módulo, mas o bundler move o módulo:
 // sem isto o worker não carrega (nem no `vite dev` nem no build) e o mapa fica vazio.
@@ -43,22 +45,36 @@ type Props = {
   urls: ResultUrls
   overlay: Overlay
   opacity: number
+  /** A tela viu a análise processando: o mapa voa até a imagem (R4.19). */
+  intro: boolean
+  /** Chamado quando overlay e polígonos terminam de aparecer; o painel entra depois. */
+  onRevealed: () => void
 }
+
+const FILL_OPACITY = 0.18
 
 /**
  * Mapa com a imagem pelos 4 cantos, polígonos da área potencial e limite da imagem (R4.5, R4.7).
  *
  * Criado uma vez por análise (o pai usa `key={id}`): as URLs assinadas mudam a cada consulta
  * da API e não devem recriar o mapa. Camada e opacidade mudam pelo segundo efeito.
+ *
+ * Entrada (R4.19): voo até a imagem (só se `intro`), depois o overlay e por fim os polígonos,
+ * por transições de pintura do próprio MapLibre. Com movimento reduzido, tudo instantâneo (R4.20).
  */
 export default function MapView(props: Props) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibre | null>(null)
   const latest = useRef(props)
+  const revealed = useRef(false)
 
   useEffect(() => {
-    const { corners, urls } = latest.current
+    const { corners, urls, intro } = latest.current
+    const reduced = prefersReducedMotion()
+    const fly = intro && !reduced
+    const transition = (delay = 0) => ({ duration: reduced ? 0 : DURATION.slow, delay: reduced ? 0 : delay })
     const bounds = corners.reduce((box, corner) => box.extend(corner), new LngLatBounds(corners[0], corners[0]))
+    const narrow = window.matchMedia('(max-width: 1023px)').matches
     const map = new MapLibre({
       container: container.current!,
       style: BASEMAP,
@@ -67,23 +83,39 @@ export default function MapView(props: Props) {
       locale: LOCALE,
       attributionControl: { compact: true, customAttribution: SENTINEL_ATTRIBUTION },
       // No celular o mapa fica no meio da página: um dedo rola a página, dois movem o mapa.
-      cooperativeGestures: window.matchMedia('(max-width: 1023px)').matches,
+      cooperativeGestures: narrow,
     })
     mapRef.current = map
+    let disposed = false
+    // Começa afastado para o voo ter de onde vir.
+    if (fly) map.jumpTo({ zoom: map.getZoom() - 1.5 })
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
     map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left')
 
     map.on('load', () => {
-      // Rasters abaixo dos rótulos do basemap; vetores por cima de tudo.
+      // No celular a atribuição aberta cobre o mapa: fica recolhida no botão (i).
+      if (narrow) container.current?.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show')
+
+      // Rasters abaixo dos rótulos do basemap; vetores por cima de tudo. Tudo começa transparente.
       const firstLabel = map.getStyle().layers.find((layer) => layer.type === 'symbol')?.id
       for (const [id, url] of [['rgb', urls.rgb_png], ['classification', urls.classification_png]] as const) {
         map.addSource(id, { type: 'image', url, coordinates: corners })
         map.addLayer(
-          { id, type: 'raster', source: id, paint: { 'raster-fade-duration': 0, 'raster-resampling': 'nearest' } },
+          {
+            id,
+            type: 'raster',
+            source: id,
+            paint: {
+              'raster-opacity': 0,
+              'raster-opacity-transition': transition(),
+              'raster-fade-duration': 0,
+              'raster-resampling': 'nearest',
+            },
+          },
           firstLabel,
         )
       }
-      applyOverlay(map, latest.current.overlay, latest.current.opacity)
+      applyOverlay(map, latest.current.overlay, 0)
 
       map.addSource('boundary', { type: 'geojson', data: boundary(corners) })
       map.addLayer({
@@ -98,10 +130,7 @@ export default function MapView(props: Props) {
         id: 'potential-fill',
         type: 'fill',
         source: 'potential',
-        paint: {
-          'fill-color': CHERRY,
-          'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.4, 0.18],
-        },
+        paint: { 'fill-color': CHERRY, 'fill-opacity': 0, 'fill-opacity-transition': transition(DURATION.fast) },
       })
       map.addLayer({
         id: 'potential-line',
@@ -109,19 +138,41 @@ export default function MapView(props: Props) {
         source: 'potential',
         paint: {
           'line-color': CHERRY,
-          'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 2.5, 1.25],
+          'line-width': 1.25,
+          'line-opacity': 0,
+          'line-opacity-transition': transition(DURATION.fast),
         },
+      })
+      // Realce do polígono sob o cursor: camadas filtradas pelo id, por cima das outras.
+      map.addLayer({ id: 'potential-hover-fill', type: 'fill', source: 'potential', filter: NO_FEATURE, paint: { 'fill-color': CHERRY, 'fill-opacity': 0.25 } })
+      map.addLayer({ id: 'potential-hover-line', type: 'line', source: 'potential', filter: NO_FEATURE, paint: { 'line-color': CHERRY, 'line-width': 2.5 } })
+
+      const flown = new Promise<void>((resolve) => {
+        if (!fly) return resolve()
+        map.once('moveend', () => resolve())
+        map.fitBounds(bounds, { padding: 32, duration: FLY_MS, easing: easeOut })
+      })
+      // As transições esperam a imagem e o GeoJSON: antes disso não há o que mostrar.
+      Promise.all([sourceLoaded(map, 'rgb'), sourceLoaded(map, 'potential'), flown]).then(() => {
+        if (disposed) return
+        revealed.current = true
+        applyOverlay(map, latest.current.overlay, latest.current.opacity)
+        map.setPaintProperty('potential-fill', 'fill-opacity', FILL_OPACITY)
+        map.setPaintProperty('potential-line', 'line-opacity', 1)
+        setTimeout(() => latest.current.onRevealed(), reduced ? 0 : DURATION.fast + DURATION.slow)
       })
     })
 
-    let hovered: string | number | undefined
-    const setHover = (id: string | number | undefined) => {
-      if (hovered !== undefined) map.setFeatureState({ source: 'potential', id: hovered }, { hover: false })
+    let hovered: number | undefined
+    const setHover = (id: number | undefined) => {
+      if (id === hovered) return
       hovered = id
-      if (id !== undefined) map.setFeatureState({ source: 'potential', id }, { hover: true })
+      const filter = id === undefined ? NO_FEATURE : (['==', ['id'], id] as FilterSpecification)
+      map.setFilter('potential-hover-fill', filter)
+      map.setFilter('potential-hover-line', filter)
       map.getCanvas().style.cursor = id === undefined ? '' : 'pointer'
     }
-    map.on('mousemove', 'potential-fill', (event) => setHover(event.features?.[0]?.id))
+    map.on('mousemove', 'potential-fill', (event) => setHover(event.features?.[0]?.id as number | undefined))
     map.on('mouseleave', 'potential-fill', () => setHover(undefined))
     map.on('click', 'potential-fill', (event) => {
       const feature = event.features?.[0]
@@ -133,6 +184,7 @@ export default function MapView(props: Props) {
     })
 
     return () => {
+      disposed = true
       map.remove()
       mapRef.current = null
     }
@@ -142,7 +194,7 @@ export default function MapView(props: Props) {
   useEffect(() => {
     latest.current = { ...latest.current, overlay, opacity }
     const map = mapRef.current
-    if (map?.getLayer('rgb')) applyOverlay(map, overlay, opacity)
+    if (map?.getLayer('rgb') && revealed.current) applyOverlay(map, overlay, opacity)
   }, [overlay, opacity])
 
   return (
@@ -153,6 +205,20 @@ export default function MapView(props: Props) {
       aria-label="Mapa da análise: imagem, áreas potenciais de café e limite da imagem"
     />
   )
+}
+
+const NO_FEATURE: FilterSpecification = ['==', ['id'], -1]
+
+function sourceLoaded(map: MapLibre, id: string) {
+  return new Promise<void>((resolve) => {
+    const check = () => {
+      if (!map.isSourceLoaded(id)) return
+      map.off('sourcedata', check)
+      resolve()
+    }
+    map.on('sourcedata', check)
+    check()
+  })
 }
 
 function applyOverlay(map: MapLibre, overlay: Overlay, opacity: number) {
