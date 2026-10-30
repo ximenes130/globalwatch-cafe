@@ -229,6 +229,31 @@ NDVI = (NIR − vermelho)/(NIR + vermelho), NDWI = (verde − NIR)/(verde + NIR)
   Mercator (EPSG:3857), que é métrico mas distorce a área (cerca de +15% a
   21°S).
 
+### Vetorização e estatísticas (`vectorization.py`)
+
+- **Um polígono por mancha:** rotula a área potencial com vizinhança 4 (a
+  mesma da T2.6) e vetoriza os rótulos com `rasterio.features.shapes`
+  (`connectivity=4`). Cada componente vira um polígono, com buracos se houver.
+- **Área:** `area_ha` = pixels da mancha x área do pixel no CRS projetado da
+  imagem (R2.12), antes de qualquer reprojeção.
+- **Simplificação:** `shapely.simplify` com tolerância de
+  `simplify_tolerance_px` x tamanho do pixel (5 m no kit) e
+  `preserve_topology=True`, no CRS projetado. Medido no kit (30/10): com 0,5
+  pixel só saem vértices colineares (−31% de vértices, de 11.617 para 7.967) e
+  a área desenhada é igual à contagem de pixels; com 0,75 pixel uma mancha
+  pequena já muda 8% de área, com 1 pixel, 17%. Fica 0,5.
+- **Reprojeção:** `pyproj.Transformer(..., always_xy=True)` para EPSG:4326,
+  ordem lon/lat. Anel externo anti-horário e buracos horários (regra da mão
+  direita, RFC 7946 §3.1.6), sem membro `crs`, coordenadas com 6 casas
+  decimais (cerca de 10 cm, §11.2).
+- **Ordem e `id`:** feições ordenadas por área decrescente; `id` de 1 a n. Em
+  empate, vale a ordem do rótulo (varredura do raster): mesma entrada, mesmos
+  `id` (R2.17).
+- **Cantos da imagem:** `corners_wgs84` devolve os 4 cantos do raster em
+  WGS84 na ordem do MapLibre (superior-esquerdo, superior-direito,
+  inferior-direito, inferior-esquerdo); no kit, batem com
+  `area_estudo.geojson`.
+
 ### Exploração preliminar do kit (30/10, script descartável)
 
 Feita para checar se os valores de partida fazem sentido; **não substitui a
@@ -377,16 +402,22 @@ classification.png, polygons.png, result.geojson}`.
 }
 ```
 
-Invariante: `total_area_ha = potential_area_ha (raster) + Σ excluded_area_ha`.
-`potential_area_ha` reportado é a soma dos polígonos (após simplificação), por
-isso o teste tolera a diferença da simplificação. `gndvi` é `null` se a T2.3
-for cortada. Exclusão por nível é **exclusiva**: o pixel conta só no primeiro
+Invariante: `total_area_ha = potential_area_ha + Σ excluded_area_ha`.
+`valid_area_ha` = total − `no_data`; `masked_area_ha` = `quality_mask`.
+`potential_area_ha` é a contagem de pixels da área potencial x área do pixel,
+o mesmo número que fecha a soma; `area_ha` de cada feição também vem dos pixels
+dela, então a soma das feições é exatamente `potential_area_ha`. A
+simplificação só muda o desenho (ver Vetorização). Áreas arredondadas a 2
+casas, índices a 4. `ndvi` resume os pixels de `valid`. `gndvi` é `null` até a
+T2.3 (ou se ela for cortada). Exclusão por nível é **exclusiva**: o pixel conta só no primeiro
 nível que o remove, na ordem N0 → N4.
 
 ### Feição do GeoJSON
 
 `id`, `area_ha`, `ndvi_mean`, `gndvi_mean` (ou `null`),
-`class: "potential_coffee_area"`, `validated: false` (R2.13).
+`class: "potential_coffee_area"`, `validated: false` (R2.13). O `id` vai no
+`Feature` (RFC 7946) e repetido em `properties`, onde o MapLibre e a ferramenta
+`get_polygon` do chat o leem.
 
 ### `rationale`
 
@@ -466,8 +497,8 @@ justificativa nunca citar algo fora da seção [Referências](#referências).
 | R2.7 | `test_masking.py`: sem SCL, pixel com NDWI > `ndwi_water_min` vai para `quality_mask` |
 | R2.8, R2.9 | `test_indices.py`: valores conhecidos; denominador zero não gera `inf`/`nan` em pixel válido |
 | R2.10, R2.11 | `test_classification.py`: raster sintético com faixas de NDVI conhecidas cai em `low_vegetation`, candidato e `dense_canopy`; mancha < 50 px vai para `small_patch`; `gndvi_min = null` não altera o resultado |
-| R2.12, R2.14, R2.15 | `test_area.py`: kit → 2.621,44 ha; soma de `area_ha` ≈ pixels candidatos x 0,01 (tolerância da simplificação); `total = potencial + Σ excluded_area_ha` exato no raster |
-| R2.13 | `test_vectorization.py`: GeoJSON válido, coordenadas dentro de `area_estudo.geojson`, propriedades obrigatórias presentes |
+| R2.12, R2.14, R2.15 | `test_area.py`: kit → 2.621,44 ha; soma de `area_ha` = `potential_area_ha` = pixels x 0,01; `total = potencial + Σ excluded_area_ha`; área do polígono simplificado igual à contagem de pixels; `valid_area_ha` e `masked_area_ha` com NoData e máscara |
+| R2.13 | `test_vectorization.py`: GeoJSON válido (polígonos válidos, anel externo anti-horário, lon/lat), coordenadas dentro de `area_estudo.geojson`, propriedades obrigatórias, `id` por área decrescente, resultado vazio = `FeatureCollection` sem feições; cantos do kit iguais aos de `area_estudo.geojson` |
 | R2.16 | `test_render.py`: três PNGs gerados com o tamanho do raster; classificação com alfa 0 fora dos candidatos; inspeção visual na T2.8 |
 | R2.17 | `test_pipeline.py`: duas execuções iguais → mesmo GeoJSON e mesmos `stats` |
 | R2.18 | `test_rationale.py`: limiares e hectares da justificativa batem com `params` e `stats`; `references` é subconjunto de `METHOD_REFERENCES`; nenhuma frase usa "café detectado" nem percentual de acurácia (C1.1, C1.2) |

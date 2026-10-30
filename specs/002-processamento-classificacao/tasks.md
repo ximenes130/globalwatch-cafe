@@ -29,10 +29,10 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.10, R2.11, R2.14_
   - Arquivos: `backend/app/processing/classification.py`, `backend/app/processing/reader.py` (área do pixel e CRS), `backend/pyproject.toml` (scipy), `backend/tests/test_classification.py`, `backend/tests/test_reader.py`
   - Verificação: `pytest backend/tests/test_classification.py` (faixas sintéticas caem em `low_vegetation`, candidato e `dense_canopy`; mancha < 50 px em `small_patch`; cada pixel contado em um só nível).
-- [ ] **T2.7** (P0) `vectorization.py`: polígonos, área em UTM, GeoJSON RFC 7946, estatísticas.
+- [x] **T2.7** (P0) `vectorization.py`: polígonos, área em UTM, GeoJSON RFC 7946, estatísticas.
   - _Req: R2.12, R2.13, R2.14, R2.15_
-  - Arquivos: `backend/app/processing/vectorization.py`, `backend/tests/test_area.py`, `backend/tests/test_vectorization.py`
-  - Verificação: `pytest backend/tests/test_area.py backend/tests/test_vectorization.py` (kit = 2.621,44 ha; total = potencial no raster + Σ `excluded_area_ha`; propriedades obrigatórias nas feições).
+  - Arquivos: `backend/app/processing/vectorization.py`, `backend/pyproject.toml` (shapely, pyproj), `backend/tests/test_area.py`, `backend/tests/test_vectorization.py`
+  - Verificação: `pytest backend/tests/test_area.py backend/tests/test_vectorization.py` (kit = 2.621,44 ha; total = potencial + Σ `excluded_area_ha`; soma das feições = potencial; propriedades obrigatórias; coordenadas dentro de `area_estudo.geojson`; cantos do kit iguais aos da área de estudo).
 - [ ] **T2.3** (P1) GNDVI em `indices.py`, estatísticas, `gndvi_mean` por feição e condição opcional `gndvi_min` na regra. Feita depois da T2.7 porque depende de `classification.py` e `vectorization.py`.
   - _Req: R2.9, R2.13, R2.14_
   - Verificação: `pytest backend/tests/test_indices.py backend/tests/test_classification.py` (`gndvi_min = null` não altera o resultado).

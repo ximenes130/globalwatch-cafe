@@ -12,6 +12,8 @@ dependencies = [
     "pyjwt[crypto]>=2.15,<3",
     "numpy>=2.5,<3",
     "scipy>=1.18,<2",
+    "shapely>=2.2,<3",
+    "pyproj>=3.8,<4",
     "rasterio>=1.5.2,<2",
 ]
 
