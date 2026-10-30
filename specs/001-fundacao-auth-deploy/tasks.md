@@ -8,7 +8,7 @@ status: em-implementacao
 
 Bloco do dia: 8h às 10h. Nada aqui é cortável.
 
-- [x] **T1.1** (P0) Criar repositório público no GitHub e o primeiro push.
+- [x] **T1.1** (P0) Criar repositório privado no GitHub e o primeiro push.
   - _Req: R1.9_
   - Verificação: `git log -p | grep -iE "key|secret"` sem segredos.
 - [ ] **T1.2** (P0) Backend mínimo: FastAPI, `config.py`, `/health`, Dockerfile, pyproject.
