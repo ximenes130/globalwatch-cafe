@@ -62,6 +62,9 @@ services:
       # Chave secreta do Supabase (service role ou sb_secret_…), só para o Storage.
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      # Chave da API da Anthropic, só para o chat (spec 005); sem ela, o chat responde 503.
+      - key: ANTHROPIC_API_KEY
+        sync: false
       # Origem do front, ex.: https://globalwatch-cafe.onrender.com
       - key: CORS_ORIGINS
         sync: false
