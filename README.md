@@ -7,7 +7,7 @@ campo: o kit não tem gabarito, e a app não mostra acurácia nem confiança.
 - **Aplicação:** <https://globalwatch-cafe.onrender.com> (entre com qualquer conta Google; nada a
   pagar nem chave a fornecer)
 - **API:** <https://globalwatch-cafe-api.onrender.com/health>
-- **Vídeo (3 min):** <!-- link na T7.6 -->
+- **Vídeo (3 min):** <https://drive.google.com/file/d/1doik5ZaXfjtBc1YRmlourwdLu9QkTrWe/view?usp=sharing>
 - **Nota de pesquisa:** [`docs/nota-de-pesquisa.md`](docs/nota-de-pesquisa.md)
   ([PDF](docs/nota-de-pesquisa.pdf)) · método em detalhe: [`docs/metodo.md`](docs/metodo.md)
 - **Uso de IA:** [`docs/uso-de-ia.md`](docs/uso-de-ia.md)
