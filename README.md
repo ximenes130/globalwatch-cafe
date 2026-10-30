@@ -8,6 +8,19 @@ café. O resultado é potencial e não validado em campo.
 > [007](specs/007-documentacao-entrega/) com execução local, arquitetura,
 > método, serviços, cotas, limitações e evidências de testes.
 
+## Links
+
+- Aplicação: https://globalwatch-cafe.onrender.com
+- API: https://globalwatch-cafe-api.onrender.com/health
+
+O plano gratuito do Render hiberna a API após um período sem uso; o primeiro
+acesso pode levar até um minuto.
+
+## Execução local
+
+Preencha `backend/.env` e `frontend/.env.local` a partir dos `.env.example` e
+rode `docker compose up --build` (API em `:8000`, front em `:5173`).
+
 ## Como o projeto é desenvolvido
 
 Desenvolvimento orientado a especificação: cada funcionalidade tem requisitos,

@@ -20,6 +20,7 @@ Preenchido durante o trabalho, não no fim (C6.4). Requisito: R7.9.
 | 30/10 | T1.8 | CI com ruff, pytest, teste de RLS em Postgres 17 e build do front | Execução 41013727541 verde; log confirma `OK: isolamento da RLS verificado` e `21 passed` | |
 | 30/10 | T1.9 | `compose.yaml` (api com reload, web com Vite, perfil de teste de RLS) e script único `run.sh` usado também pelo CI | `docker compose config`; perfil `test` executado duas vezes seguidas com `OK` (stub tornado idempotente); `up --wait` com `/health` em `db: ok`, `/me` 401, Vite servindo; recarga do backend e HMR do front confirmados nos logs | Requisito fora das specs: R1.12 e T1.9 acrescentados à spec 001 antes do código |
 | 30/10 | T1.7 (preparo) | Avaliar front no mesmo provedor do back; migrar de Vercel para Static Site no Render | `render.yaml` validado contra o JSON Schema oficial do Render; spec 001 atualizada antes (R1.8, decisão no design, T1.7) | IA recomendou não servir o front pelo FastAPI (página presa ao cold start) |
+| 30/10 | T1.7 | Deploy pelo Blueprint e diagnóstico do redirect para `localhost:3000` | Bundle de produção inspecionado (URLs da API e do Supabase corretas); preflight CORS aceita só a origem do front; causa identificada como Site URL padrão do Supabase com a URL de produção fora de Redirect URLs; após o ajuste, login em produção confirmado pelo usuário; `curl`: `/health` com `db: ok`, `/me` 401 sem token e com token inválido, cabeçalhos de segurança e rewrite de SPA no front | |
 
 ## Casos em que a IA errou
 

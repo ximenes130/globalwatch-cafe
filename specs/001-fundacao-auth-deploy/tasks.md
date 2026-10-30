@@ -1,7 +1,7 @@
 ---
 id: "001"
 titulo: Fundação, autenticação com Google e deploy
-status: em-implementacao
+status: concluido
 ---
 
 # 001 — Fundação, autenticação e deploy: tarefas
@@ -30,7 +30,7 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
 - [x] **T1.6** (P0) `.env.example` de front e back.
   - _Req: R1.9_
   - Verificação: revisão manual; nenhum valor real.
-- [ ] **T1.7** (P0) Deploy pelo Blueprint do Render (front estático e back Docker), redirects no Supabase e no Google, OAuth "In production".
+- [x] **T1.7** (P0) Deploy pelo Blueprint do Render (front estático e back Docker), redirects no Supabase e no Google, OAuth "In production".
   - _Req: R1.3, R1.8_
   - Arquivos: `render.yaml`
   - Verificação: login em aba anônima com outra conta Google em produção; `/me` responde.

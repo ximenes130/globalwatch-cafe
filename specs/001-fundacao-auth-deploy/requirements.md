@@ -1,7 +1,7 @@
 ---
 id: "001"
 titulo: Fundação, autenticação com Google e deploy
-status: aprovado
+status: concluido
 desafio: [1, 8]
 pontos: Deploy e documentação (10) + parte de Segurança e backend (20)
 prioridade: P0
