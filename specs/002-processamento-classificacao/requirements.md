@@ -55,8 +55,10 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
 ### Índices e regra
 
 - **R2.8** — O SISTEMA DEVE calcular NDVI para todos os pixels válidos.
-- **R2.9** — O SISTEMA DEVE calcular um segundo índice (GNDVI) para apoiar a
-  separação entre mata e café. *(P1: se cortado, fica só NDVI.)*
+- **R2.9** — O SISTEMA DEVE calcular e reportar um segundo índice (GNDVI) para
+  todos os pixels válidos; ONDE `gndvi_min` estiver definido em `params`, O
+  SISTEMA DEVE excluir do candidato o pixel com GNDVI abaixo dele. *(P1: se
+  cortado, fica só NDVI.)*
 - **R2.10** — O SISTEMA DEVE marcar como candidato o pixel válido com NDVI
   dentro de `[ndvi_min, ndvi_max]` (ponto de partida 0,55–0,78), excluindo o
   topo da distribuição associado a mata e eucalipto.
@@ -70,10 +72,14 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
   de reprojetar para WGS84.
 - **R2.13** — O GeoJSON DEVE seguir a RFC 7946 (WGS84, lon/lat) e cada feição
   DEVE ter `id`, `area_ha`, `ndvi_mean`, `class: "potential_coffee_area"` e
-  `validated: false`.
+  `validated: false`; QUANDO o GNDVI for calculado, também `gndvi_mean`.
 - **R2.14** — O SISTEMA DEVE calcular e salvar: área total do recorte, área
-  válida, área mascarada, área potencial, número de polígonos e estatísticas
-  do NDVI (mín., p5, mediana, p95, máx.).
+  válida, área mascarada, área potencial, número de polígonos, estatísticas
+  do NDVI e, quando calculado, do GNDVI (mín., p5, mediana, p95, máx.), e a
+  área excluída em cada nível da regra (NoData, máscara de qualidade, NDVI
+  baixo, NDVI alto, GNDVI baixo, mancha pequena), contando cada pixel só no
+  primeiro nível que o exclui. A área potencial no raster somada às áreas
+  excluídas DEVE ser igual à área total.
 - **R2.15** — QUANDO processar o arquivo do kit, O SISTEMA DEVE reportar área
   total de 2.621,44 ha.
 
@@ -86,8 +92,10 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
   análise; o mesmo arquivo com os mesmos parâmetros DEVE gerar o mesmo
   resultado.
 - **R2.18** — O SISTEMA DEVE gerar uma justificativa técnica estruturada
-  (regras aplicadas, limiares, máscaras, limitações) a partir de `params` e
-  das estatísticas, usada pela UI e pelo chat.
+  (regras aplicadas, limiares, área excluída por nível, máscaras, limitações e
+  referências) a partir de `params` e das estatísticas, usada pela UI e pelo
+  chat. As referências DEVEM vir de uma lista fixa do método, conferida e
+  versionada no código.
 - **R2.19** — SE o processamento falhar, ENTÃO O SISTEMA DEVE salvar a análise
   com status `failed` e uma mensagem compreensível, sem stack trace.
 - **R2.20** — QUANDO a máscara final estiver vazia, O SISTEMA DEVE concluir a
@@ -103,10 +111,14 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
 
 - Classificador supervisionado ou modelo treinado (alternativa documentada na
   nota de pesquisa).
+- Modelo pronto como classificador da aplicação (ex.: Coffee Probability da
+  Forest Data Partnership), porque não processa o arquivo enviado (C2.2).
+- Textura (GLCM) e outras variáveis espaciais (ver decisões no design).
 - Processamento assíncrono em fila (documentado como evolução).
 - Imagens com mais de 2048 x 2048 px.
 
 ## Questões abertas
 
-- Limiar final de NDVI e uso do GNDVI: calibrar olhando histograma e imagem
-  do kit na T2.5.
+- Limiar final de NDVI e uso do GNDVI: definidos na T2.5 pelo procedimento de
+  calibração do design (histograma, inspeção sobre o RGB, decisão registrada
+  sobre o GNDVI, antes/depois em `docs/evidencias/`).
