@@ -26,7 +26,7 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
 - [ ] **T2.5** (P0) Calibrar limiares com o kit (histograma + inspeção visual) e registrar valores no `design.md`.
   - _Req: R2.10_
   - Arquivos: `scripts/calibrate_thresholds.py`, `docs/evidencias/`
-  - Verificação: histograma e máscara salvos em `docs/evidencias/`; valores atualizados em `params.py`.
+  - Verificação: histograma e máscara salvos em `docs/evidencias/`; valores atualizados em `params.py` e em `frontend/src/lib/method.ts` (régua do login).
 - [ ] **T2.6** (P0) `classification.py`: regra, morfologia e remoção de manchas pequenas.
   - _Req: R2.10, R2.11_
   - Arquivos: `backend/app/processing/classification.py`, `backend/tests/test_classification.py`

@@ -1,0 +1,120 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/public-sans/wght.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@theme inline {
+    --font-heading: 'Archivo Variable', 'Arial Narrow', sans-serif;
+    --font-sans: 'Public Sans Variable', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    /* Rampa de NDVI (solo → pasto seco → vegetação → mata) e o acento único. */
+    --color-soil: var(--soil);
+    --color-straw: var(--straw);
+    --color-leaf: var(--leaf);
+    --color-canopy: var(--canopy);
+    --color-cherry: var(--cherry);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    /* Papel frio levemente verde, tinta verde-escura; o vermelho de cereja de café
+       é o único acento e marca só o que é área potencial. */
+    --paper: #f2f4ef;
+    --ink: #14201a;
+    --soil: #9a4a2c;
+    --straw: #d8c27a;
+    --leaf: #6e9f4b;
+    --canopy: #1e4a2a;
+    --cherry: #b3122e;
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: #fbfcf9;
+    --card-foreground: var(--ink);
+    --popover: #fbfcf9;
+    --popover-foreground: var(--ink);
+    --primary: var(--ink);
+    --primary-foreground: var(--paper);
+    --secondary: #e4e8e0;
+    --secondary-foreground: var(--ink);
+    --muted: #e4e8e0;
+    --muted-foreground: #56635a;
+    --accent: #e4e8e0;
+    --accent-foreground: var(--ink);
+    --destructive: var(--cherry);
+    --border: #cfd6cc;
+    --input: #cfd6cc;
+    --ring: var(--canopy);
+    --chart-1: var(--cherry);
+    --chart-2: var(--leaf);
+    --chart-3: var(--straw);
+    --chart-4: var(--soil);
+    --chart-5: var(--canopy);
+    --radius: 0.375rem;
+    --sidebar: #fbfcf9;
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--ink);
+    --sidebar-primary-foreground: var(--paper);
+    --sidebar-accent: #e4e8e0;
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: #cfd6cc;
+    --sidebar-ring: var(--canopy);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans antialiased;
+    }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
