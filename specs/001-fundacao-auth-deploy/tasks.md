@@ -11,7 +11,7 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
 - [x] **T1.1** (P0) Criar repositório privado no GitHub e o primeiro push.
   - _Req: R1.9_
   - Verificação: `git log -p | grep -iE "key|secret"` sem segredos.
-- [ ] **T1.2** (P0) Backend mínimo: FastAPI, `config.py`, `/health`, Dockerfile, pyproject.
+- [x] **T1.2** (P0) Backend mínimo: FastAPI, `config.py`, `/health`, Dockerfile, pyproject.
   - _Req: R1.7_
   - Arquivos: `backend/app/main.py`, `backend/app/config.py`, `backend/Dockerfile`, `backend/pyproject.toml`
   - Verificação: `docker build` e `curl localhost:8000/health`.

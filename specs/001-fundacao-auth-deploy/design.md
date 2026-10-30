@@ -35,7 +35,13 @@ Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
 
 ## Contratos
 
-- `GET /health` → `200 {"status":"ok","db":"ok"}` (público).
+- `GET /health` → `200 {"status":"ok","db":"ok"}` (público). `db` vale
+  `"error"` se o `select 1` falhar e `"not_configured"` sem `DATABASE_URL`.
+  Responde sempre 200: é o health check do Render, e um 503 por falha do banco
+  reiniciaria o serviço sem resolver nada. O keepalive (T7.1) confere `db`.
+- Conexão: `DATABASE_URL` aponta para o pooler do Supabase (Supavisor), porque
+  a conexão direta é só IPv6 e o Render free não tem IPv6. No modo transação
+  (porta 6543), prepared statements ficam desligados.
 - `GET /me` → `200 {"user_id": "...", "email": "..."}` (protegido; prova a
   validação do JWT ponta a ponta).
 

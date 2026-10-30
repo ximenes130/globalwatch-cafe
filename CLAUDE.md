@@ -75,6 +75,14 @@ Exemplos: `feat(backend): adiciona /health com checagem do banco` ·
 
 ## Comandos
 
-A preencher quando o código existir (spec 001): rodar back, front, testes e lint.
+Backend (em `backend/`):
 
-- Integridade do kit: `cd data/exemplo && sha256sum -c SHA256SUMS.txt`
+- Ambiente: `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`
+- Rodar: `.venv/bin/uvicorn app.main:app --reload` (lê `backend/.env`)
+- Testes: `.venv/bin/pytest -q`
+- Lint e formatação: `.venv/bin/ruff check . && .venv/bin/ruff format --check .`
+- Docker: `docker build -t globalwatch-backend . && docker run -p 8000:8000 globalwatch-backend`
+
+Frontend: a preencher no T1.5.
+
+Kit: integridade com `cd data/exemplo && sha256sum -c SHA256SUMS.txt`
