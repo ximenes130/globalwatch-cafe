@@ -1,7 +1,7 @@
 ---
 id: "003"
 titulo: Imagem adicional e comparação entre datas
-status: aprovado
+status: em-implementacao
 ---
 
 # 003 — Imagem adicional e comparação entre datas: tarefas
@@ -10,10 +10,10 @@ Bloco do dia: 13h às 14h. Corte se estourar: a regra temporal na app (T3.5)
 fica na nota e no vídeo. A T3.5 entra nesta rodada, por decisão do usuário na
 aprovação.
 
-- [ ] **T3.1** (P0) Script de busca, escolha e download no formato do kit, com SCL.
+- [x] **T3.1** (P0) Script de busca, escolha e download no formato do kit, com SCL.
   - _Req: R3.1, R3.2, R3.3, R3.4, R3.5_
   - Arquivos: `scripts/download_additional_scene.py`
-  - Verificação: lista de candidatas com fração excluída no recorte; TIFF com
+  - Verificação: lista de candidatas com fração de problema no recorte; TIFF com
     shape (4, 512, 512), CRS e transform iguais aos do kit; `read_image` aceita
     o arquivo e a área total é 2.621,44 ha; `--item` de outro tile para sem
     gravar.

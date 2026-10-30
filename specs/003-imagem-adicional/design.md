@@ -1,7 +1,7 @@
 ---
 id: "003"
 titulo: Imagem adicional e comparação entre datas
-status: aprovado
+status: em-implementacao
 ---
 
 # 003 — Imagem adicional e comparação entre datas: design
@@ -11,7 +11,7 @@ status: aprovado
 ```text
 download_additional_scene.py
   POST /v1/search (grid:code = MGRS-23KLS, datas) ─> itens candidatos
-  para cada item: lê a SCL só na janela do kit ─> fração excluída (SCL_EXCLUDE)
+  para cada item: lê a SCL só na janela do kit ─> fração com problema de aquisição
   escolhe a menor fração (desempate: eo:cloud_cover) ou usa --item
   lê B02/B03/B04/B08 por janela (COG, sem reamostrar) ─> empilha uint16 + tags
   lê a SCL por janela (20 m)
@@ -56,11 +56,15 @@ backend/.venv/bin/python scripts/download_additional_scene.py \
   paginando pelo link `next`.
 - Filtro de estação: só meses de dezembro a março (R3.1), mesmo que o
   intervalo informado seja maior.
-- Fração excluída: pixels da SCL na janela do kit cujas classes estão em
-  `SCL_EXCLUDE` (o mesmo tuple de `backend/app/processing/params.py`),
-  divididos pelo total da janela. Cena com sem-dado (classe 0) no recorte
-  conta como excluída; assim, cenas da órbita que cobre só metade do tile
-  ficam para trás sozinhas.
+- Fração com problema de aquisição: pixels da SCL na janela do kit cujas
+  classes estão em `SCL_EXCLUDE` (o mesmo tuple de
+  `backend/app/processing/params.py`) **menos a água (6)**, divididos pelo
+  total da janela. A app exclui a água da análise, mas ela é cobertura do solo
+  e aparece nas duas datas; contá-la faria um açude decidir entre duas cenas
+  limpas. Isso aconteceu na primeira execução: 6 pixels de água (0,01%) deram a
+  vitória a 01/12/2025 sobre 10/01/2026, as duas sem nuvem no recorte. Cena com
+  sem-dado (classe 0) no recorte conta como problema; assim, cenas da órbita
+  que cobre só metade do tile ficam para trás sozinhas.
 - Saída, com os mesmos nomes de arquivo do kit (para o upload ser idêntico):
 
 | Arquivo | Conteúdo |
@@ -121,6 +125,7 @@ backend/.venv/bin/python scripts/compare_dates.py [--additional data/adicional/<
 | Busca STAC com `urllib` | `pystac-client` | Uma chamada `POST /search` com paginação não justifica uma dependência nova (regra de cadeia de suprimentos); o backend já fala REST com `urllib` no Storage |
 | Filtrar por `grid:code` (tile MGRS) | Filtrar por bbox da área | O bbox também traz cenas de tiles vizinhos, em outra grade; o tile garante a mesma grade e leitura sem reamostragem |
 | Escolher pela SCL dentro do recorte | Só `eo:cloud_cover` da cena | A nuvem da cena inteira não diz nada sobre os 26 km² do recorte; 17/02/2026 tem 3,7% de nuvem na cena e 12,9% no recorte |
+| Água fora do critério de escolha | Usar `SCL_EXCLUDE` inteiro | Água é cobertura do solo, não qualidade da aquisição; continua excluída na análise pela app |
 | Mesmo tile e grade do kit | Reprojetar para outra grade | Comparação pixel a pixel sem reamostragem |
 | Scale/offset do STAC | Valores fixos | O offset depende do processing baseline (R3.3) |
 | Comparação roda o pipeline localmente | Ler os GeoJSON das análises da app | A transição por pixel precisa dos arrays, que a app não guarda; o pipeline é determinístico, e a T3.4 confere que os números batem com a app |
@@ -144,7 +149,7 @@ backend/.venv/bin/python scripts/compare_dates.py [--additional data/adicional/<
 
 | Requisito | Teste |
 | --- | --- |
-| R3.1 | Saída do script lista as candidatas com fração excluída no recorte; a escolhida é a de menor fração |
+| R3.1 | Saída do script lista as candidatas com a fração com problema de aquisição no recorte; a escolhida é a de menor fração |
 | R3.2, R3.3, R3.4 | Autoverificação do script: shape (4, 512, 512) e (1, 256, 256), CRS e transform iguais aos do kit, tags e descrições presentes, `read_image` aceita o arquivo e a área total é 2.621,44 ha |
 | R3.5 | Rodar com um `--item` de outro tile e confirmar que o script para sem gravar nada |
 | R3.6 | `sha256sum -c SHA256SUMS.txt` na pasta de saída |

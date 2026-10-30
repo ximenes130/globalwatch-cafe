@@ -1,7 +1,7 @@
 ---
 id: "003"
 titulo: Imagem adicional e comparação entre datas
-status: aprovado
+status: em-implementacao
 desafio: [pesquisa]
 pontos: Pesquisa e justificativa (15, parcial) + Geoprocessamento (20, parcial)
 prioridade: P0 (download, processamento e comparação) / P1 (regra temporal na app)
@@ -30,9 +30,10 @@ estação chuvosa.
 - **R3.1** — O script DEVE buscar no Earth Search (coleção `sentinel-2-c1-l2a`,
   sem autenticação) as cenas do mesmo tile MGRS do kit (`23KLS`) na estação
   chuvosa (dezembro a março) de um intervalo de datas informado. Ele DEVE
-  escolher a cena com a menor fração de pixels excluídos pela SCL **dentro do
-  recorte do kit**, desempatando por `eo:cloud_cover`, e aceitar `--item` para
-  fixar a cena.
+  escolher a cena com a menor fração de pixels com problema de aquisição na SCL
+  (sem dado, saturado, sombra, nuvem, cirrus ou neve) **dentro do recorte do
+  kit**, desempatando por `eo:cloud_cover`, e aceitar `--item` para fixar a
+  cena.
 - **R3.2** — O script DEVE gerar um GeoTIFF no mesmo formato do kit:
   - bandas B02, B03, B04 e B08 em DN `uint16`, com as mesmas descrições
     (`B02_blue` …);
@@ -82,8 +83,8 @@ estação chuvosa.
 
 - **Qual cena?** Busca em 30/10/2026, de dez/2024 a abr/2026, no tile 23KLS.
   A escolhida é `S2B_T23KLS_20260110T131730_L2A`, de 10/01/2026: pico da
-  chuva, no mesmo ano agrícola do kit. Ela tem 0% de pixels excluídos pela SCL
-  no recorte e 0,19% de nuvem na cena inteira, o mesmo processing baseline do
+  chuva, no mesmo ano agrícola do kit. Ela tem 0% de pixels com problema de
+  aquisição no recorte e 0,19% de nuvem na cena inteira, o mesmo processing baseline do
   kit (05.11) e o mesmo scale/offset (0,0001 e −0,1). A janela cai em pixels
   inteiros da grade da cena.
   - Alternativas conferidas: 01/12/2025 (0% excluído) e 16/03/2026 (0,47%
