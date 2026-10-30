@@ -53,6 +53,24 @@ data/exemplo/   kit original (não alterar; SHA256SUMS.txt confere)
 docs/           nota de pesquisa, uso de IA, evidências
 ```
 
+## Commits
+
+[Conventional Commits](https://www.conventionalcommits.org/pt-br/v1.0.0/):
+`<tipo>(<escopo>): <descrição>`.
+
+- Tipos: `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `build`, `ci`,
+  `chore`, `style`.
+- Escopo opcional: `backend`, `frontend`, `supabase`, `scripts`, `specs`,
+  `deploy` ou o número da spec (`001`).
+- Descrição em português, no imperativo, minúscula, sem ponto final, até ~72
+  caracteres. Corpo opcional explica o porquê; cite a task (`T1.2`).
+- Mudança incompatível: `!` após o tipo/escopo e rodapé `BREAKING CHANGE:`.
+- Sem trailer `Co-Authored-By` nem outra atribuição de IA (o uso de IA fica
+  em `docs/uso-de-ia.md`).
+
+Exemplos: `feat(backend): adiciona /health com checagem do banco` ·
+`docs(specs): aprova spec 001` · `test(002): cobre conversão única de DN`.
+
 ## Comandos
 
 A preencher quando o código existir (spec 001): rodar back, front, testes e lint.
