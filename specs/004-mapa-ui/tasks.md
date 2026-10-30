@@ -1,12 +1,13 @@
 ---
 id: "004"
 titulo: Mapa, telas e estados da interface
-status: rascunho
+status: aprovado
 ---
 
 # 004 — Mapa e UI: tarefas
 
-Bloco do dia: 14h às 16h30. Corte se estourar: alternância RGB/classificação e opacidade.
+Bloco do dia: 14h às 16h30. Corte se estourar: alternância RGB/classificação e opacidade; depois o
+movimento e acabamento (T4.9), que entra por último porque refina telas prontas.
 
 - [ ] **T4.1** (P0) Roteamento, layout base, TanStack Query e componentes de estado.
   - _Req: R4.12, R4.13, R4.14, R4.17_
@@ -38,3 +39,14 @@ Bloco do dia: 14h às 16h30. Corte se estourar: alternância RGB/classificação
 - [ ] **T4.8** (P0) Revisão responsiva em 375 px e desktop.
   - _Req: R4.16_
   - Verificação: prints em `docs/evidencias/ui-375.png` e `ui-desktop.png`.
+- [ ] **T4.9** (P1) Movimento e acabamento: tokens de duração e curva, entrada
+  orquestrada do resultado, retorno das ações, movimento reduzido no mapa e
+  revisão de detalhes visuais.
+  - _Req: R4.17, R4.18, R4.19, R4.20, R4.21_
+  - Arquivos: `frontend/src/index.css`, `frontend/src/lib/motion.ts`,
+    `frontend/src/components/{MapView,Summary,Legend,Downloads,Upload}.tsx`,
+    `frontend/src/components/states/`
+  - Verificação: gravação da transição processando → resultado em
+    `docs/evidencias/ui-resultado.webm`; com `prefers-reduced-motion: reduce`
+    nada anima, nem o mapa; CLS < 0,1 no Performance do DevTools; nenhuma
+    dependência nova no `package.json`.

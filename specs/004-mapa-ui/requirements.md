@@ -1,7 +1,7 @@
 ---
 id: "004"
 titulo: Mapa, telas e estados da interface
-status: rascunho
+status: aprovado
 desafio: [4, 6]
 pontos: UI/UX e responsividade (20)
 prioridade: P0
@@ -79,6 +79,22 @@ carregamento, erro e ausência de resultado.
   mapa à esquerda e painel à direita.
 - **R4.17** — A interface DEVE usar um único sistema de componentes, cores e
   tipografia, com foco visível e contraste adequado.
+
+### Movimento e acabamento
+
+- **R4.18** *(P1)* — O SISTEMA DEVE usar movimento só para orientar e dar
+  retorno (entrada de tela, mudança de estado, resposta a uma ação), com
+  durações e curvas de um único conjunto de tokens.
+- **R4.19** *(P1)* — QUANDO uma análise passar de `processing` para
+  `completed`, O SISTEMA DEVE apresentar o resultado em sequência: o mapa
+  enquadra a imagem, o overlay aparece, depois os polígonos e por fim os
+  números do painel.
+- **R4.20** *(P1)* — ENQUANTO o sistema operacional pedir movimento reduzido,
+  O SISTEMA DEVE trocar animações por mudanças instantâneas, inclusive as do
+  mapa.
+- **R4.21** *(P1)* — Animação NÃO DEVE mostrar número que não veio do
+  processamento (sem contagem progressiva de hectares e sem percentual de
+  progresso inventado) nem deslocar o layout depois do carregamento.
 
 ## Fora de escopo
 
