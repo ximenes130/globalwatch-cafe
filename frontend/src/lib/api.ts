@@ -137,5 +137,49 @@ export const listAnalyses = () => apiFetch<AnalysisListItem[]>('/analyses')
 
 export const getAnalysis = (id: string) => apiFetch<Analysis>(`/analyses/${id}`)
 
+export type UploadFiles = {
+  image: File
+  scl: File | null
+  image2: File | null
+  scl2: File | null
+}
+
+/**
+ * `POST /analyses` por `XMLHttpRequest`: `fetch` não informa o progresso do envio (R4.4).
+ * O aviso de servidor acordando só conta depois que o arquivo terminou de subir.
+ */
+export async function createAnalysis(
+  files: UploadFiles,
+  onProgress: (fraction: number) => void,
+): Promise<{ id: string; status: AnalysisStatus }> {
+  const form = new FormData()
+  form.append('image', files.image)
+  if (files.scl) form.append('scl', files.scl)
+  if (files.image2) form.append('image_2', files.image2)
+  if (files.scl2) form.append('scl_2', files.scl2)
+  const auth = await authorization()
+
+  const xhr = new XMLHttpRequest()
+  const done = new Promise<void>((resolve, reject) => {
+    xhr.onload = () => resolve()
+    xhr.onerror = () => reject(new ApiError(0, OFFLINE_MESSAGE))
+  })
+  xhr.upload.onprogress = (event) => {
+    if (event.lengthComputable) onProgress(event.loaded / event.total)
+  }
+  xhr.upload.onload = () => {
+    onProgress(1)
+    trackSlow(done).catch(() => {})
+  }
+  xhr.open('POST', `${API_URL}/analyses`)
+  if (auth) xhr.setRequestHeader('Authorization', auth)
+  xhr.responseType = 'json'
+  xhr.send(form)
+
+  await done
+  if (xhr.status < 200 || xhr.status >= 300) throw await errorFrom(xhr.status, xhr.response)
+  return xhr.response
+}
+
 export const deleteAnalysis = (id: string) =>
   apiFetch<void>(`/analyses/${id}`, { method: 'DELETE' })

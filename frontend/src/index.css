@@ -56,6 +56,16 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@theme {
+    /* Barra indeterminada: o backend não informa progresso do processamento. */
+    --animate-indeterminate: indeterminate 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+    @keyframes indeterminate {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(400%); }
+    }
+}
+
 :root {
     /* Papel frio levemente verde, tinta verde-escura; o vermelho de cereja de café
        é o único acento e marca só o que é área potencial. */

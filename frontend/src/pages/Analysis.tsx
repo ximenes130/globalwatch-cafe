@@ -1,14 +1,28 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorState } from '@/components/states/ErrorState'
+import { Processing } from '@/components/states/Processing'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ApiError, getAnalysis } from '@/lib/api'
-import { analysisKey } from '@/lib/query'
+import { analysesKey, analysisKey } from '@/lib/query'
 
 export function Analysis() {
   const { id = '' } = useParams()
-  const analysis = useQuery({ queryKey: analysisKey(id), queryFn: () => getAnalysis(id) })
+  const queryClient = useQueryClient()
+  const analysis = useQuery({
+    queryKey: analysisKey(id),
+    queryFn: () => getAnalysis(id),
+    // Consulta a cada 2 s enquanto processa; para em `completed` ou `failed` (R4.4).
+    refetchInterval: (query) => (query.state.data?.status === 'processing' ? 2000 : false),
+  })
+  const status = analysis.data?.status
+
+  // Quando o processamento termina, a lista precisa refletir o novo status.
+  useEffect(() => {
+    if (status && status !== 'processing') queryClient.invalidateQueries({ queryKey: analysesKey, exact: true })
+  }, [status, queryClient])
 
   if (analysis.isPending) {
     return (
@@ -37,9 +51,34 @@ export function Analysis() {
     )
   }
 
+  const data = analysis.data
+
+  if (data.status === 'processing') {
+    return (
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-8">
+        <Processing filename={data.filename} createdAt={data.created_at} />
+      </main>
+    )
+  }
+
+  if (data.status === 'failed') {
+    return (
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-8">
+        <ErrorState
+          error={new Error(data.error ?? 'O processamento falhou.')}
+          title={`Não foi possível analisar ${data.filename}`}
+        >
+          <Button asChild>
+            <Link to="/">Enviar outra imagem</Link>
+          </Button>
+        </ErrorState>
+      </main>
+    )
+  }
+
   return (
     <main className="flex-1 p-4 sm:p-6">
-      <p className="font-mono text-sm">{analysis.data.filename}</p>
+      <p className="font-mono text-sm">{data.filename}</p>
     </main>
   )
 }

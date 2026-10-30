@@ -3,6 +3,7 @@ import { Download } from 'lucide-react'
 import { Link } from 'react-router'
 import { NdviRuler } from '@/components/NdviRuler'
 import { StatusBadge } from '@/components/StatusBadge'
+import { Upload } from '@/components/Upload'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,7 +30,11 @@ export function Analyses() {
         Suas análises
       </h1>
 
-      <section className="mt-8" aria-label="Análises enviadas" aria-busy={analyses.isPending}>
+      <section className="mt-6">
+        <Upload />
+      </section>
+
+      <section className="mt-10" aria-label="Análises enviadas" aria-busy={analyses.isPending}>
         {analyses.isPending && <ListSkeleton />}
         {analyses.isError && (
           <ErrorState

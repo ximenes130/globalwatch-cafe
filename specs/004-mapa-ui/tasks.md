@@ -17,7 +17,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
   - _Req: R4.1, R4.2_
   - Arquivos: `frontend/src/pages/Analyses.tsx`
   - Verificação: conta nova vê o estado vazio.
-- [ ] **T4.3** (P0) Upload com drag and drop, validação no cliente, progresso do envio e estado "processando" com consulta periódica.
+- [x] **T4.3** (P0) Upload com drag and drop, validação no cliente, progresso do envio e estado "processando" com consulta periódica.
   - _Req: R4.3, R4.4_
   - Arquivos: `frontend/src/components/Upload.tsx`, `frontend/src/pages/Analysis.tsx`
   - Verificação: `.png` e arquivo grande rejeitados; kit enviado abre a análise em "processando" e passa para o resultado sem recarregar; análise `failed` mostra a mensagem e a opção de reenviar.
