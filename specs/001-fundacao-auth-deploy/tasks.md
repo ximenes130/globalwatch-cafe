@@ -19,7 +19,7 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
   - _Req: R1.3, R1.10_
   - Arquivos: `supabase/migrations/001_init.sql`
   - Verificação: `supabase/tests/rls_isolation.sql` no Postgres local e no Supabase (`OK: isolamento da RLS verificado`).
-- [ ] **T1.4** (P0) `auth.py` com validação JWKS e rota `GET /me`; testes de 401.
+- [x] **T1.4** (P0) `auth.py` com validação JWKS e rota `GET /me`; testes de 401.
   - _Req: R1.5, R1.6_
   - Arquivos: `backend/app/auth.py`, `backend/tests/test_auth.py`
   - Verificação: `pytest backend/tests/test_auth.py`.

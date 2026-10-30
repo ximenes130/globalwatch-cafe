@@ -44,6 +44,12 @@ Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
   (porta 6543), prepared statements ficam desligados.
 - `GET /me` → `200 {"user_id": "...", "email": "..."}` (protegido; prova a
   validação do JWT ponta a ponta).
+- Validação do JWT (`auth.py`): chave pública do JWKS
+  (`<SUPABASE_URL>/auth/v1/.well-known/jwks.json`, o projeto usa ES256),
+  cache de 10 min; aceita só ES256/RS256 (bloqueia confusão com HS256); exige
+  `exp`, `iss` (`<SUPABASE_URL>/auth/v1`), `aud` e `sub`; recusa sessão
+  anônima (`is_anonymous`), pois só há login com Google. Falha → 401 com
+  `WWW-Authenticate: Bearer`; JWKS inacessível ou `SUPABASE_URL` ausente → 503.
 
 ### Modelo de dados (`001_init.sql`)
 

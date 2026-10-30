@@ -1,11 +1,13 @@
 """Aplicação FastAPI."""
 
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import db
+from app.auth import CurrentUser, current_user
 from app.config import get_settings
 
 settings = get_settings()
@@ -32,3 +34,9 @@ app.add_middleware(
 def health() -> dict[str, str]:
     """Público. Sempre 200 (health check do Render); o estado do banco vai em `db`."""
     return {"status": "ok", "db": db.check()}
+
+
+@app.get("/me")
+def me(user: Annotated[CurrentUser, Depends(current_user)]) -> dict[str, str | None]:
+    """Protegido. Prova ponta a ponta que o backend valida o JWT."""
+    return {"user_id": str(user.id), "email": user.email}
