@@ -1,7 +1,7 @@
 ---
 id: "002"
 titulo: Processamento da imagem e classificação de áreas potenciais
-status: em-implementacao
+status: concluido
 ---
 
 # 002 — Processamento e classificação: design
@@ -51,8 +51,13 @@ front:    GET /analyses/{id} a cada 2 s enquanto `processing`
   instância nova sobe antes de a antiga morrer: uma varredura na subida não
   veria as órfãs criadas depois dela.
 - **Tempo medido:** o worker registra no log a duração de cada processamento.
-  A T2.11 mede o kit em produção, e `stale_after` precisa ficar bem acima do
-  pior caso medido.
+  A T2.11 mediu o kit (512 x 512 px) em produção: 20,89 s no Render free
+  (`docs/evidencias/producao.md`). `stale_after` fica em 15 min, cerca de 43
+  vezes isso. Estimativa, não medida: uma imagem no limite de 2048 x 2048
+  (R6.7) tem 16 vezes os pixels, perto de 6 min se o tempo crescer na mesma
+  proporção. Como as análises rodam uma por vez (R2.23) e `stale_after` conta
+  desde a criação, uma fila com mais de duas imagens desse tamanho poderia
+  expirar a última ainda na espera; a cota diária (R6.8) limita esse caso.
 - **Hibernação:** o Render free dorme após ~15 min sem requisições. Enquanto
   o front consulta o status chegam requisições; se o usuário fechar a aba, o
   processamento termina muito antes desse prazo.
@@ -567,7 +572,7 @@ AnalysisResult`, função pura (sem banco nem storage):
 - Thread morta em reinício ou deploy deixa análise presa em `processing` →
   expiração na leitura (R2.24); o front mostra a mensagem e oferece reenviar.
 - CPU do Render free mais lenta que o esperado → tempo do kit medido em
-  produção na T2.11 e registrado; `stale_after` ajustado a partir dele.
+  produção na T2.11 (20,89 s) e registrado; `stale_after` de 15 min mantido.
 
 ## Estratégia de testes
 

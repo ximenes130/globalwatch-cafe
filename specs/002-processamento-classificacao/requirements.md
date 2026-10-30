@@ -1,7 +1,7 @@
 ---
 id: "002"
 titulo: Processamento da imagem e classificação de áreas potenciais
-status: em-implementacao
+status: concluido
 desafio: [2, 3]
 pontos: Geoprocessamento e classificação (20)
 prioridade: P0

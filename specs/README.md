@@ -31,7 +31,7 @@ requirements.md ──ok──> design.md ──ok──> tasks.md ──ok─�
 | Spec | Itens do DESAFIO | Pontos | Bloco do dia | Status |
 | --- | --- | --- | --- | --- |
 | [001 Fundação, auth e deploy](001-fundacao-auth-deploy/) | 1, 8 | Deploy 10 + seg. | 8h–10h | concluido |
-| [002 Processamento e classificação](002-processamento-classificacao/) | 2, 3 | 20 | 10h–13h | em-implementacao |
+| [002 Processamento e classificação](002-processamento-classificacao/) | 2, 3 | 20 | 10h–13h | concluido |
 | [003 Imagem adicional](003-imagem-adicional/) | pesquisa | parte de 15 | 13h–14h | concluido |
 | [004 Mapa e UI](004-mapa-ui/) | 4, 6 | 20 | 14h–16h30 | concluido |
 | [005 Chat com IA](005-chat-ia/) | 5 | 10 | 16h30–18h | rascunho |

@@ -23,6 +23,14 @@ Em todas: área total 2.621,44 ha, `erro: None` e os quatro links assinados
 
 ## Duração do processamento no servidor (T2.11)
 
-Pendente. A linha `Análise … terminou como … em N s` do worker não aparecia no log: o uvicorn
-só configura os próprios loggers, e os `log.info` de `app.*` eram descartados. Corrigido em
-`backend/app/main.py`; a duração entra aqui depois de um novo envio em produção.
+Linha do worker no log do Render, depois da correção do log em `backend/app/main.py` (antes, o
+uvicorn só configurava os próprios loggers e os `log.info` de `app.*` eram descartados):
+
+```text
+INFO:     app.worker - Análise 94124c53-60cd-4b29-8b4e-8a468536588f terminou como completed em 20.89 s
+```
+
+Envio do kit. O relógio começa quando o worker pega a vez (`backend/app/worker.py`) e para depois
+de gravar o resultado: inclui o pipeline, o envio dos arquivos ao Storage e a gravação no banco;
+não inclui o upload do navegador, a espera na fila nem a espera da consulta. Base de
+`stale_after` (15 min) no `design.md` da spec 002.
