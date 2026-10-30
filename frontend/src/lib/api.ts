@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { trackSlow } from '@/lib/server-waking'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -11,30 +12,130 @@ export class ApiError extends Error {
   }
 }
 
-/** Chama o backend com o JWT da sessão. Um 401 encerra a sessão e volta ao login. */
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+const OFFLINE_MESSAGE = 'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.'
+
+async function authorization(): Promise<string | null> {
   const { data } = await supabase.auth.getSession()
+  return data.session ? `Bearer ${data.session.access_token}` : null
+}
+
+/** Um 401 encerra a sessão e volta ao login; outros erros usam o `detail` do backend. */
+async function errorFrom(status: number, body: { detail?: unknown } | null): Promise<ApiError> {
+  if (status === 401) {
+    await supabase.auth.signOut()
+    return new ApiError(401, 'Sua sessão expirou. Entre novamente.')
+  }
+  const detail = typeof body?.detail === 'string' ? body.detail : null
+  return new ApiError(status, detail ?? `O servidor respondeu ${status}.`)
+}
+
+/** Chama o backend com o JWT da sessão. */
+export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
-  if (data.session) headers.set('Authorization', `Bearer ${data.session.access_token}`)
+  const auth = await authorization()
+  if (auth) headers.set('Authorization', auth)
 
   let response: Response
   try {
-    response = await fetch(`${API_URL}${path}`, { ...init, headers })
+    response = await trackSlow(fetch(`${API_URL}${path}`, { ...init, headers }))
   } catch {
-    throw new ApiError(0, 'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.')
+    throw new ApiError(0, OFFLINE_MESSAGE)
   }
 
-  if (response.status === 401) {
-    await supabase.auth.signOut()
-    throw new ApiError(401, 'Sua sessão expirou. Entre novamente.')
-  }
   if (!response.ok) {
-    const body = await response.json().catch(() => null)
-    throw new ApiError(response.status, body?.detail ?? `O servidor respondeu ${response.status}.`)
+    throw await errorFrom(response.status, await response.json().catch(() => null))
   }
+  if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
 
 export type Me = { user_id: string; email: string | null }
 
 export const getMe = () => apiFetch<Me>('/me')
+
+export type AnalysisStatus = 'processing' | 'completed' | 'failed'
+
+export type AnalysisListItem = {
+  id: string
+  filename: string
+  created_at: string
+  status: AnalysisStatus
+  acquired_at: string | null
+  potential_area_ha: number | null
+}
+
+/** Nomes dos níveis de exclusão, na ordem da cascata (backend/app/processing/classification.py). */
+export type ExclusionLevel =
+  | 'no_data'
+  | 'quality_mask'
+  | 'low_vegetation'
+  | 'dense_canopy'
+  | 'low_chlorophyll'
+  | 'high_amplitude'
+  | 'small_patch'
+
+export type IndexStats = { min: number; p5: number; median: number; p95: number; max: number }
+
+export type Stats = {
+  total_area_ha: number
+  valid_area_ha: number
+  masked_area_ha: number
+  potential_area_ha: number
+  polygon_count: number
+  ndvi: IndexStats
+  gndvi: IndexStats | null
+  excluded_area_ha: Record<ExclusionLevel, number>
+  second_acquired_at: string | null
+}
+
+export type RationaleStep = {
+  level: string
+  name: ExclusionLevel
+  rule: string
+  threshold: number | null
+  excluded_ha: number
+  why: string
+  references: string[]
+}
+
+export type Reference = { key: string; citation: string; doi: string; used_for: string }
+
+export type Rationale = {
+  method_version: string
+  summary: string
+  steps: RationaleStep[]
+  limitations: string[]
+  references: Reference[]
+}
+
+export type ResultUrls = {
+  rgb_png: string
+  classification_png: string
+  polygons_png: string
+  geojson: string
+}
+
+/** Cantos em WGS84 (lon, lat): superior-esquerdo, superior-direito, inferior-direito, inferior-esquerdo. */
+export type Corners = [[number, number], [number, number], [number, number], [number, number]]
+
+export type Analysis = {
+  id: string
+  status: AnalysisStatus
+  filename: string
+  created_at: string
+  acquired_at: string | null
+  crs: string | null
+  bounds_wgs84: Corners | null
+  stats: Stats | null
+  method_version: string | null
+  rationale: Rationale | null
+  error: string | null
+  urls: ResultUrls | null
+}
+
+export const listAnalyses = () => apiFetch<AnalysisListItem[]>('/analyses')
+
+export const getAnalysis = (id: string) => apiFetch<Analysis>(`/analyses/${id}`)
+
+export const deleteAnalysis = (id: string) =>
+  apiFetch<void>(`/analyses/${id}`, { method: 'DELETE' })

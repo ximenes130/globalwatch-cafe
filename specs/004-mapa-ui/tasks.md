@@ -9,7 +9,7 @@ status: em-implementacao
 Bloco do dia: 14h às 16h30. Corte se estourar: alternância RGB/classificação e opacidade; depois o
 movimento e acabamento (T4.9), que entra por último porque refina telas prontas.
 
-- [ ] **T4.1** (P0) Roteamento, layout base, TanStack Query e componentes de estado.
+- [x] **T4.1** (P0) Roteamento, layout base, TanStack Query e componentes de estado.
   - _Req: R4.12, R4.13, R4.14, R4.17_
   - Arquivos: `frontend/src/App.tsx`, `frontend/src/components/states/`
   - Verificação: backend parado mostra aviso de servidor e erro com "tentar de novo".
