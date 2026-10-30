@@ -23,7 +23,7 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
   - _Req: R1.5, R1.6_
   - Arquivos: `backend/app/auth.py`, `backend/tests/test_auth.py`
   - Verificação: `pytest backend/tests/test_auth.py`.
-- [ ] **T1.5** (P0) Frontend: Vite + React + TS + Tailwind + shadcn/ui, tela de login, sair, cliente `api.ts`.
+- [x] **T1.5** (P0) Frontend: Vite + React + TS + Tailwind + shadcn/ui, tela de login, sair, cliente `api.ts`.
   - _Req: R1.1, R1.2, R1.4_
   - Arquivos: `frontend/src/pages/Login.tsx`, `frontend/src/lib/supabase.ts`, `frontend/src/lib/api.ts`
   - Verificação: login local mostra o e-mail vindo de `/me`.
