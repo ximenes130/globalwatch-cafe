@@ -18,6 +18,7 @@ Preenchido durante o trabalho, não no fim (C6.4). Requisito: R7.9.
 | 30/10 | T1.5 | Frontend (Vite, React, Tailwind, shadcn/ui), login Google, sair, cliente da API, identidade visual | `tsc`, `oxlint`, `npm run build`; capturas do Chrome headless em 1440 px e 375 px revelaram dois defeitos na régua de NDVI (moldura cobrindo o "0,6", rótulo cortado no celular), corrigidos | O shadcn gerou dependência do pacote `cn`, cuja versão 0.5.1 tinha sido publicada 30 min antes: fixada a 0.5.0 (duas semanas) por precaução de cadeia de suprimentos |
 | 30/10 | T1.6 | `.env.example` de backend e frontend | `git check-ignore` confirma `.env` e `.env.local` ignorados e os exemplos versionáveis | |
 | 30/10 | T1.8 | CI com ruff, pytest, teste de RLS em Postgres 17 e build do front | Execução 41013727541 verde; log confirma `OK: isolamento da RLS verificado` e `21 passed` | |
+| 30/10 | T1.9 | `compose.yaml` (api com reload, web com Vite, perfil de teste de RLS) e script único `run.sh` usado também pelo CI | `docker compose config`; perfil `test` executado duas vezes seguidas com `OK` (stub tornado idempotente); `up --wait` com `/health` em `db: ok`, `/me` 401, Vite servindo; recarga do backend e HMR do front confirmados nos logs | Requisito fora das specs: R1.12 e T1.9 acrescentados à spec 001 antes do código |
 
 ## Casos em que a IA errou
 

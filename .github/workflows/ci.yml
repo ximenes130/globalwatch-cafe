@@ -41,17 +41,14 @@ jobs:
         options: >-
           --health-cmd pg_isready --health-interval 2s --health-timeout 5s --health-retries 15
     env:
-      DATABASE_URL: postgresql://postgres:test@localhost:5432/postgres
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: test
     steps:
       - uses: actions/checkout@v7
       - run: command -v psql || (sudo apt-get update && sudo apt-get install -y postgresql-client)
       - name: Migration e teste de isolamento da RLS
-        run: |
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f supabase/tests/local_auth_stub.sql
-          for migration in supabase/migrations/*.sql; do
-            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q --single-transaction -f "$migration"
-          done
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f supabase/tests/rls_isolation.sql
+        run: supabase/tests/run.sh
 
   frontend:
     runs-on: ubuntu-latest

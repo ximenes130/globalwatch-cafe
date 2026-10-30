@@ -75,6 +75,12 @@ Exemplos: `feat(backend): adiciona /health com checagem do banco` ·
 
 ## Comandos
 
+Tudo junto (`compose.yaml`, requer `backend/.env` e `frontend/.env.local`):
+
+- Subir: `docker compose up --build` (API em :8000 e front em :5173, com recarga automática)
+- Teste de RLS em Postgres descartável: `docker compose --profile test run --rm rls-test`
+- Parar: `docker compose down` (perfil de teste: `docker compose --profile test down`)
+
 Backend (em `backend/`):
 
 - Ambiente: `python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"`
@@ -85,8 +91,8 @@ Backend (em `backend/`):
 
 Banco (Supabase, migrations em `supabase/migrations/`):
 
-- Teste de RLS local: subir `postgres:17-alpine`, aplicar `supabase/tests/local_auth_stub.sql`,
-  a migration e `supabase/tests/rls_isolation.sql` com `psql -v ON_ERROR_STOP=1`.
+- Teste de RLS local: `supabase/tests/run.sh` contra qualquer Postgres puro (variáveis `PG*`);
+  é o que o perfil `test` do compose e o CI executam.
 - No Supabase: mesmos arquivos (sem o stub) com `psql "$DATABASE_URL"` lido de `backend/.env`;
   migration com `--single-transaction`. O teste roda em transação com rollback.
 

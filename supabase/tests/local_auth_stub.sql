@@ -1,9 +1,19 @@
 -- Simula o mínimo do Supabase num Postgres puro, só para testes locais.
 -- Não aplicar no Supabase.
 
-create role anon nologin;
-create role authenticated nologin;
-create role service_role nologin bypassrls;
+-- Papéis valem para o cluster inteiro: só cria se ainda não existirem.
+do $$
+begin
+  if not exists (select from pg_roles where rolname = 'anon') then
+    create role anon nologin;
+  end if;
+  if not exists (select from pg_roles where rolname = 'authenticated') then
+    create role authenticated nologin;
+  end if;
+  if not exists (select from pg_roles where rolname = 'service_role') then
+    create role service_role nologin bypassrls;
+  end if;
+end $$;
 
 create schema auth;
 grant usage on schema auth to anon, authenticated, service_role;
