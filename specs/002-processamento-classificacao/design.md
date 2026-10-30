@@ -161,6 +161,24 @@ ordem azul, verde, vermelho, NIR.
 - NoData: pixel com DN 0 (ou igual ao `nodata` do arquivo) em qualquer uma das
   quatro bandas fica fora de `valid` e com reflectância `NaN`.
 
+### Índices (`indices.py`)
+
+Todos são diferenças normalizadas `(a − b) / (a + b)` em float32:
+NDVI = (NIR − vermelho)/(NIR + vermelho), NDWI = (verde − NIR)/(verde + NIR)
+(McFeeters) e GNDVI = (NIR − verde)/(NIR + verde).
+
+- Fora de `valid`: `NaN`.
+- Pixel válido com `a + b ≤ 1e-6` vale `0` (sem sinal). Com o offset de −0,1
+  do L2A, pixel muito escuro (água, sombra) pode ter reflectância zero ou
+  negativa; a divisão daria `inf`, `nan` ou um sinal invertido sem sentido.
+  `0` não passa em nenhum limiar de vegetação (`ndvi_min`) nem de água
+  (`NDWI > ndwi_water_min`).
+- Resultado limitado a [−1, 1]: com uma das bandas negativa a razão sai da
+  faixa teórica.
+- No kit nada disso acontece (exploração de 30/10: reflectância mínima 0,0097,
+  nenhum denominador ≤ 0, índices dentro de [−1, 1]); a regra protege outros
+  arquivos.
+
 ### Exploração preliminar do kit (30/10, script descartável)
 
 Feita para checar se os valores de partida fazem sentido; **não substitui a

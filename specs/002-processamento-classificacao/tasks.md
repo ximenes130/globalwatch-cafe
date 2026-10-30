@@ -12,7 +12,7 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.2, R2.3, R2.4, R2.5_
   - Arquivos: `backend/app/processing/params.py`, `backend/app/processing/reader.py`, `backend/app/processing/errors.py`, `backend/tests/test_reader.py`
   - Verificação: `pytest backend/tests/test_reader.py` (pixel conhecido → NDVI 0,9375; DN 0 mascarado; bandas reordenadas pela descrição; `ACQUISITION_UTC` ausente → `null`).
-- [ ] **T2.2** (P0) `indices.py` (NDVI, NDWI) com divisão segura.
+- [x] **T2.2** (P0) `indices.py` (NDVI, NDWI) com divisão segura.
   - _Req: R2.8_
   - Arquivos: `backend/app/processing/indices.py`, `backend/tests/test_indices.py`
   - Verificação: `pytest backend/tests/test_indices.py` (valores conhecidos; denominador zero sem `inf`/`nan` em pixel válido).
