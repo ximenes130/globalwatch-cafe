@@ -48,9 +48,9 @@ produz a evidência de testes para o README.
 
 ### Limites
 
-- **R6.8** — O SISTEMA DEVE limitar a 5 uploads por usuário por dia, com
+- **R6.8** — O SISTEMA DEVE limitar a 20 uploads por usuário por dia, com
   contador no Postgres (`usage_daily`), e responder 429 com mensagem amigável.
-- **R6.9** — O SISTEMA DEVE limitar a 30 mensagens de chat por usuário por dia,
+- **R6.9** — O SISTEMA DEVE limitar a 50 mensagens de chat por usuário por dia,
   com o mesmo mecanismo.
 
 ### Limites visíveis na interface

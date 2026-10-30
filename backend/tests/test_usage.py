@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.auth import CurrentUser, current_user
+from app.config import get_settings
 from app.main import app
 from app.ratelimit import get_usage
 from app.routes import analyses
@@ -51,12 +52,13 @@ def api(monkeypatch):
 
 
 def test_fresh_user_has_everything_left(api):
+    settings = get_settings()
     body = api.client.get("/me/usage").json()
 
     tomorrow = datetime.now(UTC).date() + timedelta(days=1)
     assert body == {
-        "uploads": {"used": 0, "limit": 5},
-        "messages": {"used": 0, "limit": 30},
+        "uploads": {"used": 0, "limit": settings.max_uploads_per_day},
+        "messages": {"used": 0, "limit": settings.max_messages_per_day},
         "resets_at": f"{tomorrow.isoformat()}T00:00:00Z",
         "retention_days": 7,
     }
@@ -74,8 +76,8 @@ def test_usage_follows_uploads_and_messages_without_counting_itself(api):
     for _ in range(3):  # ler não gasta
         body = api.client.get("/me/usage").json()
 
-    assert body["uploads"] == {"used": 2, "limit": 5}
-    assert body["messages"] == {"used": 3, "limit": 30}
+    assert body["uploads"]["used"] == 2
+    assert body["messages"]["used"] == 3
 
 
 def test_each_user_sees_their_own_numbers(api):

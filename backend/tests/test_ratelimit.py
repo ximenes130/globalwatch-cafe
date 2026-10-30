@@ -59,26 +59,34 @@ def api(monkeypatch):
     app.dependency_overrides.clear()
 
 
+def limits() -> tuple[int, int]:
+    # Os valores vêm da configuração: mudar o limite não quebra o teste.
+    settings = get_settings()
+    return settings.max_uploads_per_day, settings.max_messages_per_day
+
+
 def upload(client, data: bytes | None = None):
     image = data if data is not None else KIT_IMAGE.read_bytes()
     return client.post("/analyses", files={"image": ("kit.tif", image, "image/tiff")})
 
 
-def test_sixth_upload_of_the_day_is_429_and_creates_nothing(api):
-    for _ in range(5):
+def test_upload_past_the_daily_limit_is_429_and_creates_nothing(api):
+    max_uploads, _ = limits()
+    for _ in range(max_uploads):
         assert upload(api.client).status_code == 202
 
     response = upload(api.client)
 
     assert response.status_code == 429
     assert response.json()["detail"] == (
-        "Você chegou ao limite de 5 envios de imagem por dia. Tente de novo amanhã."
+        f"Você chegou ao limite de {max_uploads} envios de imagem por dia. Tente de novo amanhã."
     )
-    assert len(api.repository.rows) == 5
+    assert len(api.repository.rows) == max_uploads
 
 
 def test_upload_limit_is_per_user(api):
-    for _ in range(5):
+    max_uploads, _ = limits()
+    for _ in range(max_uploads):
         upload(api.client)
     api.state["user"] = OTHER
 
@@ -93,21 +101,22 @@ def test_rejected_upload_does_not_count(api, monkeypatch):
     assert api.usage.counts == {}
 
 
-def test_thirty_first_message_is_429_without_calling_the_model(api):
+def test_message_past_the_daily_limit_is_429_without_calling_the_model(api):
+    _, max_messages = limits()
     analysis_id = api.repository.create(OWNER.id, "kit.tif")
     api.repository.rows[analysis_id]["status"] = "completed"
     url = f"/analyses/{analysis_id}/chat"
 
-    for _ in range(30):
+    for _ in range(max_messages):
         assert api.client.post(url, json={"message": "Oi"}).status_code == 200
 
     response = api.client.post(url, json={"message": "Oi"})
 
     assert response.status_code == 429
     assert response.json()["detail"] == (
-        "Você chegou ao limite de 30 mensagens no chat por dia. Tente de novo amanhã."
+        f"Você chegou ao limite de {max_messages} mensagens no chat por dia. Tente de novo amanhã."
     )
-    assert api.model.calls == 30
+    assert api.model.calls == max_messages
 
 
 def test_chat_on_someone_elses_analysis_does_not_count(api):

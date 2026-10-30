@@ -9,7 +9,7 @@ const WORDS: Record<QuotaKind, { one: string; many: string; used: string }> = {
 // A partir daqui o aviso ganha destaque (cor de terra, não o vermelho da área potencial).
 const WARN_AT: Record<QuotaKind, number> = { uploads: 1, messages: 5 }
 
-/** "3 envios restantes hoje, de 5 · renova às 21:00", ou o aviso de cota esgotada (R6.16, R6.17). */
+/** "3 envios restantes hoje, de 20 · renova às 21:00", ou o aviso de cota esgotada (R6.16, R6.17). */
 export function UsageNote({ kind, className = '' }: { kind: QuotaKind; className?: string }) {
   const quota = useQuota(kind)
   if (!quota) return null
