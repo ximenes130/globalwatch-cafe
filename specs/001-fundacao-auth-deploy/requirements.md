@@ -54,6 +54,9 @@ identidade do usuário. Todo o resto é construído em cima disso.
   versionada.
 - **R1.11** — O CI DEVE rodar lint e testes do backend e o build do front em
   cada push.
+- **R1.12** — O repositório DEVE permitir subir backend e frontend localmente
+  com um único `docker compose up`, com recarga automática ao editar o código,
+  e rodar o teste de RLS em um Postgres local descartável.
 
 ## Fora de escopo
 

@@ -37,3 +37,7 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
   - _Req: R1.11_
   - Arquivos: `.github/workflows/ci.yml`
   - Verificação: CI verde no push.
+- [x] **T1.9** (P0) `compose.yaml` para execução local e script único do teste de RLS.
+  - _Req: R1.12_
+  - Arquivos: `compose.yaml`, `supabase/tests/run.sh`, `.github/workflows/ci.yml`
+  - Verificação: `docker compose up` com `/health` em `db: ok` e o Vite respondendo; `docker compose --profile test run --rm rls-test` duas vezes seguidas com `OK`.

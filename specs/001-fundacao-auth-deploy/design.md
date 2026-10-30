@@ -86,6 +86,18 @@ Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
 | Render (Docker) | Fly.io; HF Spaces | Free sem cartão, deploy pelo GitHub; HF Spaces fica de plano B (mais RAM) |
 | Validar JWT por JWKS | Chamar `auth.getUser` a cada request | Sem ida à rede por request; valida assinatura localmente |
 
+### Execução local (`compose.yaml`)
+
+- `api`: imagem do `backend/Dockerfile`, `backend/app` montado e
+  `uvicorn --reload`; lê `backend/.env`. Health check em `/health`.
+- `web`: `node:24-alpine` com `frontend/` montado, `npm ci` e `vite --host`;
+  `node_modules` em volume próprio (binários nativos do container não se
+  misturam com os do host). O Vite lê `frontend/.env.local`.
+- Banco e auth: o Supabase real, pois o login Google passa por ele.
+- Perfil `test`: `db-test` (Postgres 17 em tmpfs) e `rls-test`, que roda
+  `supabase/tests/run.sh` (stub + migrations + `rls_isolation.sql` num banco
+  recriado a cada execução). O CI usa o mesmo script.
+
 ## Riscos
 
 - OAuth em modo "Testing" bloqueia o avaliador → publicar a tela de
