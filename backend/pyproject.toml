@@ -20,6 +20,10 @@ dev = [
     "httpx2>=2.16,<3",
     "ruff>=0.17,<1",
 ]
+# Scripts de pesquisa em `scripts/` (calibração, comparações); fora da imagem de produção.
+scripts = [
+    "matplotlib>=3.11,<4",
+]
 
 [build-system]
 requires = ["setuptools>=75"]

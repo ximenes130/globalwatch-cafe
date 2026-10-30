@@ -20,10 +20,10 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.6, R2.7_
   - Arquivos: `backend/app/processing/masking.py`, `backend/tests/test_masking.py`
   - Verificação: `pytest backend/tests/test_masking.py`.
-- [ ] **T2.5** (P0) Calibrar limiares com o kit pelo procedimento do design e registrar os valores finais no `design.md`.
+- [x] **T2.5** (P0) Calibrar limiares com o kit pelo procedimento do design e registrar os valores finais no `design.md`.
   - _Req: R2.9, R2.10_
   - Arquivos: `scripts/calibrate_thresholds.py`, `docs/evidencias/`
-  - Passos: (1) histograma de NDVI e GNDVI com os limiares marcados; (2) máscara sobre o RGB, conferindo talhões, mata ciliar e eucalipto; (3) decisão sobre `gndvi_min` registrada com o motivo; (4) antes/depois do ajuste salvo para o "erro encontrado" da nota.
+  - Passos: (1) histograma de NDVI e GNDVI com os limiares marcados; (2) máscara sobre o RGB, conferindo talhões, mata ciliar e eucalipto; (3) decisão sobre `gndvi_min` registrada com o motivo; (4) antes/depois do ajuste salvo para o "erro encontrado" da nota; (5) conferência com o MapBiomas 2024, sem ajustar os limiares a ele.
   - Verificação: histogramas, máscaras e antes/depois em `docs/evidencias/`; valores atualizados em `params.py`, no `design.md` e em `frontend/src/lib/method.ts` (régua do login). Sem percentual de acerto.
 - [ ] **T2.6** (P0) `classification.py`: cascata N2–N4 (limiares, morfologia, manchas pequenas) com área excluída por nível.
   - _Req: R2.10, R2.11, R2.14_

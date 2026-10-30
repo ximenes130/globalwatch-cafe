@@ -1,0 +1,28 @@
+rótulo: inicial (NDVI 0.55–0.78)
+  máscara de qualidade (scl):      0.00 ha
+  NDVI baixo:                       1288.16 ha
+  NDVI alto (dossel denso):          531.97 ha
+  vermelho baixo (dossel escuro):      0.00 ha
+  GNDVI baixo:                         0.00 ha
+  candidato (sem morfologia):        801.31 ha
+  r(NDVI, GNDVI) nos válidos:         0.971
+  fração de candidato nas amostras:
+    mata (núcleo)                   38%
+    mata (sudoeste, mais clara)     63%
+    mata (fragmento)                31%
+    talhões A                       74%
+    talhões B                       77%
+  MapBiomas 2024 (conferência, não gabarito):
+    classe                           área  candidato  NDVI p5/mediana/p95
+    Formação Florestal              907 ha       42%   0.60/0.79/0.84
+    Mosaico de Usos                 564 ha       43%   0.22/0.54/0.78
+    Pastagem                        470 ha        9%   0.20/0.34/0.60
+    Outras Lavouras Temporárias     342 ha       24%   0.20/0.42/0.73
+    Área Urbanizada                 184 ha        3%   0.07/0.20/0.50
+    Cana                             83 ha       18%   0.18/0.38/0.70
+    Café                             49 ha       61%   0.29/0.63/0.79
+    Silvicultura                     19 ha       38%   0.29/0.51/0.78
+    Rio, Lago e Oceano                2 ha        2%   -0.24/-0.02/0.45
+    Outras Lavouras Perenes           1 ha       66%   0.51/0.63/0.79
+    Outras Áreas não Vegetadas        0 ha       15%   0.16/0.28/0.72
+    fonte: Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, ano 2024, acessado em 30/10/2026 (CC BY 4.0) através de https://data.source.coop/tristangruppwri/mapbiomas/mapbiomas-brazil/mapbiomas_brazil_2024/mapbiomas_brazil_2024.tif

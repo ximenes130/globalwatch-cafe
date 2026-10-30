@@ -136,7 +136,7 @@ Referências conferidas em [Referências](#referências). A nota de pesquisa
   "scl_exclude": [0, 1, 3, 6, 8, 9, 10, 11],
   "ndwi_water_min": 0.0,
   "ndvi_min": 0.55,
-  "ndvi_max": 0.78,
+  "ndvi_max": 0.72,
   "gndvi_min": null,
   "morphology_iterations": 1,
   "min_area_ha": 0.5,
@@ -144,8 +144,8 @@ Referências conferidas em [Referências](#referências). A nota de pesquisa
 }
 ```
 
-Valores de partida; os finais saem da calibração (T2.5) e são registrados
-aqui. `ndwi_water_min = 0,0` segue a leitura de McFeeters (água positiva).
+Valores finais da calibração (T2.5, 30/10): `ndvi_max` baixou de 0,78 para
+0,72 e `gndvi_min` ficou `null` (ver [Resultado](#resultado-da-calibração)). `ndwi_water_min = 0,0` segue a leitura de McFeeters (água positiva).
 
 `radiometry` e `bands` não são escolhas do método: registram o que o leitor
 encontrou no arquivo, para a análise ser reproduzível (C2.3). Ambos seguem a
@@ -218,6 +218,65 @@ T2.5**, que refaz com script versionado e salva as evidências.
    registrado.
 4. Antes/depois do ajuste salvo em `docs/evidencias/` (é o "erro encontrado"
    mais provável da nota). Sem percentual de acerto: o kit não tem gabarito.
+5. Conferência externa com o MapBiomas 2024 (`--mapbiomas`): fração de
+   candidato e NDVI por classe. Só confere a decisão; os limiares **não** são
+   ajustados para concordar com ele, senão a comparação da spec 007 perde a
+   independência.
+
+### Resultado da calibração
+
+Script `scripts/calibrate_thresholds.py`; figuras e resumos em
+`docs/evidencias/calibracao/` (`histogramas.png`, `rgb.jpg`,
+`mascara-<rótulo>.jpg`, `resumo-<rótulo>.txt`). Valores sem morfologia (T2.6).
+
+| Variante | Candidato | Mata núcleo | Mata SO | Fragmento | Talhões A | Talhões B |
+| --- | --- | --- | --- | --- | --- | --- |
+| inicial: NDVI 0,55–0,78 | 801 ha | 38% | 63% | 31% | 74% | 77% |
+| alternativa: NDVI 0,55–0,74 | 542 ha | 14% | 46% | 12% | 68% | 67% |
+| alternativa: 0,55–0,78 e vermelho ≥ 0,04 | 470 ha | 5% | 31% | 8% | 69% | 64% |
+| **final: NDVI 0,55–0,72** | **457 ha** | **7%** | **40%** | **10%** | **64%** | **60%** |
+
+Porcentagem = fração de pixels candidatos em amostras retangulares delimitadas
+por inspeção visual do RGB (coordenadas no script). É interpretação visual,
+não verdade de campo: serve para comparar variantes, não para medir acerto.
+
+- **Erro encontrado:** com 0,55–0,78, o interior da mata (bloco escuro a leste)
+  e as bordas dos fragmentos entravam como candidato. O núcleo da mata tem NDVI
+  de 0,71 (p5) a 0,84 (p95); os talhões em curva de nível, de 0,44 a 0,77,
+  com mediana 0,64. As faixas se sobrepõem, então nenhum teto separa tudo.
+- **Decisão:** teto em 0,72, logo acima do p5 do núcleo da mata. Corta 93% do
+  núcleo e perde parte do topo dos talhões (de 74–77% para 60–64%). A mata
+  mais clara a sudoeste continua com 40%: limitação declarada.
+- **Alternativa recusada:** exigir vermelho ≥ 0,04 separa um pouco melhor
+  (o dossel fechado absorve o vermelho; o café na seca deixa solo exposto entre
+  linhas), mas o ganho visível foi pequeno e seria um limiar empírico sem
+  referência conferida, num nível novo da regra.
+- **GNDVI:** `gndvi_min = null`. Correlação com o NDVI de 0,97 nos pixels
+  válidos, e o histograma 2D não mostra grupo que o GNDVI separe e o NDVI não.
+  Continua calculado e reportado (R2.9).
+- **Piso:** `ndvi_min = 0,55` mantido, no vale entre o pico de pasto seco
+  (~0,30) e o de dossel (~0,80).
+- **Conferência com o MapBiomas 2024** (`mapbiomas-inicial.jpg`,
+  `mapbiomas-final.jpg`; tabela nos resumos). Feita depois da decisão, sem
+  mudar os limiares:
+
+  | Classe MapBiomas 2024 | Área no recorte | Candidato 0,55–0,78 | Candidato 0,55–0,72 | NDVI p5 / mediana / p95 |
+  | --- | --- | --- | --- | --- |
+  | Formação Florestal | 907 ha | 42% | 13% | 0,60 / 0,79 / 0,84 |
+  | Mosaico de Usos | 564 ha | 43% | 33% | 0,22 / 0,54 / 0,78 |
+  | Pastagem | 470 ha | 9% | 8% | 0,20 / 0,34 / 0,60 |
+  | Café | 49 ha | 61% | 48% | 0,29 / 0,63 / 0,79 |
+
+  A mata do MapBiomas confirma o corte (de 42% para 13% de candidato). O café
+  do MapBiomas tem mediana de NDVI 0,63, igual à dos talhões delimitados na
+  imagem (0,64), e o maior bloco dele cai sobre a amostra "talhões A". O p95
+  de 0,79 mostra o custo do teto: café mais vigoroso fica de fora. Limites da
+  conferência: 30 m (Landsat), ano 2024 contra imagem de agosto de 2025, só
+  49 ha de café mapeados (boa parte deve estar em "Mosaico de Usos") e erros
+  próprios do MapBiomas. É concordância, não acurácia.
+- **Sobra para a T2.6:** anel de pixels mistos na borda dos fragmentos de mata,
+  com um a dois pixels de largura; a abertura morfológica deve remover a maior
+  parte.
 
 ## Contratos
 
@@ -381,5 +440,5 @@ Conferidas em 30/10/2026. A coluna "Conferido" diz o que foi aberto (C5.2).
 | mcfeeters1996 | McFeeters, S. K. The use of the Normalized Difference Water Index (NDWI) in the delineation of open water features. *International Journal of Remote Sensing*, 17(7), 1425–1432, 1996. doi:10.1080/01431169608948714 | Registro bibliográfico; fórmula conferida em fonte secundária |
 | rouse1974 | Rouse, J. W. et al. Monitoring vegetation systems in the Great Plains with ERTS, 1974 | **A conferir** antes de entrar na nota |
 | fdp2026 | Forest Data Partnership. Coffee Probability model 2026a. Google Earth Engine, `projects/forestdatapartnership/assets/coffee/model_2026a`. CC BY 4.0, atribuição "Produced by Google for the Forest Data Partnership" | Página do catálogo e README do modelo no GitHub (`google/forest-data-partnership`) |
-| mapbiomas | Projeto MapBiomas, Coleção 10, classe 46 (Café), 30 m | Legenda conferida em fonte secundária; termos de uso **a conferir** |
+| mapbiomas | Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, ano 2024, classe 46 (Café), 30 m. CC BY 4.0. Lido do COG hospedado no Source Cooperative (`data.source.coop/tristangruppwri/mapbiomas/mapbiomas-brazil`), cujo produtor declarado é o MapBiomas | Legenda da Coleção 10 (PDF oficial) e classe 46 conferidas; licença CC BY 4.0 conferida no rodapé de `brasil.mapbiomas.org/downloads/` em 30/10/2026 ("uso público, aberto e gratuito mediante referência"). A cópia no Source Cooperative declara CC-BY-SA-4.0: vale a licença do produtor. Formato da citação vem da página de perguntas frequentes, que estava fora do ar (404) na consulta |
 | s2scl | Classes da SCL do Sentinel-2 L2A (Sentinel Hub custom scripts) | Página aberta; documento da ESA **a conferir** |

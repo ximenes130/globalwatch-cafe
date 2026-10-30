@@ -139,9 +139,25 @@ Exploração preliminar do kit, feita antes da calibração:
   remove pixels neste recorte.
 
 **Erro encontrado.**
-<!-- PENDENTE: antes/depois do ajuste de limiar na T2.5. Candidato mais
-provável, segundo a literatura: mata ciliar ou eucalipto dentro da faixa de
-NDVI. -->
+A faixa de partida, NDVI de 0,55 a 0,78, marcava como candidato boa parte do
+interior da mata e as bordas dos fragmentos. Em amostras delimitadas olhando a
+imagem, 38% do núcleo da mata entrava, contra 74% a 77% dos talhões em curva
+de nível. O NDVI do núcleo da mata vai de 0,71 (p5) a 0,84 (p95), e o dos
+talhões de 0,44 a 0,77: as faixas se sobrepõem. O teto foi baixado para 0,72,
+o que deixa 7% do núcleo da mata e 60% a 64% dos talhões, com 457 ha de
+candidato antes da morfologia. Uma regra extra de vermelho mínimo separava um
+pouco melhor, mas foi recusada por ser um limiar empírico sem referência.
+Figuras de antes e depois: `docs/evidencias/calibracao/mascara-inicial.jpg` e
+`mascara-final.jpg`. Os percentuais comparam variantes; não são acurácia.
+
+Depois da decisão, a faixa foi conferida com o MapBiomas 2024 (Coleção 10,
+30 m), sem ajustar os limiares a ele. Na classe Formação Florestal, o
+candidato caiu de 42% para 13% com o teto de 0,72. A classe Café (49 ha no
+recorte) tem NDVI mediano de 0,63, próximo dos talhões delimitados na imagem
+(0,64), e 48% dela fica dentro da faixa final. O p95 de 0,79 mostra que café
+mais vigoroso fica de fora. O MapBiomas é de 2024 e tem resolução e erros
+próprios: o número é concordância, não acurácia. Figura:
+`docs/evidencias/calibracao/mapbiomas-final.jpg`.
 
 **Limitações.**
 

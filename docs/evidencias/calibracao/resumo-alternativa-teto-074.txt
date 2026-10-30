@@ -1,0 +1,14 @@
+rótulo: alternativa-teto-074 (NDVI 0.55–0.74)
+  máscara de qualidade (scl):      0.00 ha
+  NDVI baixo:                       1288.16 ha
+  NDVI alto (dossel denso):          791.21 ha
+  vermelho baixo (dossel escuro):      0.00 ha
+  GNDVI baixo:                         0.00 ha
+  candidato (sem morfologia):        542.07 ha
+  r(NDVI, GNDVI) nos válidos:         0.971
+  fração de candidato nas amostras:
+    mata (núcleo)                   14%
+    mata (sudoeste, mais clara)     46%
+    mata (fragmento)                12%
+    talhões A                       68%
+    talhões B                       67%

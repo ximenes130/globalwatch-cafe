@@ -26,7 +26,7 @@ class Params(BaseModel):
     scl_exclude: tuple[int, ...] = SCL_EXCLUDE
     ndwi_water_min: float = 0.0
     ndvi_min: float = 0.55
-    ndvi_max: float = 0.78
+    ndvi_max: float = 0.72
     gndvi_min: float | None = None
     morphology_iterations: int = Field(default=1, ge=0)
     min_area_ha: float = Field(default=0.5, ge=0)

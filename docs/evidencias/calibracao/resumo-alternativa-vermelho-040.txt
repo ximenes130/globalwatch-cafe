@@ -1,0 +1,14 @@
+rótulo: alternativa-vermelho-040 (NDVI 0.55–0.78, vermelho ≥ 0.04)
+  máscara de qualidade (scl):      0.00 ha
+  NDVI baixo:                       1288.16 ha
+  NDVI alto (dossel denso):          531.97 ha
+  vermelho baixo (dossel escuro):    331.63 ha
+  GNDVI baixo:                         0.00 ha
+  candidato (sem morfologia):        469.68 ha
+  r(NDVI, GNDVI) nos válidos:         0.971
+  fração de candidato nas amostras:
+    mata (núcleo)                    5%
+    mata (sudoeste, mais clara)     31%
+    mata (fragmento)                 8%
+    talhões A                       69%
+    talhões B                       64%

@@ -60,7 +60,7 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
   SISTEMA DEVE excluir do candidato o pixel com GNDVI abaixo dele. *(P1: se
   cortado, fica só NDVI.)*
 - **R2.10** — O SISTEMA DEVE marcar como candidato o pixel válido com NDVI
-  dentro de `[ndvi_min, ndvi_max]` (ponto de partida 0,55–0,78), excluindo o
+  dentro de `[ndvi_min, ndvi_max]` (0,55–0,72, calibrado na T2.5), excluindo o
   topo da distribuição associado a mata e eucalipto.
 - **R2.11** — O SISTEMA DEVE aplicar abertura e fechamento morfológico e
   remover manchas menores que `min_area_ha` (padrão 0,5 ha).
@@ -135,6 +135,5 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
 
 ## Questões abertas
 
-- Limiar final de NDVI e uso do GNDVI: definidos na T2.5 pelo procedimento de
-  calibração do design (histograma, inspeção sobre o RGB, decisão registrada
-  sobre o GNDVI, antes/depois em `docs/evidencias/`).
+- Nenhuma. Limiares definidos na T2.5 (NDVI 0,55–0,72, `gndvi_min = null`);
+  procedimento e resultado no design.
