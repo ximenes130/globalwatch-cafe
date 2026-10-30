@@ -49,3 +49,21 @@ As secretas (`DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`) e
 
 Pendente: configurado pelo dono da conta no console da Anthropic; o print (sem a chave)
 entra aqui como `anthropic-teto.png`.
+
+## Auditoria final antes de tornar o repositório público (T7.5, R7.10)
+
+Feita em 30/10/2026, depois do commit `35d8713`, no histórico inteiro (`git log -p --all`,
+linhas adicionadas):
+
+| Procura | Resultado |
+| --- | --- |
+| `sk-ant-`, `GOCSPX-`, JWT | 0 |
+| `sb_secret_` | Só o segredo falso de `test_errors.py` e `test_isolation.py` |
+| Connection string com senha | Só exemplos (`.env.example`, `<senha>`), o Postgres descartável do CI (`postgres:test@localhost`) e o endereço inválido de `test_health.py` |
+| E-mails em arquivos | Só `@example.com` (testes de RLS e harness) |
+| CPF, telefone | 0 (as sequências numéricas encontradas são DOIs) |
+| `.notes/` (plano pessoal) | Nunca entrou em commit |
+| Capturas em `docs/evidencias/` | Conta falsa `pessoa@example.com` do harness |
+
+Fica público, por natureza do git e do GitHub: o nome e o e-mail do autor nos metadados dos
+commits e o usuário do GitHub (`ximenes130`) nas URLs.
