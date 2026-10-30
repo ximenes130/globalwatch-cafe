@@ -89,8 +89,8 @@ export function Analysis() {
 }
 
 function Result({ analysis }: { analysis: AnalysisData }) {
-  const [overlay] = useState<Overlay>('rgb')
-  const [opacity] = useState(1)
+  const [overlay, setOverlay] = useState<Overlay>('rgb')
+  const [opacity, setOpacity] = useState(1)
   const { bounds_wgs84: corners, urls } = analysis
 
   return (
@@ -114,7 +114,15 @@ function Result({ analysis }: { analysis: AnalysisData }) {
             analysis={analysis}
             stats={analysis.stats}
             rationale={analysis.rationale}
-            legend={<Legend stats={analysis.stats} />}
+            legend={
+              <Legend
+                stats={analysis.stats}
+                overlay={overlay}
+                onOverlayChange={setOverlay}
+                opacity={opacity}
+                onOpacityChange={setOpacity}
+              />
+            }
             actions={<Downloads id={analysis.id} filename={analysis.filename} />}
             footer={<DeleteAnalysis id={analysis.id} filename={analysis.filename} />}
           />

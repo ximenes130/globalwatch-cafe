@@ -33,7 +33,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
   - _Req: R4.8, R4.11_
   - Arquivos: `frontend/src/components/Downloads.tsx`
   - Verificação: PNG e GeoJSON baixados abrem; GeoJSON válido no geojson.io.
-- [ ] **T4.7** (P1) Alternância RGB/classificação e opacidade.
+- [x] **T4.7** (P1) Alternância RGB/classificação e opacidade.
   - _Req: R4.10_
   - Verificação: manual.
 - [ ] **T4.8** (P0) Revisão responsiva em 375 px e desktop.
