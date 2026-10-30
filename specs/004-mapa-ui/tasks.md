@@ -25,7 +25,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
   - _Req: R4.5, R4.7_
   - Arquivos: `frontend/src/components/MapView.tsx`
   - Verificação: overlay alinhado ao limite da área de estudo.
-- [ ] **T4.5** (P0) Painel: legenda, data, cartões, aviso, justificativa, resultado vazio.
+- [x] **T4.5** (P0) Painel: legenda, data, cartões, aviso, justificativa, resultado vazio.
   - _Req: R4.6, R4.9, R4.15_
   - Arquivos: `frontend/src/components/Legend.tsx`, `frontend/src/components/Summary.tsx`
   - Verificação: números iguais ao JSON da API.

@@ -1,8 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { Legend } from '@/components/Legend'
 import { ErrorState } from '@/components/states/ErrorState'
 import { Processing } from '@/components/states/Processing'
+import { Summary } from '@/components/Summary'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Overlay } from '@/components/MapView'
@@ -90,7 +92,8 @@ function Result({ analysis }: { analysis: AnalysisData }) {
 
   return (
     // No desktop o mapa ocupa a altura que sobra abaixo do cabeçalho (57 px) e o painel rola.
-    <main className="flex flex-1 flex-col lg:grid lg:h-[calc(100dvh-57px)] lg:grid-cols-[minmax(0,1fr)_26rem]">
+    // `flex-none` e linha `minmax(0, 1fr)`: sem eles, o painel comprido estica o main e o mapa.
+    <main className="flex flex-1 flex-col lg:grid lg:h-[calc(100dvh-57px)] lg:flex-none lg:grid-cols-[minmax(0,1fr)_26rem] lg:grid-rows-[minmax(0,1fr)]">
       <div className="relative h-[60svh] border-b border-border lg:h-full lg:border-r lg:border-b-0">
         {corners && urls ? (
           <Suspense fallback={<Skeleton className="size-full rounded-none" />}>
@@ -103,9 +106,16 @@ function Result({ analysis }: { analysis: AnalysisData }) {
         )}
       </div>
       <aside className="p-4 sm:p-6 lg:overflow-y-auto" aria-label="Resultado da análise">
-        <p className="truncate font-mono text-xs text-muted-foreground" title={analysis.filename}>
-          {analysis.filename}
-        </p>
+        {analysis.stats && analysis.rationale ? (
+          <Summary
+            analysis={analysis}
+            stats={analysis.stats}
+            rationale={analysis.rationale}
+            legend={<Legend stats={analysis.stats} />}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">A análise não tem estatísticas gravadas.</p>
+        )}
       </aside>
     </main>
   )
