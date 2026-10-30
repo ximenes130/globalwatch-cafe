@@ -33,6 +33,7 @@ ROLE_TOKENS = {
 }
 
 ACQUISITION_TAG = "ACQUISITION_UTC"
+ATTRIBUTION_TAG = "ATTRIBUTION"
 
 # Web Mercator é métrico, mas a área cresce com a latitude (cerca de +15% a 21°S).
 WEB_MERCATOR = {3857, 900913}
@@ -69,6 +70,8 @@ class ImageData:
     acquired_at: datetime | None
     radiometry: Radiometry
     bands: BandOrder
+    # Texto de atribuição gravado no arquivo (o kit traz o da Copernicus).
+    attribution: str | None = None
 
     @property
     def shape(self) -> tuple[int, int]:
@@ -94,7 +97,9 @@ def read_image(data: bytes) -> ImageData:
         nodata = ds.nodata
         crs, transform = ds.crs, ds.transform
         _check_crs(crs)
-        acquired_at = _acquired_at(ds.tags().get(ACQUISITION_TAG))
+        tags = ds.tags()
+        acquired_at = _acquired_at(tags.get(ACQUISITION_TAG))
+        attribution = tags.get(ATTRIBUTION_TAG) or None
 
     # Pixel inválido se qualquer banda for NoData: sem as quatro, não há índice.
     invalid = np.any(dn == 0, axis=0)
@@ -118,6 +123,7 @@ def read_image(data: bytes) -> ImageData:
         acquired_at=acquired_at,
         radiometry=radiometry,
         bands=bands,
+        attribution=attribution,
     )
 
 

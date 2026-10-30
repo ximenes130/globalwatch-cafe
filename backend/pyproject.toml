@@ -14,6 +14,7 @@ dependencies = [
     "scipy>=1.18,<2",
     "shapely>=2.2,<3",
     "pyproj>=3.8,<4",
+    "pillow>=12.3,<13",
     "rasterio>=1.5.2,<2",
 ]
 
@@ -34,6 +35,10 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["app*"]
+
+# A fonte do rodapé de polygons.png precisa ir junto na instalação.
+[tool.setuptools.package-data]
+app = ["assets/fonts/*.ttf", "assets/fonts/OFL.txt"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

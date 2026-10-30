@@ -36,9 +36,9 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
 - [x] **T2.3** (P1) GNDVI em `indices.py`, estatísticas, `gndvi_mean` por feição e condição opcional `gndvi_min` na regra. Feita depois da T2.7 porque depende de `classification.py` e `vectorization.py`.
   - _Req: R2.9, R2.13, R2.14_
   - Verificação: `pytest backend/tests/test_indices.py backend/tests/test_classification.py` (`gndvi_min = null` não altera o resultado).
-- [ ] **T2.8** (P0) `render.py`: PNG RGB, classificação e polígonos.
+- [x] **T2.8** (P0) `render.py`: PNG RGB, classificação e polígonos.
   - _Req: R2.16_
-  - Arquivos: `backend/app/processing/render.py`, `backend/tests/test_render.py`
+  - Arquivos: `backend/app/processing/render.py`, `backend/app/processing/reader.py` (tag `ATTRIBUTION`), `backend/pyproject.toml` (pillow), `backend/tests/test_render.py`
   - Verificação: `pytest backend/tests/test_render.py` (tamanho do raster; alfa 0 fora dos candidatos); abrir os PNGs do kit e salvar cópia em `docs/evidencias/`.
 - [ ] **T2.9** (P0) `rationale.py` (com `METHOD_REFERENCES`) e `pipeline.py` como função pura, com erro legível e resultado vazio.
   - _Req: R2.1, R2.17, R2.18, R2.19, R2.20_

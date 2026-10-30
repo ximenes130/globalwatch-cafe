@@ -131,6 +131,10 @@ def test_missing_or_unreadable_acquisition_date_is_none(tags):
     assert image.acquired_at is None
 
 
+def test_attribution_is_optional():
+    assert read_image(make_tiff(known_pixel_stack())).attribution is None
+
+
 def test_fewer_than_four_bands_is_a_processing_error():
     dn = known_pixel_stack()[:3]
 
@@ -148,6 +152,7 @@ def test_kit_image():
     assert image.radiometry.source == "file_tags"
     assert image.bands.source == "descriptions"
     assert image.bands.indexes == (1, 2, 3, 4)
+    assert image.attribution == "Contains modified Copernicus Sentinel data (2025)"
     # Pixel (0, 0) do azul: DN 2012 → 2012 * 0,0001 − 0,1.
     assert image.blue[0, 0] == pytest.approx(0.1012, abs=1e-6)
 

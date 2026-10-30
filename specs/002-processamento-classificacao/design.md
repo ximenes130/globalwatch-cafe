@@ -255,6 +255,26 @@ NDVI = (NIR − vermelho)/(NIR + vermelho), NDWI = (verde − NIR)/(verde + NIR)
   inferior-direito, inferior-esquerdo); no kit, batem com
   `area_estudo.geojson`.
 
+### Imagens (`render.py`)
+
+Pillow (sem matplotlib, que fica só nos scripts). Três PNGs:
+
+- `rgb.png` (overlay do mapa): cor verdadeira (B04, B03, B02) com realce
+  linear p2–p98 por banda, calculado nos pixels de `valid`; NoData com alfa 0.
+  Mesmo tamanho do raster, para casar com `corners_wgs84`.
+- `classification.png` (overlay do mapa): RGBA do tamanho do raster. Área
+  potencial em vermelho-cereja `#b3122e` opaco; `quality_mask` em cinza
+  `#6b7280` com alfa 160 (a legenda da UI mostra "área mascarada"); o resto
+  com alfa 0. A opacidade é controlada no mapa (R4.10).
+- `polygons.png` (download, R4.8): RGB ampliado por fator inteiro com vizinho
+  mais próximo (fator = `ceil(1024 / maior lado)`, entre 1 e 4; 2 no kit),
+  contorno dos polígonos simplificados (os mesmos do GeoJSON) em
+  vermelho-cereja com preenchimento translúcido e o `id` de cada um, para
+  casar com o chat ("polígono 3"). Faixa de rodapé com "Áreas potenciais de
+  café (não validadas)", a data da imagem e a atribuição "Contém dados
+  Copernicus Sentinel modificados" (C5.1; usa a tag `ATTRIBUTION` do arquivo
+  quando existir).
+
 ### Exploração preliminar do kit (30/10, script descartável)
 
 Feita para checar se os valores de partida fazem sentido; **não substitui a
@@ -501,7 +521,7 @@ justificativa nunca citar algo fora da seção [Referências](#referências).
 | R2.10, R2.11 | `test_classification.py`: raster sintético com faixas de NDVI conhecidas cai em `low_vegetation`, candidato e `dense_canopy`; mancha < 50 px vai para `small_patch`; `gndvi_min = null` não altera o resultado |
 | R2.12, R2.14, R2.15 | `test_area.py`: kit → 2.621,44 ha; soma de `area_ha` = `potential_area_ha` = pixels x 0,01; `total = potencial + Σ excluded_area_ha`; área do polígono simplificado igual à contagem de pixels; `valid_area_ha` e `masked_area_ha` com NoData e máscara |
 | R2.13 | `test_vectorization.py`: GeoJSON válido (polígonos válidos, anel externo anti-horário, lon/lat), coordenadas dentro de `area_estudo.geojson`, propriedades obrigatórias, `id` por área decrescente, resultado vazio = `FeatureCollection` sem feições; cantos do kit iguais aos de `area_estudo.geojson` |
-| R2.16 | `test_render.py`: três PNGs gerados com o tamanho do raster; classificação com alfa 0 fora dos candidatos; inspeção visual na T2.8 |
+| R2.16 | `test_render.py`: `rgb.png` e `classification.png` com o tamanho do raster; NoData transparente; classificação com cereja na área potencial, cinza na máscara e alfa 0 no resto; realce p2–p98; `polygons.png` ampliado, com contorno sobre os pixels de borda das manchas e rodapé; inspeção visual na T2.8 |
 | R2.17 | `test_pipeline.py`: duas execuções iguais → mesmo GeoJSON e mesmos `stats` |
 | R2.18 | `test_rationale.py`: limiares e hectares da justificativa batem com `params` e `stats`; `references` é subconjunto de `METHOD_REFERENCES`; nenhuma frase usa "café detectado" nem percentual de acurácia (C1.1, C1.2) |
 | R2.19 | `test_pipeline.py`: arquivo corrompido → `ProcessingError` com mensagem legível (o worker grava como `error`) |
