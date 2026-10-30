@@ -1,20 +1,68 @@
 ---
 id: "002"
 titulo: Processamento da imagem e classificação de áreas potenciais
-status: rascunho
+status: aprovado
 ---
 
 # 002 — Processamento e classificação: design
 
 ## Visão geral
 
-Processamento **síncrono** dentro do request: um recorte 512 x 512 leva poucos
-segundos. Em produção iria para fila com status de job (README explica).
+Processamento **em plano de fundo, no próprio processo da API**. O request
+valida o arquivo, cria a análise em `processing` e responde `202` na hora; o
+pipeline roda numa thread e grava `completed` ou `failed`. O front consulta o
+status até a análise sair de `processing` (spec 004).
+
+Motivo: no Render free (~0,1 vCPU, 512 MB, valor a confirmar na T2.11) um
+recorte de 2048 x 2048 pode levar minutos, e um request preso esse tempo
+deixa a tela sem retorno. O contrato assíncrono já nasce com o front, então
+a mudança não custa retrabalho na spec 004.
 
 ```text
-upload ─> validação (006) ─> leitura ─> máscara ─> índices ─> regra hierárquica
-       ─> morfologia ─> vetorização ─> render ─> storage + linha em analyses
+request:  upload ─> validação (006) ─> cota (006) ─> insert `processing` ─> 202 {id}
+thread:   leitura ─> máscara ─> índices ─> regra hierárquica ─> morfologia
+          ─> vetorização ─> render ─> storage ─> update `completed` | `failed`
+front:    GET /analyses/{id} a cada 2 s enquanto `processing`
 ```
+
+### Execução em plano de fundo (`worker.py`)
+
+- **Agendamento:** `BackgroundTasks` do FastAPI. A tarefa roda depois que a
+  resposta `202` é enviada, numa thread do threadpool do Starlette (o pipeline
+  é síncrono e usa CPU, não pode rodar no event loop).
+- **Um por vez:** `PROCESSING_SLOT = threading.Semaphore(1)` envolve o
+  pipeline. Com 512 MB, dois rasters de 2048 x 2048 em float32 com índices e
+  máscaras ao mesmo tempo arriscam estourar a memória. Quem chega depois
+  espera na fila do semáforo, ainda em `processing`.
+- **Bytes em memória:** o arquivo validado (≤ 20 MB, R6.5) é passado para a
+  tarefa como `bytes`; o worker grava `original.tif` e as saídas no storage.
+  Não há releitura do storage, o que evita uma ida e volta de rede.
+- **Falha:** o worker captura qualquer exceção, registra o stack trace no log
+  do servidor e grava `failed` com mensagem legível (R2.19). Nada sobe para o
+  cliente, que só vê o `error` da linha.
+- **Ordem das escritas:** primeiro o storage, depois o `update` da linha para
+  `completed` com `stats`, `params`, `rationale` e `bounds_wgs84`. Assim uma
+  análise `completed` sempre tem os arquivos.
+- **Análise órfã:** um reinício ou deploy mata a thread e deixa a linha em
+  `processing`. Antes de listar ou ler análises, o backend roda um único
+  `update analyses set status = 'failed', error = … where user_id = %s and
+  status = 'processing' and created_at < now() - stale_after` (padrão 15 min).
+  É feito na leitura, e não na subida da API, porque no deploy do Render a
+  instância nova sobe antes de a antiga morrer: uma varredura na subida não
+  veria as órfãs criadas depois dela.
+- **Tempo medido:** o worker registra no log a duração de cada processamento.
+  A T2.11 mede o kit em produção, e `stale_after` precisa ficar bem acima do
+  pior caso medido.
+- **Hibernação:** o Render free dorme após ~15 min sem requisições. Enquanto
+  o front consulta o status chegam requisições; se o usuário fechar a aba, o
+  processamento termina muito antes desse prazo.
+- **Cota:** o upload conta em `usage_daily` (R6.8) quando é aceito, antes do
+  `202`. Uma análise que falha depois continua contando: sem isso, um arquivo
+  feito para falhar daria processamento ilimitado.
+
+Fila externa (Celery ou RQ com Redis, `pgmq` com worker separado) fica como
+evolução: exige um segundo serviço sempre ligado, e worker não existe no plano
+free do Render (C4).
 
 A regra é uma **cascata de exclusões com limiares explícitos**, inspirada na
 classificação hierárquica de Parreiras et al. (2025), que separa primeiro
@@ -71,8 +119,9 @@ Referências conferidas em [Referências](#referências). A nota de pesquisa
 | `backend/app/processing/render.py` | PNG RGB (realce p2–p98), PNG da classificação, PNG com polígonos |
 | `backend/app/processing/rationale.py` | Monta a justificativa estruturada, incluindo referências e limitações |
 | `backend/app/processing/params.py` | `Params` (dataclass/pydantic) + `METHOD_VERSION` + `METHOD_REFERENCES` |
-| `backend/app/processing/pipeline.py` | Orquestra e devolve `AnalysisResult` |
-| `backend/app/routes/analyses.py` | Endpoints |
+| `backend/app/processing/pipeline.py` | Orquestra e devolve `AnalysisResult` (função pura: bytes e `Params` → resultado, sem banco nem storage) |
+| `backend/app/worker.py` | `run_analysis`: semáforo, pipeline, storage, `update` final e captura de falhas; `expire_stale` para órfãs |
+| `backend/app/routes/analyses.py` | Endpoints; `POST` valida, cria a linha e agenda `run_analysis` |
 | `backend/app/storage.py` | Upload/download no Supabase Storage, URLs assinadas |
 
 ## Parâmetros versionados
@@ -124,14 +173,22 @@ T2.5**, que refaz com script versionado e salva as evidências.
 ## Contratos
 
 - `POST /analyses` — `multipart/form-data`: `image` (obrigatório), `scl`
-  (opcional). → `201 {"id", "status"}`; erros 400/413/415/422/429 (006).
+  (opcional). → `202 {"id", "status": "processing"}` com cabeçalho
+  `Location: /analyses/{id}`; erros 400/413/415/422/429 (006) saem na hora,
+  antes do `202`.
 - `GET /analyses` → lista do usuário: `id`, `filename`, `created_at`,
-  `status`, `acquired_at`, `stats.potential_area_ha`.
-- `GET /analyses/{id}` → `id`, `status`, `filename`, `acquired_at`, `crs`,
-  `bounds_wgs84` (`[[lon,lat] x 4]`), `stats`, `params`, `method_version`,
-  `rationale`, `urls` assinadas (`rgb_png`, `classification_png`,
-  `polygons_png`, `geojson`), `error`.
-- `DELETE /analyses/{id}` → `204`; remove linha, mensagens e arquivos.
+  `status`, `acquired_at`, `stats.potential_area_ha` (`null` enquanto
+  `processing`).
+- `GET /analyses/{id}` → `id`, `status`, `filename`, `created_at`,
+  `acquired_at`, `crs`, `bounds_wgs84` (`[[lon,lat] x 4]`), `stats`, `params`,
+  `method_version`, `rationale`, `urls` assinadas (`rgb_png`,
+  `classification_png`, `polygons_png`, `geojson`), `error`. Enquanto
+  `processing`, os campos do resultado e `urls` vêm `null`; o front usa
+  `created_at` para mostrar o tempo decorrido.
+- `DELETE /analyses/{id}` → `204`; remove linha, mensagens e arquivos. Em
+  `processing` → `409` ("Aguarde o fim do processamento"): apagar no meio
+  deixaria o worker gravando arquivos de uma análise que não existe mais.
+  Uma órfã vira `failed` após `stale_after` e pode ser apagada.
 
 Storage: `analyses/<user_id>/<analysis_id>/{original.tif, scl.tif, rgb.png,
 classification.png, polygons.png, result.geojson}`.
@@ -211,6 +268,9 @@ justificativa nunca citar algo fora da seção [Referências](#referências).
 | Área calculada em UTM | Área em graus / geodésica no WGS84 | UTM é o CRS nativo em metros; cada pixel = 0,01 ha |
 | SCL por vizinho mais próximo | Bilinear | SCL é categórica; interpolar cria classes inexistentes |
 | `rasterio` com conversão manual | `rioxarray` com `mask_and_scale=True` | Controle explícito evita a conversão dupla avisada no LEIA-ME |
+| Processamento em plano de fundo no processo da API (`BackgroundTasks` + semáforo) | Síncrono no request; fila externa com worker separado | Síncrono prende o request por minutos no Render free; fila externa exige serviço pago (C4). A thread morre num reinício, o que é coberto pela expiração de órfãs |
+| Expirar órfãs na leitura | Varredura na subida da API | No deploy do Render a instância nova sobe antes de a antiga morrer; a varredura na subida perderia as órfãs criadas depois dela |
+| `409` ao apagar análise em `processing` | Worker detectar a linha apagada e limpar o storage | Uma regra simples no `DELETE` evita corrida entre o worker e a remoção |
 
 ## Riscos
 
@@ -224,7 +284,12 @@ justificativa nunca citar algo fora da seção [Referências](#referências).
   registrada com o motivo; nada de usar só para "parecer mais completo".
 - Overlay deslocado no mapa → bounds calculados a partir do transform e
   reprojetados para WGS84; conferir no mapa (004).
-- Memória no Render free (512 MB) → limite de 2048 x 2048 (R6.7) e float32.
+- Memória no Render free (512 MB) → limite de 2048 x 2048 (R6.7), float32 e
+  um processamento por vez (R2.23).
+- Thread morta em reinício ou deploy deixa análise presa em `processing` →
+  expiração na leitura (R2.24); o front mostra a mensagem e oferece reenviar.
+- CPU do Render free mais lenta que o esperado → tempo do kit medido em
+  produção na T2.11 e registrado; `stale_after` ajustado a partir dele.
 
 ## Estratégia de testes
 
@@ -244,9 +309,14 @@ justificativa nunca citar algo fora da seção [Referências](#referências).
 | R2.16 | `test_render.py`: três PNGs gerados com o tamanho do raster; classificação com alfa 0 fora dos candidatos; inspeção visual na T2.8 |
 | R2.17 | `test_pipeline.py`: duas execuções iguais → mesmo GeoJSON e mesmos `stats` |
 | R2.18 | `test_rationale.py`: limiares e hectares da justificativa batem com `params` e `stats`; `references` é subconjunto de `METHOD_REFERENCES`; nenhuma frase usa "café detectado" nem percentual de acurácia (C1.1, C1.2) |
-| R2.19 | `test_pipeline.py`: arquivo corrompido → `failed` com mensagem legível, sem stack trace |
+| R2.19 | `test_pipeline.py`: arquivo corrompido → `ProcessingError` com mensagem legível (o worker grava como `error`) |
 | R2.20 | `test_pipeline.py`: raster sem vegetação → 0 polígonos, status `completed` |
 | R2.21 | `test_isolation.py` (006) |
+| R2.1, R2.22 | `test_analyses_api.py` (banco e storage substituídos por fakes via dependências do FastAPI): `POST` → `202` com `processing` e `Location`; o `TestClient` roda a tarefa após a resposta, e o `GET` seguinte mostra `completed` |
+| R2.19 | `test_worker.py`: pipeline que lança exceção → linha `failed` com mensagem legível; o texto da exceção não aparece em `error` |
+| R2.23 | `test_worker.py`: com o semáforo ocupado, a segunda execução espera até a primeira liberar |
+| R2.24 | `test_analyses_api.py`: linha em `processing` com `created_at` antigo vira `failed` no `GET`; recente continua `processing` |
+| R2.25 | `test_analyses_api.py`: `DELETE` em `processing` → `409`; em `failed` → `204` |
 
 ## Referências
 

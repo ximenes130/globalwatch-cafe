@@ -1,7 +1,7 @@
 ---
 id: "002"
 titulo: Processamento da imagem e classificação de áreas potenciais
-status: rascunho
+status: aprovado
 ---
 
 # 002 — Processamento e classificação: tarefas
@@ -40,11 +40,15 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.16_
   - Arquivos: `backend/app/processing/render.py`, `backend/tests/test_render.py`
   - Verificação: `pytest backend/tests/test_render.py` (tamanho do raster; alfa 0 fora dos candidatos); abrir os PNGs do kit e salvar cópia em `docs/evidencias/`.
-- [ ] **T2.9** (P0) `rationale.py` (com `METHOD_REFERENCES`) e `pipeline.py` com status `failed` e resultado vazio.
+- [ ] **T2.9** (P0) `rationale.py` (com `METHOD_REFERENCES`) e `pipeline.py` como função pura, com erro legível e resultado vazio.
   - _Req: R2.1, R2.17, R2.18, R2.19, R2.20_
   - Arquivos: `backend/app/processing/rationale.py`, `backend/app/processing/params.py`, `backend/app/processing/pipeline.py`, `backend/tests/test_rationale.py`, `backend/tests/test_pipeline.py`
-  - Verificação: `pytest backend/tests/test_rationale.py backend/tests/test_pipeline.py` (números da justificativa batem com `params`/`stats`; referências só da lista fixa; sem "café detectado" nem percentual de acurácia; duas execuções iguais → mesmo resultado; arquivo diferente → stats diferentes; arquivo corrompido → `failed` sem stack trace; sem vegetação → 0 polígonos).
-- [ ] **T2.10** (P0) `storage.py` e rotas `/analyses` (POST, GET lista, GET id, DELETE).
-  - _Req: R2.1, R2.21_
-  - Arquivos: `backend/app/storage.py`, `backend/app/routes/analyses.py`
-  - Verificação: `curl -F image=@data/exemplo/imagem_multiespectral.tif` em produção com token; resposta com stats do kit.
+  - Verificação: `pytest backend/tests/test_rationale.py backend/tests/test_pipeline.py` (números da justificativa batem com `params`/`stats`; referências só da lista fixa; sem "café detectado" nem percentual de acurácia; duas execuções iguais → mesmo resultado; arquivo diferente → stats diferentes; arquivo corrompido → `ProcessingError` com mensagem legível; sem vegetação → 0 polígonos).
+- [ ] **T2.10** (P0) `storage.py` e `worker.py`: `run_analysis` com semáforo, escrita no storage antes do `update` final, captura de falhas e log da duração; `expire_stale` para órfãs.
+  - _Req: R2.1, R2.16, R2.19, R2.23, R2.24_
+  - Arquivos: `backend/app/storage.py`, `backend/app/worker.py`, `backend/tests/test_worker.py`
+  - Verificação: `pytest backend/tests/test_worker.py` (exceção no pipeline → `failed` sem o texto da exceção; semáforo ocupado faz a segunda execução esperar; `expire_stale` só afeta `processing` antigas do próprio usuário).
+- [ ] **T2.11** (P0) Rotas `/analyses`: `POST` com `202` e agendamento, `GET` lista e id com expiração de órfãs, `DELETE` com `409` em `processing`.
+  - _Req: R2.1, R2.21, R2.22, R2.24, R2.25_
+  - Arquivos: `backend/app/routes/analyses.py`, `backend/app/main.py`, `backend/tests/test_analyses_api.py`
+  - Verificação: `pytest backend/tests/test_analyses_api.py`; em produção, `curl -F image=@data/exemplo/imagem_multiespectral.tif` com token → `202`, consulta até `completed` com os stats do kit; duração do processamento lida no log do Render e registrada em `docs/evidencias/` e no `design.md` (base de `stale_after`).

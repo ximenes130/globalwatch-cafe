@@ -34,7 +34,12 @@ Router; dados com TanStack Query (cache, retry e estados prontos).
 ## Contratos
 
 Consome `GET /analyses`, `GET /analyses/{id}`, `POST /analyses`,
-`DELETE /analyses/{id}` (spec 002). O overlay usa `bounds_wgs84` na ordem
+`DELETE /analyses/{id}` (spec 002). O `POST` responde `202` com o `id` e o
+processamento roda em plano de fundo: a tela da análise abre na hora e o
+`useQuery` de `GET /analyses/{id}` usa `refetchInterval` de 2 s enquanto
+`status = "processing"` (e `false` depois); a lista faz o mesmo se tiver
+alguma análise em `processing`. O tempo decorrido sai de `created_at`. O
+overlay usa `bounds_wgs84` na ordem
 exigida pelo MapLibre: superior-esquerdo, superior-direito, inferior-direito,
 inferior-esquerdo.
 

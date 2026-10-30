@@ -1,7 +1,7 @@
 ---
 id: "002"
 titulo: Processamento da imagem e classificação de áreas potenciais
-status: rascunho
+status: aprovado
 desafio: [2, 3]
 pontos: Geoprocessamento e classificação (20)
 prioridade: P0
@@ -29,8 +29,8 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
 ### Leitura
 
 - **R2.1** — QUANDO receber um GeoTIFF que passou na validação (R6.5–R6.7), O
-  SISTEMA DEVE processar o próprio arquivo enviado e registrar a análise com
-  status `completed` ou `failed`.
+  SISTEMA DEVE processar o próprio arquivo enviado e levar a análise de
+  `processing` para `completed` ou `failed`.
 - **R2.2** — O SISTEMA DEVE converter DN em reflectância **uma única vez**,
   `reflectância = DN * scale + offset`, com scale/offset lidos do arquivo e,
   na ausência deles, os valores do kit (0,0001 e -0,1), registrando em
@@ -107,6 +107,19 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
   `GET /analyses/{id}` e `DELETE /analyses/{id}`, todos protegidos e isolados
   por usuário (R6.1–R6.3).
 
+### Execução em plano de fundo
+
+- **R2.22** — QUANDO aceitar um upload, O SISTEMA DEVE criar a análise com
+  status `processing` e responder `202` com o `id` sem esperar o
+  processamento, que DEVE rodar em plano de fundo.
+- **R2.23** — O SISTEMA DEVE executar no máximo um processamento por vez em
+  cada instância; os demais DEVEM aguardar com status `processing`.
+- **R2.24** — SE uma análise ficar em `processing` por mais de `stale_after`
+  (padrão 15 min), ENTÃO O SISTEMA DEVE marcá-la como `failed` com uma
+  mensagem que oriente a reenviar o arquivo.
+- **R2.25** — SE o usuário pedir para apagar uma análise em `processing`,
+  ENTÃO O SISTEMA DEVE responder 409 sem apagar nada.
+
 ## Fora de escopo
 
 - Classificador supervisionado ou modelo treinado (alternativa documentada na
@@ -114,7 +127,10 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
 - Modelo pronto como classificador da aplicação (ex.: Coffee Probability da
   Forest Data Partnership), porque não processa o arquivo enviado (C2.2).
 - Textura (GLCM) e outras variáveis espaciais (ver decisões no design).
-- Processamento assíncrono em fila (documentado como evolução).
+- Fila externa com worker separado (Celery/RQ com Redis, `pgmq`): exige um
+  serviço pago no Render (C4); documentada como evolução.
+- Progresso por etapa durante o processamento (o front mostra o tempo
+  decorrido).
 - Imagens com mais de 2048 x 2048 px.
 
 ## Questões abertas

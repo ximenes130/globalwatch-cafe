@@ -38,8 +38,11 @@ carregamento, erro e ausência de resultado.
 - **R4.3** — O upload DEVE aceitar arrastar e soltar ou seleção de arquivo,
   validar no cliente extensão `.tif/.tiff` e tamanho (≤ 20 MB) e aceitar a SCL
   opcional.
-- **R4.4** — ENQUANTO o upload e o processamento ocorrem, O SISTEMA DEVE
-  mostrar progresso e bloquear o reenvio.
+- **R4.4** — ENQUANTO o upload ocorre, O SISTEMA DEVE mostrar o progresso do
+  envio e bloquear o reenvio; ENQUANTO a análise estiver em `processing`, O
+  SISTEMA DEVE mostrar o estado de processamento com o tempo decorrido e
+  consultar o status a cada 2 s até `completed` ou `failed`, sem o usuário
+  recarregar a página.
 
 ### Tela da análise
 
