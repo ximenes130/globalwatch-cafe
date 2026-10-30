@@ -1,5 +1,6 @@
 """Aplicação FastAPI."""
 
+import logging
 from contextlib import asynccontextmanager
 from typing import Annotated
 
@@ -12,6 +13,12 @@ from app.config import get_settings
 from app.routes import analyses
 
 settings = get_settings()
+
+# O uvicorn só configura os próprios loggers: sem handler no root, os `log.info` de `app.*`
+# (como a duração de cada análise, lida no log do Render na T2.11) eram descartados.
+# INFO só para `app`; as bibliotecas continuam em WARNING.
+logging.basicConfig(level=logging.WARNING, format="%(levelname)s:     %(name)s - %(message)s")
+logging.getLogger("app").setLevel(logging.INFO)
 
 
 @asynccontextmanager
