@@ -90,6 +90,13 @@ Banco (Supabase, migrations em `supabase/migrations/`):
 - No Supabase: mesmos arquivos (sem o stub) com `psql "$DATABASE_URL"` lido de `backend/.env`;
   migration com `--single-transaction`. O teste roda em transação com rollback.
 
-Frontend: a preencher no T1.5.
+Frontend (em `frontend/`, variáveis em `frontend/.env.local`):
+
+- Ambiente: `npm ci`
+- Rodar: `npm run dev` (http://localhost:5173)
+- Lint, tipos e build: `npm run lint && npm run build`
+
+CI: `.github/workflows/ci.yml` roda backend (ruff, pytest), banco (migrations + teste de RLS em
+Postgres 17) e frontend (oxlint, build). Deploy: `render.yaml` (back) e `frontend/vercel.json`.
 
 Kit: integridade com `cd data/exemplo && sha256sum -c SHA256SUMS.txt`

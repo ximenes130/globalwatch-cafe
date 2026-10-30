@@ -1,0 +1,24 @@
+# Blueprint do Render: New → Blueprint → este repositório.
+# Variáveis com `sync: false` são pedidas no painel na criação (segredos nunca aqui).
+services:
+  - type: web
+    name: globalwatch-api
+    runtime: docker
+    plan: free
+    # Mesma região do Supabase (aws us-west-2): menos latência no banco.
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: SUPABASE_URL
+        value: https://dkuwafzzkvcxxphdtmyl.supabase.co
+      - key: SUPABASE_JWT_AUDIENCE
+        value: authenticated
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
