@@ -1,7 +1,7 @@
 ---
 id: "007"
 titulo: Documentação, nota de pesquisa e entrega
-status: aprovado
+status: em-implementacao
 desafio: [entregáveis, pesquisa]
 pontos: Pesquisa e justificativa (15) + Deploy e documentação (10) + Organização (5)
 prioridade: P0

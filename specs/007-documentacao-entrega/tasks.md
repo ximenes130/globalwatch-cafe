@@ -1,7 +1,7 @@
 ---
 id: "007"
 titulo: Documentação, nota de pesquisa e entrega
-status: aprovado
+status: em-implementacao
 ---
 
 # 007 — Documentação e entrega: tarefas
@@ -10,7 +10,7 @@ A inspeção vem primeiro, porque a nota cita o resultado dela.
 A comparação com o MapBiomas já foi feita (T2.5, T3.3); aqui ela só é resumida.
 `docs/uso-de-ia.md` é preenchido ao longo do dia, não só aqui.
 
-- [ ] **T7.1** (P0) Inspeção visual de 15 pontos.
+- [x] **T7.1** (P0) Inspeção visual de 15 pontos.
   - _Req: R7.7_
   - Arquivos: `scripts/inspect_points.py`, `docs/evidencias/inspecao/`
   - Verificação: prancha gerada pelo pipeline do app; tabela preenchida e

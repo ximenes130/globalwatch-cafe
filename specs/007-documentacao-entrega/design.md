@@ -1,7 +1,7 @@
 ---
 id: "007"
 titulo: Documentação, nota de pesquisa e entrega
-status: aprovado
+status: em-implementacao
 ---
 
 # 007 — Documentação e entrega: design
