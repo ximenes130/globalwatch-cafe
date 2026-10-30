@@ -1,7 +1,7 @@
 ---
 id: "006"
 titulo: Segurança, isolamento e limites de uso
-status: rascunho
+status: aprovado
 ---
 
 # 006 — Segurança e limites: design

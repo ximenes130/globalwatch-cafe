@@ -1,7 +1,7 @@
 ---
 id: "006"
 titulo: Segurança, isolamento e limites de uso
-status: rascunho
+status: aprovado
 desafio: [7]
 pontos: Segurança e backend (20)
 prioridade: P0 (P1 só a retenção automática)

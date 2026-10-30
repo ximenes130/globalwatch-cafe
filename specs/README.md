@@ -35,7 +35,7 @@ requirements.md ──ok──> design.md ──ok──> tasks.md ──ok─�
 | [003 Imagem adicional](003-imagem-adicional/) | pesquisa | parte de 15 | 13h–14h | concluido |
 | [004 Mapa e UI](004-mapa-ui/) | 4, 6 | 20 | 14h–16h30 | concluido |
 | [005 Chat com IA](005-chat-ia/) | 5 | 10 | 16h30–18h | concluido |
-| [006 Segurança e limites](006-seguranca-limites/) | 7 | 20 | 18h–19h (transversal) | rascunho |
+| [006 Segurança e limites](006-seguranca-limites/) | 7 | 20 | 18h–19h (transversal) | aprovado |
 | [007 Documentação e entrega](007-documentacao-entrega/) | entregáveis | 15 + 10 + 5 | 19h–22h30 | rascunho |
 
 A coluna Status espelha o frontmatter dos arquivos; `/spec-status` recalcula.
