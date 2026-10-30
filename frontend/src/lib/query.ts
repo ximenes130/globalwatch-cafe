@@ -16,3 +16,4 @@ export const queryClient = new QueryClient({
 
 export const analysesKey = ['analyses'] as const
 export const analysisKey = (id: string) => ['analyses', id] as const
+export const usageKey = ['usage'] as const

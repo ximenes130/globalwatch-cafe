@@ -147,6 +147,7 @@ def test_route_list_is_complete():
         ("GET", "/analyses/{analysis_id}/chat"),
         ("GET", "/health"),
         ("GET", "/me"),
+        ("GET", "/me/usage"),
         ("POST", "/analyses"),
         ("POST", "/analyses/{analysis_id}/chat"),
     ]

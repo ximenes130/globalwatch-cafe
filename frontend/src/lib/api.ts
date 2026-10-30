@@ -230,3 +230,13 @@ export const sendChat = (id: string, message: string | null, history: ChatTurn[]
 export type ChatMessage = { id: number; role: 'user' | 'assistant'; content: string; cards: ChatCard[]; created_at: string }
 
 export const getChatHistory = (id: string) => apiFetch<ChatMessage[]>(`/analyses/${id}/chat`)
+
+/** Cota de hoje e retenção (R6.16 a R6.19): números do backend, nunca calculados aqui. */
+export type Usage = {
+  uploads: { used: number; limit: number }
+  messages: { used: number; limit: number }
+  resets_at: string
+  retention_days: number
+}
+
+export const getUsage = () => apiFetch<Usage>('/me/usage')

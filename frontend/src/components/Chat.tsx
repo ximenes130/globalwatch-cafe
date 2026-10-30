@@ -1,10 +1,14 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { ArrowUp, RotateCw } from 'lucide-react'
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { ChatCards, type ShowPolygon } from '@/components/ChatCards'
 import { Button } from '@/components/ui/button'
+import { UsageNote } from '@/components/UsageNote'
 import { type ChatCard, type ChatTurn, getChatHistory, sendChat } from '@/lib/api'
 import { renderMarkdown } from '@/lib/markdown'
 import { prefersReducedMotion } from '@/lib/motion'
+import { usageKey } from '@/lib/query'
+import { useQuota } from '@/lib/usage'
 
 const MAX_MESSAGE = 1000
 // Limites do backend: 10 mensagens de até 4.000 caracteres vão ao modelo.
@@ -40,6 +44,9 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
   const end = useRef<HTMLDivElement>(null)
   const lastAnswer = useRef<HTMLLIElement>(null)
   const started = useRef(false)
+  const queryClient = useQueryClient()
+  // Sem mensagens hoje, o campo e as sugestões param e o rodapé diz quando libera (R6.17).
+  const blocked = useQuota('messages')?.blocked ?? false
 
   useEffect(() => {
     const behavior = prefersReducedMotion() ? 'auto' : 'smooth'
@@ -61,6 +68,8 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
       return error instanceof Error ? error.message : 'O assistente não respondeu.'
     } finally {
       setPending(false)
+      // Resposta, erro ou 429: a cota mostrada acompanha o backend.
+      void queryClient.invalidateQueries({ queryKey: usageKey })
     }
   }
 
@@ -92,7 +101,7 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
   async function send(text: string) {
     const message = text.trim()
     // Antes de a conversa gravada chegar, o histórico enviado estaria incompleto.
-    if (!message || pending || stored === null) return
+    if (!message || pending || blocked || stored === null) return
     const question: ChatEntry = { id: crypto.randomUUID(), role: 'user', content: message }
     const before = entries
     setEntries([...before, question])
@@ -193,7 +202,7 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
         {!asked && entries.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2" aria-label="Sugestões de perguntas">
             {suggestions.map((text) => (
-              <Button key={text} size="sm" variant="outline" className="h-auto py-1 whitespace-normal" disabled={pending} onClick={() => void send(text)}>
+              <Button key={text} size="sm" variant="outline" className="h-auto py-1 whitespace-normal" disabled={pending || blocked} onClick={() => void send(text)}>
                 {text}
               </Button>
             ))}
@@ -209,15 +218,17 @@ export function Chat({ analysisId, hasSecondDate, onShowPolygon }: Props) {
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={onKeyDown}
             maxLength={MAX_MESSAGE}
+            disabled={blocked}
             rows={2}
             placeholder="Pergunte sobre áreas, polígonos ou limitações"
-            className="min-h-10 flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="min-h-10 flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
           />
-          <Button type="submit" size="icon-lg" disabled={pending || stored === null || !draft.trim()} aria-label="Enviar pergunta">
+          <Button type="submit" size="icon-lg" disabled={pending || blocked || stored === null || !draft.trim()} aria-label="Enviar pergunta">
             <ArrowUp />
           </Button>
         </form>
-        <p className="mt-1.5 flex justify-between gap-2 text-[11px] text-muted-foreground">
+        <UsageNote kind="messages" className="mt-2" />
+        <p className="mt-1 flex justify-between gap-2 text-[11px] text-muted-foreground">
           <span>Respostas geradas por IA a partir dos dados do processamento.</span>
           {draft.length > MAX_MESSAGE * 0.8 && (
             <span className="font-mono tabular-nums">

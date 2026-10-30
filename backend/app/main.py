@@ -11,6 +11,8 @@ from app import db
 from app.auth import CurrentUser, current_user
 from app.config import get_settings
 from app.errors import NeutralErrors
+from app.ratelimit import Usage
+from app.retention import RETENTION_DAYS
 from app.routes import analyses, chat
 
 settings = get_settings()
@@ -68,3 +70,16 @@ def health() -> dict[str, str]:
 def me(user: Annotated[CurrentUser, Depends(current_user)]) -> dict[str, str | None]:
     """Protegido. Prova ponta a ponta que o backend valida o JWT."""
     return {"user_id": str(user.id), "email": user.email}
+
+
+@app.get("/me/usage")
+def my_usage(user: Annotated[CurrentUser, Depends(current_user)], usage: Usage) -> dict:
+    """Cota de hoje e retenção, para a interface mostrar os limites (R6.16 a R6.19)."""
+    settings = get_settings()
+    today = usage.today(user.id)
+    return {
+        "uploads": {"used": today["uploads"], "limit": settings.max_uploads_per_day},
+        "messages": {"used": today["messages"], "limit": settings.max_messages_per_day},
+        "resets_at": today["resets_at"],
+        "retention_days": RETENTION_DAYS,
+    }

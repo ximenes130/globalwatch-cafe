@@ -168,3 +168,11 @@ class FakeUsage:
             return False
         self.counts[(user_id, kind)] = used + 1
         return True
+
+    def today(self, user_id: UUID) -> dict:
+        tomorrow = datetime.now(UTC).date() + timedelta(days=1)
+        return {
+            "uploads": self.counts.get((user_id, "uploads"), 0),
+            "messages": self.counts.get((user_id, "messages"), 0),
+            "resets_at": datetime(tomorrow.year, tomorrow.month, tomorrow.day, tzinfo=UTC),
+        }

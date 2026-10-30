@@ -28,6 +28,10 @@ class UsageCounter(Protocol):
         """Conta um uso se o usuário ainda estiver abaixo do limite de hoje."""
         ...
 
+    def today(self, user_id: UUID) -> dict:
+        """Uso de hoje sem contar nada: `uploads`, `messages` e `resets_at` (R6.16)."""
+        ...
+
 
 class UsageRepository:
     def __init__(self, pool: ConnectionPool):
@@ -50,6 +54,20 @@ class UsageRepository:
         with self.pool.connection() as conn:
             # Sem linha de volta: o `where` barrou o incremento, o limite já foi atingido.
             return conn.execute(query, (user_id, limit)).fetchone() is not None
+
+    def today(self, user_id: UUID) -> dict:
+        # A renovação sai do banco: a mesma meia-noite do `current_date` usado no limite.
+        with self.pool.connection() as conn:
+            uploads, messages, resets_at = conn.execute(
+                """
+                select coalesce(u.uploads, 0), coalesce(u.messages, 0),
+                       (current_date + 1)::timestamptz
+                from (select 1) as one
+                left join usage_daily u on u.user_id = %s and u.day = current_date
+                """,
+                (user_id,),
+            ).fetchone()
+        return {"uploads": uploads, "messages": messages, "resets_at": resets_at}
 
 
 def get_usage() -> UsageCounter:

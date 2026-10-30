@@ -3,12 +3,14 @@ import { ChevronRight, FileImage, Upload as UploadIcon, X } from 'lucide-react'
 import { type DragEvent, type FormEvent, useId, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ErrorState } from '@/components/states/ErrorState'
+import { RetentionNote, UsageNote } from '@/components/UsageNote'
 import { Button } from '@/components/ui/button'
 import { createAnalysis, type UploadFiles } from '@/lib/api'
 import { formatIndex } from '@/lib/format'
 import { NDVI_AMPLITUDE_MAX } from '@/lib/method'
-import { analysesKey } from '@/lib/query'
+import { analysesKey, usageKey } from '@/lib/query'
 import { formatSize, MAX_UPLOAD_MB, rejectReason, splitDropped } from '@/lib/upload'
+import { useQuota } from '@/lib/usage'
 
 type Slot = keyof UploadFiles
 type Selection = Record<Slot, File | null>
@@ -29,8 +31,13 @@ export function Upload() {
       queryClient.invalidateQueries({ queryKey: analysesKey })
       navigate(`/analyses/${id}`)
     },
+    // Aceito ou recusado (429 inclusive), a cota mostrada precisa refletir o backend.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: usageKey }),
   })
+  // Sem envios hoje, o formulário fica parado e diz quando libera (R6.17).
+  const blocked = useQuota('uploads')?.blocked ?? false
   const busy = upload.isPending
+  const locked = busy || blocked
 
   /** Aceita os arquivos válidos e mostra o motivo do primeiro recusado. */
   function choose(chosen: Partial<Selection>) {
@@ -54,7 +61,7 @@ export function Upload() {
   function submit(event: FormEvent) {
     event.preventDefault()
     const { image } = files
-    if (!image || busy) return
+    if (!image || locked) return
     setProgress(0)
     upload.mutate({ ...files, image })
   }
@@ -62,14 +69,14 @@ export function Upload() {
   return (
     <form onSubmit={submit} className="rounded-lg border border-border bg-card p-4 sm:p-5" aria-label="Nova análise">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
-        <DropZone file={files.image} disabled={busy} onFiles={(dropped) => choose(splitDropped(dropped))} onClear={() => choose({ image: null })} />
+        <DropZone file={files.image} disabled={locked} onFiles={(dropped) => choose(splitDropped(dropped))} onClear={() => choose({ image: null })} />
 
         <div className="flex flex-col gap-4">
           <FileField
             label="Camada de qualidade SCL"
             hint="Opcional. Sem ela, nuvem e sombra não são mascaradas."
             file={files.scl}
-            disabled={busy}
+            disabled={locked}
             onChange={(scl) => choose({ scl })}
           />
           <details className="group rounded-md border border-border px-3 py-2 open:pb-3">
@@ -82,11 +89,11 @@ export function Upload() {
               NDVI muda {formatIndex(NDVI_AMPLITUDE_MAX)} ou mais entre as datas.
             </p>
             <div className="mt-3 flex flex-col gap-3">
-              <FileField label="Imagem da segunda data" file={files.image2} disabled={busy} onChange={(image2) => choose({ image2 })} />
+              <FileField label="Imagem da segunda data" file={files.image2} disabled={locked} onChange={(image2) => choose({ image2 })} />
               <FileField
                 label="SCL da segunda data"
                 file={files.scl2}
-                disabled={busy || !files.image2}
+                disabled={locked || !files.image2}
                 onChange={(scl2) => choose({ scl2 })}
               />
             </div>
@@ -106,12 +113,13 @@ export function Upload() {
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-4">
-        <Button type="submit" size="lg" disabled={!files.image || busy} className="px-4">
+        <Button type="submit" size="lg" disabled={!files.image || locked} className="px-4">
           <UploadIcon />
           {busy ? 'Enviando…' : 'Analisar imagem'}
         </Button>
-        {busy && <UploadProgress fraction={progress} />}
+        {busy ? <UploadProgress fraction={progress} /> : <UsageNote kind="uploads" />}
       </div>
+      <RetentionNote className="mt-3" />
     </form>
   )
 }
@@ -179,7 +187,8 @@ function DropZone({ file, disabled, onFiles, onClear }: DropZoneProps) {
       onDragLeave={() => setOver(false)}
       onDrop={handleDrop}
       data-over={over || undefined}
-      className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-4 py-6 text-center transition-colors duration-150 has-focus-visible:ring-3 has-focus-visible:ring-ring/50 hover:border-canopy/60 data-over:border-solid data-over:border-canopy data-over:bg-canopy/5"
+      aria-disabled={disabled || undefined}
+      className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-input bg-background px-4 py-6 text-center transition-colors duration-150 has-focus-visible:ring-3 has-focus-visible:ring-ring/50 hover:border-canopy/60 data-over:border-solid data-over:border-canopy data-over:bg-canopy/5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
     >
       <UploadIcon className="size-6 text-muted-foreground" aria-hidden />
       <span className="font-medium">Arraste a imagem Sentinel-2 aqui ou escolha o arquivo</span>

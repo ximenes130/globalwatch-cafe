@@ -268,3 +268,24 @@ def test_list_expired_by_age_across_users(pool, users):
     expired = [row for row in repo.list_expired(7) if row[1] in (owner, other)]
 
     assert sorted(expired) == sorted([(old_owner, owner), (old_other, other)])
+
+
+def test_usage_today_reads_without_counting(pool, users):
+    owner, other = users
+    usage = UsageRepository(pool)
+    with pool.connection() as conn:
+        conn.execute(
+            "insert into usage_daily (user_id, day, uploads) values (%s, current_date - 1, 4)",
+            (owner,),
+        )
+        tomorrow = conn.execute("select (current_date + 1)::timestamptz").fetchone()[0]
+
+    assert usage.today(owner) == {"uploads": 0, "messages": 0, "resets_at": tomorrow}
+    usage.consume(owner, "uploads", 5)
+    usage.consume(owner, "messages", 30)
+    usage.consume(owner, "messages", 30)
+    assert usage.today(owner)["uploads"] == 1
+    assert usage.today(owner)["messages"] == 2
+    # Ler duas vezes não muda nada, e outro usuário continua zerado.
+    assert usage.today(owner)["messages"] == 2
+    assert usage.today(other)["uploads"] == 0

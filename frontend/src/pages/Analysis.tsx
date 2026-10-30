@@ -9,6 +9,7 @@ import { Legend } from '@/components/Legend'
 import { ErrorState } from '@/components/states/ErrorState'
 import { Processing } from '@/components/states/Processing'
 import { Summary } from '@/components/Summary'
+import { DeletionNote } from '@/components/UsageNote'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Focus, Overlay } from '@/components/MapView'
@@ -187,7 +188,12 @@ function Result({ analysis, intro }: { analysis: AnalysisData; intro: boolean })
                   />
                 }
                 actions={<Downloads id={analysis.id} filename={analysis.filename} />}
-                footer={<DeleteAnalysis id={analysis.id} filename={analysis.filename} />}
+                footer={
+                  <div className="space-y-2">
+                    <DeletionNote createdAt={analysis.created_at} />
+                    <DeleteAnalysis id={analysis.id} filename={analysis.filename} />
+                  </div>
+                }
               />
             ) : (
               <p className="text-sm text-muted-foreground">A análise não tem estatísticas gravadas.</p>

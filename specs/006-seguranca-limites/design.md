@@ -37,9 +37,9 @@ cada 429.
 
 | Onde | O que aparece |
 | --- | --- |
-| Área de envio | "3 de 5 envios restantes hoje · renova às 21:00" (hora local) e "As análises ficam guardadas por 7 dias." Com 0: zona de soltar e botão desabilitados e "Você usou os 5 envios de hoje. Libera às 21:00." |
-| Rodapé do chat | "27 mensagens restantes hoje"; a partir de 5 restantes, em destaque (cor de aviso, sem vermelho); com 0, campo e sugestões desabilitados com "Libera às 21:00." |
-| Lista e painel da análise | "Apagada em 6 dias" (ou "amanhã", "hoje") a partir de `created_at` + 7 dias; na lista, só quando faltar 2 dias ou menos, para não poluir |
+| Área de envio | "3 envios restantes hoje, de 5 · renova às 21:00" (hora local) e "As análises ficam guardadas por 7 dias." Com 0: zona de soltar e botão desabilitados e "Você usou os 5 envios de hoje. Libera às 21:00." |
+| Rodapé do chat | "27 mensagens restantes hoje, de 30"; a partir de 5 restantes, em destaque (cor de aviso, sem vermelho); com 0, campo e sugestões desabilitados com "Libera às 21:00." |
+| Lista e painel da análise | "Será apagada em 6 dias" (ou "amanhã", "hoje") a partir de `created_at` + 7 dias; na lista, só quando faltar 2 dias ou menos, para não poluir |
 
 Sem número inventado: o restante é `limit - used` vindo da API, e a data de exclusão
 usa o `created_at` do banco com o `retention_days` da API. Se `GET /me/usage` falhar, os

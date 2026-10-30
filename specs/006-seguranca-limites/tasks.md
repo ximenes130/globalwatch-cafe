@@ -38,7 +38,7 @@ Corte se estourar: retenção automática (fica documentada).
   - Verificação: análise com `created_at` antigo é removida (testes com dublês e Postgres);
     primeira execução do workflow com os secrets `DATABASE_URL` e
     `SUPABASE_SERVICE_ROLE_KEY` no GitHub termina verde.
-- [ ] **T6.8** (P0) Limites visíveis na interface.
+- [x] **T6.8** (P0) Limites visíveis na interface.
   - _Req: R6.16, R6.17, R6.18, R6.19_
   - Arquivos: `backend/app/ratelimit.py`, `backend/app/main.py`, `backend/tests/test_usage.py`,
     `frontend/src/lib/api.ts`, `frontend/src/components/{Upload,Chat,UsageNote}.tsx`,

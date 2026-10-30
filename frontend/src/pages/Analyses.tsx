@@ -4,6 +4,7 @@ import { Link } from 'react-router'
 import { NdviRuler } from '@/components/NdviRuler'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Upload } from '@/components/Upload'
+import { DeletionNote } from '@/components/UsageNote'
 import { EmptyState } from '@/components/states/EmptyState'
 import { ErrorState } from '@/components/states/ErrorState'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -70,8 +71,11 @@ function AnalysisList({ items }: { items: AnalysisListItem[] }) {
               className={`block px-4 py-3 transition-colors outline-none hover:bg-muted/60 focus-visible:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset ${COLUMNS}`}
             >
               <span className="flex min-w-0 items-baseline justify-between gap-3">
-                <span className="min-w-0 truncate font-medium" title={item.filename}>
-                  {item.filename}
+                <span className="min-w-0">
+                  <span className="block truncate font-medium" title={item.filename}>
+                    {item.filename}
+                  </span>
+                  <DeletionNote createdAt={item.created_at} soon />
                 </span>
                 <span className="shrink-0 sm:hidden">
                   <StatusBadge status={item.status} />
