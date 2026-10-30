@@ -109,9 +109,11 @@ ganho visível.
   modified Copernicus Sentinel data (2025)". Os termos são os do Sentinel Data
   Legal Notice indicado em `data/exemplo/ATRIBUICAO.txt`, e a atribuição
   acompanha os dados no repositório.
-- **Imagem adicional:** mesma origem e mesmas condições, com atribuição
-  equivalente gerada pelo script da spec 003.
-  <!-- preencher com o item e a data de acesso após a T3.x -->
+- **Imagem adicional:** cena `S2B_T23KLS_20260110T131730_L2A`, de
+  10/01/2026, com a mesma origem e as mesmas condições. Foi acessada em
+  30/10/2026 por `scripts/download_additional_scene.py`, que grava a
+  atribuição "Contains modified Copernicus Sentinel data (2026)" e os termos
+  em `data/adicional/<item>/ATRIBUICAO.txt`.
 - **Coffee Probability 2026a (Forest Data Partnership):** considerado e não
   usado na aplicação. A página do catálogo informa licença CC BY 4.0, com a
   atribuição "Produced by Google for the Forest Data Partnership". O próprio
@@ -166,6 +168,37 @@ café em talhões pequenos demais para 30 m, e em lavouras temporárias e cana,
 que uma única imagem de agosto não separa de café. Figura:
 `docs/evidencias/calibracao/mapbiomas-final.jpg`.
 
+**Imagem adicional (chuva).** A cena de 10/01/2026 tem a mesma órbita e a
+mesma grade do kit. Ela foi escolhida entre 55 cenas de dezembro a março por
+não ter nuvem, sombra nem sem-dado dentro do recorte, e foi processada com o
+mesmo pipeline e os mesmos parâmetros.
+
+- A área potencial cai para 139,12 ha (75 polígonos). Só 10,11 ha coincidem
+  com os 214,54 ha da seca.
+- Na chuva, o NDVI mediano do recorte sobe de 0,56 para 0,86. Com isso, 191 ha
+  da área potencial da seca passam do teto de 0,72.
+- O que entra no lugar é sobretudo pasto verde: 83 dos 129 ha que só aparecem
+  na chuva são Pastagem no MapBiomas.
+- Conclusão: os limiares valem para a seca, e um arquivo da estação chuvosa
+  gera área potencial dominada por pasto.
+
+A amplitude |ΔNDVI| entre as datas segue o que Souza et al. (2019)
+descrevem:
+
+| Classe do MapBiomas | Amplitude mediana |
+| --- | --- |
+| Formação florestal | 0,12 |
+| Café | 0,15 |
+| Pastagem | 0,36 |
+| Lavouras temporárias | 0,39 |
+| Cana | 0,54 |
+
+Dentro da área potencial da seca, porém, as classes se sobrepõem: café 0,16,
+mosaico 0,19, pasto 0,20, mata 0,20, lavoura temporária 0,24 e cana 0,28. A
+faixa de agosto já tirou a maior parte do pasto, e a segunda data separa
+sobretudo lavoura temporária e cana. Figura e tabelas:
+`docs/evidencias/comparacao-datas/`.
+
 **Limitações.**
 
 - **Uma única data.** O método não distingue café de outras perenes, pasto
@@ -178,8 +211,9 @@ que uma única imagem de agosto não separa de café. Figura:
   solo e tende a ficar abaixo do piso de NDVI. Mesmo com Random Forest e
   radar, Maskell et al. (2021) obtiveram 71% de acurácia de usuário para café
   jovem e 56% para consorciado.
-- **Limiares calibrados no próprio kit.** Em outras regiões ou datas, os
-  valores podem não se aplicar.
+- **Limiares calibrados no próprio kit, que é da seca.** Na imagem de
+  janeiro, os mesmos valores trocam quase toda a área potencial (só 10 ha em
+  comum). Em outras regiões, os valores também podem não se aplicar.
 - **Sem gabarito de campo.** O resultado é "área potencial de café", marcado
   como `validated: false`, sem acurácia ou confiança.
 

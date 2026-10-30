@@ -98,9 +98,11 @@ backend/.venv/bin/python scripts/compare_dates.py [--additional data/adicional/<
   mínima): candidato nas duas, só na seca (kit), só na chuva, nenhuma.
 - **Amplitude:** `|NDVI_chuva − NDVI_seca|` por pixel. Mediana e quartis por
   classe de transição, e histograma.
-- **MapBiomas** (R3.9): hectares de café, pasto, mata e mosaico em cada classe
-  de transição, com a mesma leitura e a mesma ressalva da calibração (30 m,
-  2024, modelo e não gabarito).
+- **MapBiomas** (R3.9): hectares de cada classe do MapBiomas em cada classe
+  de transição e a amplitude mediana de cada uma, com a mesma leitura e a
+  mesma ressalva da calibração (30 m, 2024, modelo e não gabarito).
+- **Matriz de níveis:** hectares por nível da cascata, seca × chuva, para
+  mostrar para onde vai a área potencial de uma data na outra.
 - `resumo.txt`: as duas tabelas de estatísticas lado a lado (área total,
   área potencial, polígonos, área excluída por nível, NDVI médio), a matriz de
   transição em hectares, a amplitude por classe, o MapBiomas e as fontes.
@@ -133,9 +135,12 @@ backend/.venv/bin/python scripts/compare_dates.py [--additional data/adicional/<
 
 ## Riscos
 
-- **Pasto verde na chuva:** o candidato da data chuvosa fica bem maior que o
-  da seca. É esperado, e é o achado: vai para a nota como argumento da data
-  seca e da regra de amplitude. Não é motivo para recalibrar.
+- **Limiares da seca na chuva:** a expectativa era que o pasto verde
+  inflasse a área potencial da data chuvosa. A T3.3 mostrou outra coisa: ela
+  cai para 139 ha, porque o NDVI de quase toda a vegetação passa do teto de
+  0,72. O pasto entra (83 ha), mas a área da seca sai (191 ha), e só 10 ha
+  coincidem. É o achado: vai para a nota como argumento da data seca. Não é
+  motivo para recalibrar.
 - **Diferença de iluminação entre as datas:** em janeiro o sol está mais alto
   que em agosto. A L2A já é reflectância de superfície, mas sem correção BRDF,
   então a amplitude mede também um pouco de geometria de iluminação.

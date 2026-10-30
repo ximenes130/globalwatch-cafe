@@ -1,0 +1,53 @@
+Comparação entre datas (spec 003, T3.3)
+Seca: kit, 16/08/2025. Chuva: S2B_T23KLS_20260110T131730_L2A, 10/01/2026.
+Mesmos parâmetros da app: {'scl_exclude': [0, 1, 3, 6, 8, 9, 10, 11], 'ndwi_water_min': 0.0, 'ndvi_min': 0.55, 'ndvi_max': 0.72, 'gndvi_min': None, 'morphology_iterations': 1, 'min_area_ha': 0.5, 'simplify_tolerance_px': 0.5}
+
+Estatísticas das duas análises (as que a app grava):
+                                         16/08/2025     10/01/2026
+  área total (ha)                           2621.44        2621.44
+  área válida (ha)                          2621.44        2621.44
+  máscara de qualidade (ha)                     0.0           0.28
+  área potencial (ha)                        214.54         139.12
+  polígonos                                     124             75
+  excluído em no_data (ha)                      0.0            0.0
+  excluído em quality_mask (ha)                 0.0           0.28
+  excluído em low_vegetation (ha)           1279.76         320.42
+  excluído em dense_canopy (ha)              870.46        1972.94
+  excluído em low_chlorophyll (ha)              0.0            0.0
+  excluído em small_patch (ha)               256.68         188.68
+  NDVI p5                                    0.1808         0.2713
+  NDVI median                                0.5587         0.8566
+  NDVI p95                                   0.8236         0.9237
+
+Nível da cascata por pixel, seca (linha) × chuva (coluna), em hectares:
+  seca \ chuva            potencial          no_data     quality_mask   low_vegetation     dense_canopy  low_chlorophyll      small_patch
+  potencial                   10.11             0.00             0.00             1.89           190.58             0.00            11.96
+  no_data                      0.00             0.00             0.00             0.00             0.00             0.00             0.00
+  quality_mask                 0.00             0.00             0.00             0.00             0.00             0.00             0.00
+  low_vegetation             118.03             0.00             0.28           311.19           692.01             0.00           158.25
+  dense_canopy                 4.63             0.00             0.00             2.12           860.73             0.00             2.98
+  low_chlorophyll              0.00             0.00             0.00             0.00             0.00             0.00             0.00
+  small_patch                  6.35             0.00             0.00             5.22           229.62             0.00            15.49
+
+Base comum (utilizável nas duas datas): 2621.16 ha.
+Transição da área potencial e amplitude |NDVI chuva − NDVI seca|:
+  classe                      área (ha)   amplitude p25 / mediana / p75 / p90
+  candidato nas duas datas        10.11   0.028 / 0.061 / 0.099 / 0.129
+  só na seca                     204.43   0.159 / 0.205 / 0.251 / 0.295
+  só na chuva                    129.01   0.212 / 0.313 / 0.375 / 0.423
+  em nenhuma                    2277.61   0.106 / 0.167 / 0.367 / 0.500
+
+MapBiomas 2024 em cada classe de transição (concordância, não acurácia):
+  classe MapBiomas (ha)         candidato nas duas datas                só na seca               só na chuva                em nenhuma   amplitude mediana
+  Formação Florestal                                0.98                     42.47                      2.97                    860.75   0.118
+  Mosaico de Usos                                   5.47                     77.49                     22.70                    458.74   0.211
+  Pastagem                                          1.21                     10.12                     83.34                    375.12   0.356
+  Outras Lavouras Temporárias                       1.25                     40.65                     10.91                    288.81   0.391
+  Área Urbanizada                                   0.00                      0.77                      0.84                    182.03   0.082
+  Cana                                              0.00                     10.06                      0.23                     72.76   0.539
+  Café                                              1.18                     19.54                      6.44                     21.63   0.148
+  Silvicultura                                      0.02                      3.11                      1.58                     14.71   0.290
+  Rio, Lago e Oceano                                0.00                      0.00                      0.00                      2.02   0.170
+  Outras Lavouras Perenes                           0.00                      0.22                      0.00                      0.71   0.152
+  Outras Áreas não Vegetadas                        0.00                      0.00                      0.00                      0.33   0.134
+  fonte: Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, ano 2024, acessado em 30/10/2026 (CC BY 4.0) através de https://data.source.coop/tristangruppwri/mapbiomas/mapbiomas-brazil/mapbiomas_brazil_2024/mapbiomas_brazil_2024.tif

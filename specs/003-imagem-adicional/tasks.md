@@ -21,7 +21,7 @@ aprovação.
   - _Req: R3.6_
   - Arquivos: `data/adicional/<item_id>/`
   - Verificação: `sha256sum -c SHA256SUMS.txt`.
-- [ ] **T3.3** (P0) Script de comparação entre datas e registro na nota de pesquisa.
+- [x] **T3.3** (P0) Script de comparação entre datas e registro na nota de pesquisa.
   - _Req: R3.8, R3.9_
   - Arquivos: `scripts/compare_dates.py`,
     `docs/evidencias/comparacao-datas/{resumo.txt,comparacao.jpg}`,
