@@ -40,7 +40,7 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.16_
   - Arquivos: `backend/app/processing/render.py`, `backend/app/processing/reader.py` (tag `ATTRIBUTION`), `backend/pyproject.toml` (pillow), `backend/tests/test_render.py`
   - Verificação: `pytest backend/tests/test_render.py` (tamanho do raster; alfa 0 fora dos candidatos); abrir os PNGs do kit e salvar cópia em `docs/evidencias/`.
-- [ ] **T2.9** (P0) `rationale.py` (com `METHOD_REFERENCES`) e `pipeline.py` como função pura, com erro legível e resultado vazio.
+- [x] **T2.9** (P0) `rationale.py` (com `METHOD_REFERENCES`) e `pipeline.py` como função pura, com erro legível e resultado vazio.
   - _Req: R2.1, R2.17, R2.18, R2.19, R2.20_
   - Arquivos: `backend/app/processing/rationale.py`, `backend/app/processing/params.py`, `backend/app/processing/pipeline.py`, `backend/tests/test_rationale.py`, `backend/tests/test_pipeline.py`
   - Verificação: `pytest backend/tests/test_rationale.py backend/tests/test_pipeline.py` (números da justificativa batem com `params`/`stats`; referências só da lista fixa; sem "café detectado" nem percentual de acurácia; duas execuções iguais → mesmo resultado; arquivo diferente → stats diferentes; arquivo corrompido → `ProcessingError` com mensagem legível; sem vegetação → 0 polígonos).

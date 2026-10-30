@@ -18,6 +18,59 @@ KIT_OFFSET = -0.1
 SCL_EXCLUDE = (0, 1, 3, 6, 8, 9, 10, 11)
 
 
+# Lista fixa de referências que a justificativa pode citar (R2.18). Só entra o
+# que foi aberto e conferido (C5.2; tabela "Referências" do design da spec 002).
+METHOD_REFERENCES = {
+    "parreiras2025": {
+        "citation": (
+            "Parreiras, T. C. et al. Dense time series of harmonized Landsat Sentinel-2 and "
+            "ensemble machine learning to map coffee production stages. Remote Sensing, "
+            "17(18), 3168, 2025."
+        ),
+        "doi": "10.3390/rs17183168",
+        "used_for": (
+            "estrutura hierárquica da regra; separação de perenes e pasto; confusão "
+            "espectral entre café e eucalipto; importância do GNDVI"
+        ),
+    },
+    "maskell2021": {
+        "citation": (
+            "Maskell, G. M. et al. Integration of Sentinel optical and radar data for mapping "
+            "smallholder coffee production systems in Vietnam. Remote Sensing of Environment, "
+            "266, 112709, 2021."
+        ),
+        "doi": "10.1016/j.rse.2021.112709",
+        "used_for": "uso da estação seca; dificuldade com café jovem e consorciado",
+    },
+    "souza2019": {
+        "citation": (
+            "Souza, C. G. et al. Variáveis multitemporais para o mapeamento de áreas de "
+            "cultivo de café. Pesquisa Agropecuária Brasileira, 54, 2019."
+        ),
+        "doi": "10.1590/S1678-3921.pab2019.v54.00017",
+        "used_for": "variação sazonal estreita do NDVI do café (limitação de uma única data)",
+    },
+    "gitelson1996": {
+        "citation": (
+            "Gitelson, A. A.; Kaufman, Y. J.; Merzlyak, M. N. Use of a green channel in remote "
+            "sensing of global vegetation from EOS-MODIS. Remote Sensing of Environment, "
+            "58(3), 289–298, 1996."
+        ),
+        "doi": "10.1016/S0034-4257(96)00072-7",
+        "used_for": "GNDVI e sensibilidade da banda verde à clorofila",
+    },
+    "mcfeeters1996": {
+        "citation": (
+            "McFeeters, S. K. The use of the Normalized Difference Water Index (NDWI) in the "
+            "delineation of open water features. International Journal of Remote Sensing, "
+            "17(7), 1425–1432, 1996."
+        ),
+        "doi": "10.1080/01431169608948714",
+        "used_for": "NDWI para mascarar água quando não há SCL",
+    },
+}
+
+
 class Params(BaseModel):
     """Escolhas do método; salvas com cada análise junto de `method_version`."""
 

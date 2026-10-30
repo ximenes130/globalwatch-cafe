@@ -13,6 +13,7 @@ from typing import Literal
 import numpy as np
 import rasterio
 from rasterio.crs import CRS
+from rasterio.errors import RasterioError
 from rasterio.io import MemoryFile
 from rasterio.transform import Affine
 
@@ -85,21 +86,28 @@ class ImageData:
 
 def read_image(data: bytes) -> ImageData:
     """Lê o GeoTIFF em memória e devolve as quatro bandas em reflectância."""
-    with MemoryFile(data) as memfile, memfile.open() as ds:
-        if ds.count < 4:
-            raise ProcessingError(
-                f"A imagem tem {ds.count} banda(s); são necessárias 4 (azul, verde, "
-                "vermelho e infravermelho próximo)."
-            )
-        bands = _band_order(ds.descriptions)
-        radiometry = _radiometry(ds, bands.indexes)
-        dn = ds.read(indexes=list(bands.indexes))
-        nodata = ds.nodata
-        crs, transform = ds.crs, ds.transform
-        _check_crs(crs)
-        tags = ds.tags()
-        acquired_at = _acquired_at(tags.get(ACQUISITION_TAG))
-        attribution = tags.get(ATTRIBUTION_TAG) or None
+    try:
+        with MemoryFile(data) as memfile, memfile.open() as ds:
+            return _read(ds)
+    except RasterioError as exc:
+        raise ProcessingError("Não foi possível ler a imagem enviada como GeoTIFF.") from exc
+
+
+def _read(ds: rasterio.DatasetReader) -> ImageData:
+    if ds.count < 4:
+        raise ProcessingError(
+            f"A imagem tem {ds.count} banda(s); são necessárias 4 (azul, verde, "
+            "vermelho e infravermelho próximo)."
+        )
+    bands = _band_order(ds.descriptions)
+    radiometry = _radiometry(ds, bands.indexes)
+    dn = ds.read(indexes=list(bands.indexes))
+    nodata = ds.nodata
+    crs, transform = ds.crs, ds.transform
+    _check_crs(crs)
+    tags = ds.tags()
+    acquired_at = _acquired_at(tags.get(ACQUISITION_TAG))
+    attribution = tags.get(ATTRIBUTION_TAG) or None
 
     # Pixel inválido se qualquer banda for NoData: sem as quatro, não há índice.
     invalid = np.any(dn == 0, axis=0)

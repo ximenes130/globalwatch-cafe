@@ -443,32 +443,62 @@ nível que o remove, na ordem N0 → N4.
 
 ### `rationale`
 
-Estrutura gerada só a partir de `params`, `stats` e constantes do método; o
-chat e a UI leem daqui e não inventam texto técnico.
+Estrutura gerada só a partir de `params`, `stats`, da data e de constantes do
+método; o chat e a UI leem daqui e não inventam texto técnico. Textos em
+pt-BR, números com vírgula decimal nos campos de texto e como número nos
+campos numéricos.
 
 ```json
 {
-  "summary": "Áreas potenciais de café por regras espectrais em uma única data …",
+  "method_version": "spectral-rules-1.0",
+  "summary": "Regras espectrais sobre uma única imagem: 214,54 ha de área potencial de café em 124 polígonos, de 2.621,44 ha do recorte. Resultado não validado em campo.",
   "steps": [
-    {"level": "N2", "rule": "NDVI >= 0.55", "excluded_ha": 0.0,
-     "why": "Remove solo exposto e pasto seco, que têm NDVI baixo na estação seca."}
+    {"level": "N2", "name": "low_vegetation", "rule": "NDVI < 0,55",
+     "threshold": 0.55, "excluded_ha": 1288.16,
+     "why": "Remove solo exposto e pasto seco, que têm NDVI baixo na estação seca.",
+     "references": ["parreiras2025", "maskell2021"]}
   ],
-  "masks": {"source": "scl", "classes_excluded": [0, 1, 3, 6, 8, 9, 10, 11]},
-  "limitations": [
-    "Uma única data: não distingue café de outras perenes com o mesmo vigor.",
-    "Sem SWIR: separação de mata e eucalipto só pelo teto de NDVI.",
-    "Café jovem, esqueletado ou recepado tende a ficar abaixo do piso de NDVI.",
-    "Sem gabarito de campo: resultado não validado, sem acurácia."
-  ],
+  "masks": {"source": "scl", "classes_excluded": [0, 1, 3, 6, 8, 9, 10, 11],
+            "ndwi_water_min": null},
+  "limitations": ["Uma única data: …", "…"],
   "references": [
-    {"key": "parreiras2025", "citation": "Parreiras et al. (2025), Remote Sensing 17(18), 3168",
-     "doi": "10.3390/rs17183168", "used_for": "estrutura hierárquica; GNDVI; confusão com eucalipto"}
+    {"key": "parreiras2025", "citation": "Parreiras et al. (2025) …",
+     "doi": "10.3390/rs17183168", "used_for": "…"}
   ]
 }
 ```
 
-`METHOD_REFERENCES` em `params.py` guarda a lista fixa de referências, para a
-justificativa nunca citar algo fora da seção [Referências](#referências).
+- **Passos:** N0 (`no_data`), N1 (`quality_mask`, regra conforme a fonte: classes
+  da SCL ou `NDWI > ndwi_water_min`), N2, N3, N3b (só com `gndvi_min`), N4
+  (`small_patch`, com iterações e `min_area_ha`). `excluded_ha` vem de
+  `stats.excluded_area_ha`.
+- **Limitações fixas:** uma única data; sem SWIR; café jovem, esqueletado ou
+  recepado abaixo do piso; borda de mata e lavoura com vigor parecido podem
+  entrar; limiares calibrados no recorte do kit; sem gabarito de campo, sem
+  acurácia. **Condicionais:** sem SCL (só água é mascarada, nuvem e sombra
+  podem entrar); data fora da estação seca (maio a setembro) ou não informada
+  (limiares calibrados para a seca).
+- **Referências:** `METHOD_REFERENCES` em `params.py` só tem entradas
+  conferidas na seção [Referências](#referências); `rouse1974` e o documento
+  da ESA da SCL ficam fora enquanto estiverem "a conferir" (C5.2). A
+  justificativa lista só as chaves citadas pelos passos.
+
+### Resultado do pipeline (`pipeline.py`)
+
+`run_pipeline(image: bytes, scl: bytes | None, params: Params) ->
+AnalysisResult`, função pura (sem banco nem storage):
+
+- `acquired_at`, `crs` (ex.: `"EPSG:32723"`), `bounds_wgs84` (4 cantos),
+  `stats`, `params` (registro salvo), `method_version`, `rationale`, `geojson`
+  e `images` (`rgb.png`, `classification.png`, `polygons.png` em bytes).
+- **Registro de `params` (R2.17):** `method_version`, `radiometry` e `bands`
+  (o que o leitor encontrou) e os campos de `Params`. Só tipos JSON.
+- **Erros:** arquivo que o rasterio não abre vira `ProcessingError` no leitor
+  ("Não foi possível ler a imagem enviada como GeoTIFF."); qualquer
+  `ProcessingError` sobe com a mensagem para o worker gravar (R2.19).
+- **Vazio (R2.20):** sem área potencial, `geojson` sem feições,
+  `polygon_count = 0`, `polygons.png` só com a imagem e o rodapé, e o
+  resumo diz que nenhuma área passou nas regras.
 
 ## Decisões
 
