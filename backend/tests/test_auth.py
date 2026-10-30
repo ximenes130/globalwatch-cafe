@@ -127,3 +127,54 @@ def test_missing_supabase_url_returns_503(monkeypatch):
     monkeypatch.setenv("SUPABASE_URL", "")
     get_settings.cache_clear()
     assert get_me(make_token()).status_code == 503
+
+
+# R6.1 (T6.3): a lista sai do OpenAPI do app, então uma rota nova entra sozinha.
+PUBLIC = {("GET", "/health")}
+PATH_VALUES = {"analysis_id": str(uuid.uuid4())}
+
+
+def api_routes() -> list[tuple[str, str]]:
+    paths = app.openapi()["paths"]
+    return sorted((method.upper(), path) for path, ops in paths.items() for method in ops)
+
+
+def test_route_list_is_complete():
+    assert api_routes() == [
+        ("DELETE", "/analyses/{analysis_id}"),
+        ("GET", "/analyses"),
+        ("GET", "/analyses/{analysis_id}"),
+        ("GET", "/analyses/{analysis_id}/chat"),
+        ("GET", "/health"),
+        ("GET", "/me"),
+        ("POST", "/analyses"),
+        ("POST", "/analyses/{analysis_id}/chat"),
+    ]
+
+
+@pytest.mark.parametrize(("method", "path"), [r for r in api_routes() if r not in PUBLIC])
+@pytest.mark.parametrize(
+    "token",
+    [None, "not-a-jwt", "expired", "other-key"],
+)
+def test_every_route_except_health_requires_a_valid_token(method, path, token):
+    bad = {
+        "expired": lambda: make_token(exp=int(time.time()) - 60),
+        "other-key": lambda: make_token(key=OTHER_PRIVATE_KEY),
+    }
+    value = bad[token]() if token in bad else token
+    headers = {"Authorization": f"Bearer {value}"} if value else {}
+
+    response = TestClient(app).request(method, path.format(**PATH_VALUES), headers=headers)
+
+    # 401 vem antes de qualquer outra checagem (corpo, banco, storage).
+    assert_unauthorized(response)
+
+
+def test_health_is_public():
+    assert TestClient(app).get("/health").status_code == 200
+
+
+@pytest.mark.parametrize("path", ["/docs", "/redoc", "/openapi.json"])
+def test_api_docs_are_off_by_default(path):
+    assert TestClient(app).get(path).status_code == 404

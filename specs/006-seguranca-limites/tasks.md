@@ -17,9 +17,9 @@ Corte se estourar: retenção automática (fica documentada).
   - _Req: R6.2, R6.3, R6.4, R6.14_
   - Arquivos: `backend/app/routes/analyses.py`, `backend/app/storage.py`, `backend/tests/test_isolation.py`
   - Verificação: `pytest backend/tests/test_isolation.py` (matriz de rotas tirada do OpenAPI do app).
-- [ ] **T6.3** (P0) Teste que garante JWT em todas as rotas.
+- [x] **T6.3** (P0) Teste que garante JWT em todas as rotas.
   - _Req: R6.1_
-  - Arquivos: `backend/tests/test_auth.py`
+  - Arquivos: `backend/tests/test_auth.py`, `backend/app/main.py` (documentação da API desligada por padrão)
   - Verificação: `pytest backend/tests/test_auth.py`.
 - [x] **T6.4** (P0) Limites diários de upload e chat.
   - _Req: R6.8, R6.9_

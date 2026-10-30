@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     max_upload_mb: int = 20
     # Chat (spec 005): sem a chave, a rota do chat responde 503.
     anthropic_api_key: str | None = None
+    # Documentação da API (/docs, /redoc, /openapi.json): só no desenvolvimento (R6.1).
+    api_docs: bool = False
     # Limites diários por usuário (R6.8, R6.9).
     max_uploads_per_day: int = 5
     max_messages_per_day: int = 30

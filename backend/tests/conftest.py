@@ -1,6 +1,12 @@
 """Isola os testes do `backend/.env` local: variáveis de ambiente têm prioridade."""
 
+import os
+
 import pytest
+
+# Lida na importação do app (main.py), antes de qualquer fixture: a documentação da
+# API fica desligada nos testes mesmo com `API_DOCS=true` no `.env` local.
+os.environ["API_DOCS"] = "false"
 
 from app import auth
 from app.config import get_settings

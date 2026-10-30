@@ -30,7 +30,16 @@ async def lifespan(_: FastAPI):
     db.close_pool()
 
 
-app = FastAPI(title="Global Watch API", lifespan=lifespan)
+# R6.1: só `/health` é público. A documentação da API fica desligada fora do
+# desenvolvimento (`API_DOCS=true` liga).
+docs = settings.api_docs
+app = FastAPI(
+    title="Global Watch API",
+    lifespan=lifespan,
+    docs_url="/docs" if docs else None,
+    redoc_url="/redoc" if docs else None,
+    openapi_url="/openapi.json" if docs else None,
+)
 
 app.add_middleware(
     CORSMiddleware,
