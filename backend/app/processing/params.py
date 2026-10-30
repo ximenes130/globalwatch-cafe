@@ -6,7 +6,8 @@ e precisam ser espelhados em `frontend/src/lib/method.ts`.
 
 from pydantic import BaseModel, ConfigDict, Field
 
-METHOD_VERSION = "spectral-rules-1.0"
+# 1.1: nível N3c, amplitude de NDVI entre duas datas (spec 003).
+METHOD_VERSION = "spectral-rules-1.1"
 
 # Radiometria do kit (LEIA-ME e metadados.json), usada quando o arquivo não
 # traz scale/offset: reflectância = DN * KIT_SCALE + KIT_OFFSET.
@@ -48,7 +49,8 @@ METHOD_REFERENCES = {
             "cultivo de café. Pesquisa Agropecuária Brasileira, 54, 2019."
         ),
         "doi": "10.1590/S1678-3921.pab2019.v54.00017",
-        "used_for": "variação sazonal estreita do NDVI do café (limitação de uma única data)",
+        "used_for": "variação sazonal estreita do NDVI do café (limitação de uma única data e "
+        "limiar de amplitude entre duas datas)",
     },
     "gitelson1996": {
         "citation": (
@@ -84,3 +86,7 @@ class Params(BaseModel):
     morphology_iterations: int = Field(default=1, ge=0)
     min_area_ha: float = Field(default=0.5, ge=0)
     simplify_tolerance_px: float = Field(default=0.5, ge=0)
+    # Só vale com segunda imagem (R3.10). 0,25 é a oscilação de pico a pico do
+    # componente sazonal do NDVI do pasto em Souza et al. (2019); a do café é
+    # 0,11. Sai o que oscila pelo menos tanto quanto o pasto.
+    ndvi_amplitude_max: float = Field(default=0.25, gt=0)

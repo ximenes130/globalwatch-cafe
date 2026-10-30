@@ -89,3 +89,6 @@ carregamento, erro e ausência de resultado.
 
 - Basemap: OSM raster ou Esri World Imagery (satélite ajuda a inspecionar,
   conferir termos de uso).
+- Segunda data (spec 003, R3.10, já no backend): o upload aceita `image_2` e
+  `scl_2` opcionais. Falta decidir como a UI oferece o campo, mostra as duas
+  datas e o nível `high_amplitude` na legenda e na justificativa.

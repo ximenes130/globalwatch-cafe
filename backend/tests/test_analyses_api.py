@@ -16,7 +16,7 @@ from app.main import app
 from app.repository import STALE_MESSAGE
 from app.routes.analyses import get_repository, get_storage
 from tests.fakes import FakeRepository, FakeStorage
-from tests.rasters import KIT_IMAGE, KIT_SCL
+from tests.rasters import ADDITIONAL_IMAGE, ADDITIONAL_SCL, KIT_IMAGE, KIT_SCL
 
 OWNER = CurrentUser(id=UUID("11111111-1111-1111-1111-111111111111"), email="dono@test")
 OTHER = CurrentUser(id=UUID("22222222-2222-2222-2222-222222222222"), email="outro@test")
@@ -60,6 +60,70 @@ def test_post_answers_202_and_processes_in_background(api):
     assert set(detail["urls"]) == {"rgb_png", "classification_png", "polygons_png", "geojson"}
     assert "user_id" not in detail
     assert len(storage.objects) == 6
+
+
+def test_post_with_second_date_applies_amplitude_rule(api):
+    client, _, storage, _ = api
+    files = {
+        "image": ("imagem_multiespectral.tif", KIT_IMAGE.read_bytes(), "image/tiff"),
+        "scl": ("qualidade_scl.tif", KIT_SCL.read_bytes(), "image/tiff"),
+        "image_2": ("chuva.tif", ADDITIONAL_IMAGE.read_bytes(), "image/tiff"),
+        "scl_2": ("chuva_scl.tif", ADDITIONAL_SCL.read_bytes(), "image/tiff"),
+    }
+
+    analysis_id = client.post("/analyses", files=files).json()["id"]
+
+    detail = client.get(f"/analyses/{analysis_id}").json()
+    assert detail["status"] == "completed"
+    assert detail["filename"] == "imagem_multiespectral.tif"
+    assert detail["stats"]["potential_area_ha"] == 103.04
+    assert detail["params"]["second_image"]["acquired_at"].startswith("2026-01-10")
+    assert "high_amplitude" in [step["name"] for step in detail["rationale"]["steps"]]
+    assert len(storage.objects) == 8
+
+    assert client.delete(f"/analyses/{analysis_id}").status_code == 204
+    assert storage.objects == {}
+
+
+def test_second_scl_without_second_image_is_422(api):
+    client, repository, _, _ = api
+    files = {
+        "image": ("k.tif", KIT_IMAGE.read_bytes(), "image/tiff"),
+        "scl_2": ("s.tif", KIT_SCL.read_bytes(), "image/tiff"),
+    }
+
+    response = client.post("/analyses", files=files)
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Envie a segunda imagem junto da SCL dela."
+    assert repository.rows == {}
+
+
+def test_second_image_on_another_grid_fails_with_message(api):
+    client, _, _, _ = api
+    files = {
+        "image": ("k.tif", KIT_IMAGE.read_bytes(), "image/tiff"),
+        "image_2": ("x.tif", KIT_SCL.read_bytes(), "image/tiff"),
+    }
+
+    analysis_id = client.post("/analyses", files=files).json()["id"]
+
+    detail = client.get(f"/analyses/{analysis_id}").json()
+    assert detail["status"] == "failed"
+    assert detail["error"].startswith("Segunda imagem:")
+
+
+def test_second_image_over_the_limit_is_413(api, monkeypatch):
+    client, repository, _, _ = api
+    monkeypatch.setenv("MAX_UPLOAD_MB", "1")
+    get_settings.cache_clear()
+    files = {
+        "image": ("k.tif", b"0", "image/tiff"),
+        "image_2": ("big.tif", b"0" * (1024 * 1024 + 1), "image/tiff"),
+    }
+
+    assert client.post("/analyses", files=files).status_code == 413
+    assert repository.rows == {}
 
 
 def test_processing_analysis_has_no_result_yet(api):

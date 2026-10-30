@@ -1,4 +1,4 @@
-"""Rotas `/analyses` (R2.21, R2.22, R2.24, R2.25).
+"""Rotas `/analyses` (R2.21, R2.22, R2.24, R2.25, R3.10).
 
 Todas exigem JWT (`current_user`) e só enxergam análises do próprio usuário:
 análise alheia ou inexistente responde 404 (C3.2).
@@ -35,7 +35,7 @@ RESULT_FILES = {
     "polygons_png": "polygons.png",
     "geojson": "result.geojson",
 }
-ALL_FILES = ["original.tif", "scl.tif", *RESULT_FILES.values()]
+ALL_FILES = ["original.tif", "scl.tif", "original_2.tif", "scl_2.tif", *RESULT_FILES.values()]
 NOT_FOUND = "Análise não encontrada."
 
 
@@ -73,15 +73,34 @@ def create_analysis(
     settings: Config,
     image: Annotated[UploadFile, File()],
     scl: Annotated[UploadFile | None, File()] = None,
+    image_2: Annotated[UploadFile | None, File()] = None,
+    scl_2: Annotated[UploadFile | None, File()] = None,
 ) -> dict:
-    """Cria a análise em `processing` e responde na hora; o pipeline roda depois (R2.22)."""
-    limit = settings.max_upload_mb * 1024 * 1024
-    image_bytes = _read_limited(image, limit, settings.max_upload_mb)
-    scl_bytes = _read_limited(scl, limit, settings.max_upload_mb) if scl else None
+    """Cria a análise em `processing` e responde na hora; o pipeline roda depois (R2.22).
+
+    `image_2`/`scl_2`: segunda data opcional da mesma área (R3.10).
+    """
+    if scl_2 is not None and image_2 is None:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "Envie a segunda imagem junto da SCL dela."
+        )
+    limit_mb = settings.max_upload_mb
+    image_bytes, scl_bytes, image_2_bytes, scl_2_bytes = (
+        _read_limited(upload, limit_mb) if upload else None
+        for upload in (image, scl, image_2, scl_2)
+    )
 
     analysis_id = repository.create(user.id, _clean_filename(image.filename))
     background.add_task(
-        run_analysis, analysis_id, user.id, image_bytes, scl_bytes, repository, storage
+        run_analysis,
+        analysis_id,
+        user.id,
+        image_bytes,
+        scl_bytes,
+        repository,
+        storage,
+        image_2=image_2_bytes,
+        scl_2=scl_2_bytes,
     )
     response.headers["Location"] = f"/analyses/{analysis_id}"
     return {"id": str(analysis_id), "status": "processing"}
@@ -146,8 +165,9 @@ def delete_analysis(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _read_limited(upload: UploadFile, limit: int, limit_mb: int) -> bytes:
-    """Lê no máximo `limit` + 1 bytes: passou disso, 413 sem guardar o resto (R6.5)."""
+def _read_limited(upload: UploadFile, limit_mb: int) -> bytes:
+    """Lê no máximo o limite + 1 byte: passou disso, 413 sem guardar o resto (R6.5)."""
+    limit = limit_mb * 1024 * 1024
     data = upload.file.read(limit + 1)
     if len(data) > limit:
         raise HTTPException(

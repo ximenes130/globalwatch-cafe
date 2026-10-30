@@ -196,14 +196,29 @@ descrevem:
 Dentro da área potencial da seca, porém, as classes se sobrepõem: café 0,16,
 mosaico 0,19, pasto 0,20, mata 0,20, lavoura temporária 0,24 e cana 0,28. A
 faixa de agosto já tirou a maior parte do pasto, e a segunda data separa
-sobretudo lavoura temporária e cana. Figura e tabelas:
-`docs/evidencias/comparacao-datas/`.
+sobretudo lavoura temporária e cana.
+
+A app aceita a segunda data como entrada opcional. Ela remove o pixel cuja
+amplitude chega a 0,25, a oscilação de pico a pico do pasto em Souza et al.
+(2019). O limiar não foi escolhido pelo histograma, que não tem vale entre as
+classes, nem pelo MapBiomas, para a comparação não ficar circular.
+
+- Com o kit e a cena de janeiro, a área potencial cai de 214,54 para
+  103,04 ha (68 polígonos); a amplitude sozinha remove 101,78 ha.
+- Na conferência posterior com o MapBiomas, a fração da área marcada que cai
+  em café passa de 10% para 17%.
+- O café do MapBiomas marcado cai de 42% para 35%: a regra também corta parte
+  do que o MapBiomas chama de café.
+
+Figura e tabelas: `docs/evidencias/comparacao-datas/`.
 
 **Limitações.**
 
-- **Uma única data.** O método não distingue café de outras perenes, pasto
-  verde ou capoeira com NDVI parecido. A segunda data (spec 003) ajuda contra
-  pasto, mas não contra mata (Souza et al., 2019).
+- **Uma ou duas datas.** Com uma data, o método não distingue café de outras
+  perenes, pasto verde ou capoeira com NDVI parecido. A segunda data tira
+  sobretudo cana e lavoura anual. Ela não separa café de mata, que também
+  varia pouco (Souza et al., 2019), e duas imagens não são uma série
+  temporal.
 - **Sem SWIR.** O kit não traz SWIR, banda que Parreiras et al. (2025) usaram
   para separar café de eucalipto. Aqui essa separação depende só do teto de
   NDVI, que também corta café adensado ou sombreado.

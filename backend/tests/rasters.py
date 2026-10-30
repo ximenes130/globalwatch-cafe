@@ -9,6 +9,10 @@ from rasterio.transform import Affine, from_origin
 KIT_DIR = Path(__file__).resolve().parents[2] / "data" / "exemplo"
 KIT_IMAGE = KIT_DIR / "imagem_multiespectral.tif"
 KIT_SCL = KIT_DIR / "qualidade_scl.tif"
+# Cena adicional da spec 003 (estação chuvosa), na mesma grade do kit.
+ADDITIONAL_DIR = KIT_DIR.parent / "adicional" / "S2B_T23KLS_20260110T131730_L2A"
+ADDITIONAL_IMAGE = ADDITIONAL_DIR / "imagem_multiespectral.tif"
+ADDITIONAL_SCL = ADDITIONAL_DIR / "qualidade_scl.tif"
 
 # Canto superior esquerdo do kit (EPSG:32723).
 KIT_ORIGIN = (323200, 7642980)

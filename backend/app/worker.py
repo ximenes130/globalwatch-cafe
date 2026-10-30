@@ -1,4 +1,4 @@
-"""Processamento em plano de fundo (R2.1, R2.19, R2.22, R2.23).
+"""Processamento em plano de fundo (R2.1, R2.19, R2.22, R2.23, R3.10).
 
 `run_analysis` roda depois da resposta 202, numa thread do threadpool do
 Starlette (`BackgroundTasks`). Um semáforo deixa só um processamento por vez:
@@ -37,16 +37,24 @@ def run_analysis(
     repository: Repository,
     storage: Storage,
     params: Params | None = None,
+    *,
+    image_2: bytes | None = None,
+    scl_2: bytes | None = None,
 ) -> None:
-    """Processa, grava os arquivos e depois a linha; nunca deixa exceção escapar."""
+    """Processa, grava os arquivos e depois a linha; nunca deixa exceção escapar.
+
+    `image_2`/`scl_2`: segunda data opcional, só para a amplitude de NDVI.
+    """
     params = params or Params()
     with PROCESSING_SLOT:
         started = time.perf_counter()
         try:
-            result = run_pipeline(image, scl, params)
+            result = run_pipeline(image, scl, params, image_2, scl_2)
             files = {
                 "original.tif": image,
                 **({"scl.tif": scl} if scl is not None else {}),
+                **({"original_2.tif": image_2} if image_2 is not None else {}),
+                **({"scl_2.tif": scl_2} if scl_2 is not None else {}),
                 **result.images,
                 "result.geojson": json.dumps(result.geojson).encode(),
             }

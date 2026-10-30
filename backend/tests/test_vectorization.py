@@ -166,6 +166,7 @@ def test_kit_stats_shape():
         "low_vegetation",
         "dense_canopy",
         "low_chlorophyll",
+        "high_amplitude",
         "small_patch",
     }
     json.dumps(stats)  # só tipos nativos (sem numpy) para gravar no jsonb

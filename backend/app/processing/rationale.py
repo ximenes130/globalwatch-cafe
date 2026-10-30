@@ -1,4 +1,4 @@
-"""Justificativa técnica estruturada da análise (R2.18).
+"""Justificativa técnica estruturada da análise (R2.18, R3.10).
 
 Montada só com `params`, `stats`, a data da imagem e textos fixos do método.
 A UI e o chat leem daqui: nenhum número ou referência é inventado por eles.
@@ -11,10 +11,17 @@ from app.processing.params import METHOD_REFERENCES, METHOD_VERSION, Params
 # Estação seca no Sudeste: a calibração usou uma imagem de agosto.
 DRY_SEASON_MONTHS = range(5, 10)
 
-FIXED_LIMITATIONS = (
+# A primeira limitação depende de quantas datas a análise usou.
+SINGLE_DATE_LIMITATION = (
     "Uma única data: não distingue café de outras culturas perenes ou de lavouras com o mesmo "
     "vigor na imagem; o café varia pouco entre seca e chuva, e uma segunda data ajudaria a "
-    "separá-lo de pasto e lavoura anual.",
+    "separá-lo de pasto e lavoura anual."
+)
+TWO_DATES_LIMITATION = (
+    "Duas datas, sem série temporal: a diferença entre duas imagens também carrega iluminação "
+    "e a fenologia daquele ano, e não separa café de mata, cuja amplitude também é baixa."
+)
+FIXED_LIMITATIONS = (
     "Sem banda SWIR: mata e eucalipto são separados do café só pelo teto de NDVI; café "
     "adensado ou sombreado pode ser cortado junto.",
     "Café jovem, esqueletado ou recepado expõe solo e tende a ficar abaixo do piso de NDVI.",
@@ -24,7 +31,7 @@ FIXED_LIMITATIONS = (
     "época podem precisar de ajuste.",
     "Sem verdade de campo: o resultado não foi validado e não tem acurácia medida.",
 )
-# Referências citadas pelas limitações fixas (a primeira e a terceira).
+# Referências citadas pelas limitações: a de datas (Souza) e a de manejo (Maskell).
 LIMITATION_REFERENCES = ("souza2019", "maskell2021")
 
 
@@ -33,25 +40,29 @@ def build_rationale(
     stats: dict,
     quality_source: str,
     acquired_at: datetime | None,
+    second_quality_source: str | None = None,
 ) -> dict:
-    steps = _steps(params, stats, quality_source)
+    """`second_quality_source` é `None` sem segunda imagem (análise de uma data)."""
+    two_dates = second_quality_source is not None
+    steps = _steps(params, stats, quality_source, two_dates)
     cited = [key for step in steps for key in step["references"]] + list(LIMITATION_REFERENCES)
     keys = list(dict.fromkeys(cited))  # ordem da primeira citação, sem repetir
     return {
         "method_version": METHOD_VERSION,
-        "summary": _summary(stats),
+        "summary": _summary(stats, two_dates),
         "steps": steps,
         "masks": {
             "source": quality_source,
             "classes_excluded": list(params.scl_exclude) if quality_source == "scl" else None,
             "ndwi_water_min": params.ndwi_water_min if quality_source == "ndwi" else None,
+            "second_source": second_quality_source,
         },
-        "limitations": _limitations(quality_source, acquired_at),
+        "limitations": _limitations(quality_source, acquired_at, second_quality_source),
         "references": [{"key": key, **METHOD_REFERENCES[key]} for key in keys],
     }
 
 
-def _summary(stats: dict) -> str:
+def _summary(stats: dict, two_dates: bool) -> str:
     total = br(stats["total_area_ha"])
     count = stats["polygon_count"]
     if count == 0:
@@ -62,10 +73,11 @@ def _summary(stats: dict) -> str:
             f"{br(stats['potential_area_ha'])} ha de área potencial de café em {count} {noun}, "
             f"de {total} ha do recorte"
         )
-    return f"Regras espectrais sobre uma única imagem: {found}. Resultado não validado em campo."
+    basis = "duas datas, com a amplitude de NDVI entre elas" if two_dates else "uma única imagem"
+    return f"Regras espectrais sobre {basis}: {found}. Resultado não validado em campo."
 
 
-def _steps(params: Params, stats: dict, quality_source: str) -> list[dict]:
+def _steps(params: Params, stats: dict, quality_source: str, two_dates: bool) -> list[dict]:
     excluded = stats["excluded_area_ha"]
 
     def step(level, name, rule, threshold, why, references=()):
@@ -98,6 +110,9 @@ def _steps(params: Params, stats: dict, quality_source: str) -> list[dict]:
             "Sem a SCL, só a água é mascarada, pelo NDWI (água tem NDWI positivo).",
             ["mcfeeters1996"],
         )
+
+    if two_dates:
+        quality["why"] += " Com duas datas, vale para as duas: o pixel precisa ser lido em ambas."
 
     steps = [
         step(
@@ -139,6 +154,19 @@ def _steps(params: Params, stats: dict, quality_source: str) -> list[dict]:
                 ["gitelson1996", "parreiras2025"],
             )
         )
+    if two_dates:
+        steps.append(
+            step(
+                "N3c",
+                "high_amplitude",
+                f"|NDVI da segunda data − NDVI| ≥ {br(params.ndvi_amplitude_max)}",
+                params.ndvi_amplitude_max,
+                "Remove o que muda muito entre as datas, como pasto, cana e lavoura anual; o "
+                "café é perene e varia pouco entre seca e chuva. O limiar é a oscilação típica "
+                "do NDVI do pasto ao longo do ano.",
+                ["souza2019"],
+            )
+        )
     iterations = params.morphology_iterations
     steps.append(
         step(
@@ -154,12 +182,20 @@ def _steps(params: Params, stats: dict, quality_source: str) -> list[dict]:
     return steps
 
 
-def _limitations(quality_source: str, acquired_at: datetime | None) -> list[str]:
-    limitations = list(FIXED_LIMITATIONS)
+def _limitations(
+    quality_source: str, acquired_at: datetime | None, second_quality_source: str | None
+) -> list[str]:
+    dates = SINGLE_DATE_LIMITATION if second_quality_source is None else TWO_DATES_LIMITATION
+    limitations = [dates, *FIXED_LIMITATIONS]
     if quality_source == "ndwi":
         limitations.append(
             "Sem a SCL, só a água foi mascarada: nuvem e sombra de nuvem podem ter entrado "
             "na análise."
+        )
+    if second_quality_source == "ndwi":
+        limitations.append(
+            "Sem a SCL da segunda imagem, só a água foi mascarada nela: nuvem e sombra de "
+            "nuvem podem ter alterado a amplitude de NDVI."
         )
     if acquired_at is None:
         limitations.append(

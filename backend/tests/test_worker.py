@@ -1,4 +1,4 @@
-"""Worker em plano de fundo (T2.10, R2.1, R2.19, R2.23)."""
+"""Worker em plano de fundo (T2.10, T3.5, R2.1, R2.19, R2.23, R3.10)."""
 
 import json
 import logging
@@ -11,7 +11,7 @@ from app import worker
 from app.processing.errors import ProcessingError
 from app.worker import PROCESSING_SLOT, UNEXPECTED_ERROR, run_analysis
 from tests.fakes import FakeRepository, FakeStorage
-from tests.rasters import KIT_IMAGE, KIT_SCL
+from tests.rasters import ADDITIONAL_IMAGE, ADDITIONAL_SCL, KIT_IMAGE, KIT_SCL
 
 USER = uuid4()
 
@@ -133,3 +133,29 @@ def test_second_analysis_waits_for_the_slot(setup, monkeypatch):
     thread.join(timeout=5)
     assert not thread.is_alive()
     assert repository.rows[analysis_id]["status"] == "failed"
+
+
+def test_second_date_files_are_stored_too(setup):
+    analysis_id, repository, storage, _ = setup
+
+    run_analysis(
+        analysis_id,
+        USER,
+        KIT_IMAGE.read_bytes(),
+        KIT_SCL.read_bytes(),
+        repository,
+        storage,
+        image_2=ADDITIONAL_IMAGE.read_bytes(),
+        scl_2=ADDITIONAL_SCL.read_bytes(),
+    )
+
+    row = repository.rows[analysis_id]
+    assert row["status"] == "completed"
+    assert row["stats"]["potential_area_ha"] == 103.04
+    prefix = f"{USER}/{analysis_id}"
+    assert storage.objects[f"{prefix}/original_2.tif"] == (
+        ADDITIONAL_IMAGE.read_bytes(),
+        "image/tiff",
+    )
+    assert storage.objects[f"{prefix}/scl_2.tif"][0] == ADDITIONAL_SCL.read_bytes()
+    assert len(storage.objects) == 8

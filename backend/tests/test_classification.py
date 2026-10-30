@@ -34,13 +34,16 @@ def run(
     nodata=None,
     masked=None,
     gndvi_values: np.ndarray | None = None,
+    amplitude: np.ndarray | None = None,
 ):
     params = params or Params()
     img = image(*ndvi_values.shape, nodata=nodata)
     values = ndvi_values.astype(np.float32)
     values[~img.valid] = np.nan
     gndvi = None if gndvi_values is None else gndvi_values.astype(np.float32)
-    return classify(img, no_quality_mask(img, masked), values, params, gndvi=gndvi)
+    return classify(
+        img, no_quality_mask(img, masked), values, params, gndvi=gndvi, amplitude=amplitude
+    )
 
 
 def test_synthetic_bands_fall_in_their_levels():
@@ -219,3 +222,65 @@ def test_gndvi_min_moves_candidates_to_low_chlorophyll():
 def test_gndvi_min_without_gndvi_is_a_programming_error():
     with pytest.raises(ValueError, match="gndvi_min"):
         run(np.full((5, 5), MID), Params(gndvi_min=0.4))
+
+
+def test_codes_are_stable_and_unique():
+    # O nível da spec 003 entrou com código novo; os antigos não mudaram.
+    assert CODES == {
+        "no_data": 1,
+        "quality_mask": 2,
+        "low_vegetation": 3,
+        "dense_canopy": 4,
+        "low_chlorophyll": 5,
+        "small_patch": 6,
+        "high_amplitude": 7,
+    }
+    assert set(CODES) == set(EXCLUSION_LEVELS)
+
+
+def test_high_amplitude_removes_candidates_at_or_above_threshold():
+    values = np.full((20, 30), MID)
+    amplitude = np.zeros((20, 30))
+    amplitude[:, 10:20] = 0.25  # no limiar: sai (≥)
+    amplitude[:, 20:] = 0.2499  # abaixo: fica
+
+    result = run(values, NO_MORPHOLOGY, amplitude=amplitude)
+
+    assert (result.levels[:, :10] == POTENTIAL).all()
+    assert (result.levels[:, 10:20] == CODES["high_amplitude"]).all()
+    assert (result.levels[:, 20:] == POTENTIAL).all()
+    assert result.excluded_area_ha["high_amplitude"] == pytest.approx(2.0)
+
+
+def test_amplitude_only_counts_pixels_that_passed_the_ndvi_band():
+    # Pasto seco com amplitude alta continua em N2: a contagem é exclusiva.
+    values = np.repeat([[LOW] * 10 + [MID] * 10 + [HIGH] * 10], 20, axis=0)
+    amplitude = np.full(values.shape, 0.5)
+
+    result = run(values, NO_MORPHOLOGY, amplitude=amplitude)
+
+    assert (result.levels[:, :10] == CODES["low_vegetation"]).all()
+    assert (result.levels[:, 10:20] == CODES["high_amplitude"]).all()
+    assert (result.levels[:, 20:] == CODES["dense_canopy"]).all()
+
+
+def test_amplitude_runs_before_morphology():
+    # Antes da morfologia, como os outros níveis espectrais: um pixel isolado
+    # que sai por amplitude dentro do talhão é preenchido pelo fechamento (se
+    # a regra viesse depois, ele ficaria de fora); uma faixa larga continua fora.
+    values = np.full((20, 30), MID)
+    amplitude = np.zeros(values.shape)
+    amplitude[10, 5] = 0.4
+    amplitude[:, 14:20] = 0.4
+
+    result = run(values, amplitude=amplitude)
+
+    assert result.levels[10, 5] == POTENTIAL
+    assert (result.levels[:, 14:20] == CODES["high_amplitude"]).all()
+    assert result.potential[:, :14].all() and result.potential[:, 20:].all()
+
+
+def test_without_amplitude_the_level_is_empty():
+    values = np.full((20, 20), MID)
+
+    assert run(values).excluded_area_ha["high_amplitude"] == 0

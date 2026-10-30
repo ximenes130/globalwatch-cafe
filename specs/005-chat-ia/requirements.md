@@ -54,4 +54,7 @@ processamento.
 
 ## Questões abertas
 
-- Nenhuma.
+- Segunda data (spec 003, R3.10): `stats.second_acquired_at`,
+  `params.second_image` e o passo N3c da justificativa já vêm do backend. As
+  ferramentas do chat precisam expor esses campos para a IA explicar a regra
+  de amplitude.

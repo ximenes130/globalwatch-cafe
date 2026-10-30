@@ -1,4 +1,4 @@
-"""Cascata de exclusões N0–N4 e morfologia (R2.10, R2.11, R2.14).
+"""Cascata de exclusões N0–N4 e morfologia (R2.10, R2.11, R2.14, R3.10).
 
 Cada pixel termina com um código em `levels`: 0 é área potencial; os demais
 dizem em que nível ele saiu. A contagem é exclusiva (o pixel conta só no
@@ -16,16 +16,27 @@ from app.processing.params import Params
 from app.processing.reader import ImageData
 
 POTENTIAL = 0
-# Ordem da cascata; o código de cada nível é a posição + 1.
+# Ordem da cascata.
 EXCLUSION_LEVELS = (
     "no_data",
     "quality_mask",
     "low_vegetation",
     "dense_canopy",
     "low_chlorophyll",
+    "high_amplitude",
     "small_patch",
 )
-CODES = {name: code for code, name in enumerate(EXCLUSION_LEVELS, start=1)}
+# Códigos fixos: o nível da spec 003 (`high_amplitude`) ganhou o 7 para não
+# renumerar os que já existiam.
+CODES = {
+    "no_data": 1,
+    "quality_mask": 2,
+    "low_vegetation": 3,
+    "dense_canopy": 4,
+    "low_chlorophyll": 5,
+    "small_patch": 6,
+    "high_amplitude": 7,
+}
 
 # Vizinhança 4 (cruz 3 x 3): a mesma do `rasterio.features.shapes`, para cada
 # componente rotulado aqui virar um polígono na vetorização.
@@ -47,7 +58,7 @@ class Classification:
 
     @property
     def excluded_area_ha(self) -> dict[str, float]:
-        counts = np.bincount(self.levels.ravel(), minlength=len(EXCLUSION_LEVELS) + 1)
+        counts = np.bincount(self.levels.ravel(), minlength=max(CODES.values()) + 1)
         return {name: int(counts[CODES[name]]) * self.pixel_area_ha for name in EXCLUSION_LEVELS}
 
 
@@ -57,8 +68,13 @@ def classify(
     ndvi: np.ndarray,
     params: Params,
     gndvi: np.ndarray | None = None,
+    amplitude: np.ndarray | None = None,
 ) -> Classification:
-    """`gndvi` só é usado com `params.gndvi_min` definido (nível N3b, R2.9)."""
+    """`gndvi` só é usado com `params.gndvi_min` definido (nível N3b, R2.9).
+
+    `amplitude` (|NDVI da segunda data − NDVI|) só existe com segunda imagem
+    (nível N3c, R3.10); sem ela, o nível fica com 0 ha.
+    """
     if params.gndvi_min is not None and gndvi is None:
         raise ValueError("gndvi_min definido sem o GNDVI calculado")
     usable = image.valid & ~quality.excluded
@@ -68,7 +84,11 @@ def classify(
     low_chlorophyll = np.zeros_like(usable)
     if params.gndvi_min is not None:
         low_chlorophyll = usable & ~low & ~dense & (gndvi < params.gndvi_min)
-    within = usable & ~low & ~dense & ~low_chlorophyll
+    passed = usable & ~low & ~dense & ~low_chlorophyll
+    high_amplitude = np.zeros_like(usable)
+    if amplitude is not None:
+        high_amplitude = passed & (amplitude >= params.ndvi_amplitude_max)
+    within = passed & ~high_amplitude
 
     # O fechamento pode preencher NoData ou pixel mascarado; cortar antes de
     # medir as manchas, senão esses pixels ajudariam a mancha a passar do mínimo.
@@ -77,8 +97,9 @@ def classify(
 
     levels = np.full(image.shape, CODES["small_patch"], dtype=np.uint8)
     levels[potential] = POTENTIAL
-    # `low`, `dense` e `low_chlorophyll` só existem dentro de utilizável e não
-    # se sobrepõem; quem passou nos limiares e não ficou cai em `small_patch`.
+    # Os níveis espectrais só existem dentro de utilizável e não se sobrepõem;
+    # quem passou em todos e não ficou cai em `small_patch`.
+    levels[~potential & high_amplitude] = CODES["high_amplitude"]
     levels[~potential & dense] = CODES["dense_canopy"]
     levels[~potential & low_chlorophyll] = CODES["low_chlorophyll"]
     levels[~potential & low] = CODES["low_vegetation"]

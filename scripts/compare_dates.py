@@ -8,6 +8,9 @@ Gera em `docs/evidencias/comparacao-datas/`:
 - `comparacao.jpg`: RGB das duas datas, mapa de transição e histogramas de
   amplitude.
 
+No fim, roda a análise de duas datas da app (seca classificada, chuva como
+segunda imagem, regra de amplitude da T3.5) e registra o resultado.
+
 As duas datas usam os mesmos `Params` da app (R3.7). Os arrays por pixel vêm
 das mesmas funções que o `run_pipeline` chama, então os números batem com os da
 análise em produção (T3.4 confere).
@@ -268,6 +271,20 @@ def main() -> None:
         "",
         "MapBiomas 2024 em cada classe de transição (concordância, não acurácia):",
         *mapbiomas_lines(read_mapbiomas(dry.image), classes, common, amplitude, pixel_ha),
+    ]
+    two_dates = run_pipeline(
+        (KIT / "imagem_multiespectral.tif").read_bytes(),
+        (KIT / "qualidade_scl.tif").read_bytes(),
+        params,
+        (args.additional / "imagem_multiespectral.tif").read_bytes(),
+        (args.additional / "qualidade_scl.tif").read_bytes(),
+    ).stats
+    lines += [
+        "",
+        f"Análise de duas datas da app (seca + chuva, |ΔNDVI| < {params.ndvi_amplitude_max}):",
+        f"  área potencial: {two_dates['potential_area_ha']} ha em "
+        f"{two_dates['polygon_count']} polígonos (só a seca: {dry.stats['potential_area_ha']} ha)",
+        f"  excluído por amplitude: {two_dates['excluded_area_ha']['high_amplitude']} ha",
     ]
     figure(dry, wet, classes, amplitude)
     report = "\n".join(lines)

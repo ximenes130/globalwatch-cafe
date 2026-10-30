@@ -116,8 +116,14 @@ def test_scl_and_ndwi_masks():
         "source": "scl",
         "classes_excluded": [0, 1, 3, 6, 8, 9, 10, 11],
         "ndwi_water_min": None,
+        "second_source": None,
     }
-    assert ndwi["masks"] == {"source": "ndwi", "classes_excluded": None, "ndwi_water_min": 0.0}
+    assert ndwi["masks"] == {
+        "source": "ndwi",
+        "classes_excluded": None,
+        "ndwi_water_min": 0.0,
+        "second_source": None,
+    }
     assert ndwi["steps"][1]["rule"] == "NDWI > 0"
     assert any("Sem a SCL" in limitation for limitation in ndwi["limitations"])
     assert not any("Sem a SCL" in limitation for limitation in scl["limitations"])
@@ -154,3 +160,39 @@ def test_season_limitation(acquired_at, extra):
 )
 def test_brazilian_number_format(value, text):
     assert br(value) == text
+
+
+def test_single_date_has_no_amplitude_step():
+    rationale = build_rationale(Params(), stats(), "scl", AUGUST)
+
+    assert "high_amplitude" not in [step["name"] for step in rationale["steps"]]
+    assert "uma única imagem" in rationale["summary"]
+    assert rationale["limitations"][0].startswith("Uma única data")
+
+
+def test_two_dates_add_amplitude_step_and_change_limitation():
+    two = stats()
+    two["excluded_area_ha"]["high_amplitude"] = 111.54
+    rationale = build_rationale(Params(), two, "scl", AUGUST, second_quality_source="scl")
+
+    names = [step["name"] for step in rationale["steps"]]
+    # N3c depois dos níveis espectrais e antes das manchas pequenas.
+    assert names[-2:] == ["high_amplitude", "small_patch"]
+    step = rationale["steps"][-2]
+    assert step["level"] == "N3c"
+    assert step["rule"] == "|NDVI da segunda data − NDVI| ≥ 0,25"
+    assert step["threshold"] == 0.25
+    assert step["excluded_ha"] == 111.54
+    assert step["references"] == ["souza2019"]
+    assert "duas datas" in rationale["summary"]
+    assert "vale para as duas" in rationale["steps"][1]["why"]
+    assert rationale["limitations"][0].startswith("Duas datas, sem série temporal")
+    assert not any("Uma única data" in text for text in rationale["limitations"])
+    assert rationale["masks"]["second_source"] == "scl"
+
+
+def test_second_image_without_scl_is_a_limitation():
+    rationale = build_rationale(Params(), stats(), "scl", AUGUST, second_quality_source="ndwi")
+
+    assert any("Sem a SCL da segunda imagem" in text for text in rationale["limitations"])
+    assert not any(text.startswith("Sem a SCL, só") for text in rationale["limitations"])

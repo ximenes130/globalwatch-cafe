@@ -34,7 +34,7 @@ aprovação.
   - Verificação: análise `completed` em produção, com área potencial e
     polígonos iguais aos do `resumo.txt`. Depende da chave do Storage no
     Render (T2.11) e de um token do usuário.
-- [ ] **T3.5** (P1) Regra temporal de amplitude no backend.
+- [x] **T3.5** (P1) Regra temporal de amplitude no backend.
   - _Req: R3.10, R3.11_
   - Arquivos: `backend/app/processing/{temporal,params,classification,pipeline,rationale}.py`,
     `backend/app/{worker,routes/analyses}.py`, `backend/tests/`
