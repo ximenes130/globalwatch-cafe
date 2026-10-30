@@ -25,6 +25,7 @@ from app.config import Settings, get_settings
 from app.ratelimit import Usage, consume_or_429
 from app.repository import AnalysisRepository, Repository
 from app.storage import Storage, StorageError, SupabaseStorage, object_prefix
+from app.validation import IMAGE, SCL, SECOND_IMAGE, SECOND_SCL, validate_raster
 from app.worker import run_analysis
 
 router = APIRouter(prefix="/analyses", tags=["analyses"])
@@ -91,6 +92,15 @@ def create_analysis(
         _read_limited(upload, limit_mb) if upload else None
         for upload in (image, scl, image_2, scl_2)
     )
+    # Arquivo errado responde agora (415/422), antes de contar a cota (R6.6, R6.7).
+    for upload, data, expected in (
+        (image, image_bytes, IMAGE),
+        (scl, scl_bytes, SCL),
+        (image_2, image_2_bytes, SECOND_IMAGE),
+        (scl_2, scl_2_bytes, SECOND_SCL),
+    ):
+        if upload is not None:
+            validate_raster(data, upload.filename, expected)
 
     # Conta quando o envio é aceito: uma análise que falha depois continua contando (R6.8).
     consume_or_429(usage, user.id, "uploads", settings.max_uploads_per_day)

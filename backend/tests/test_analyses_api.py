@@ -7,8 +7,10 @@ seguinte ao POST já vê a análise terminada.
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
+from rasterio.transform import from_origin
 
 from app.auth import CurrentUser, current_user
 from app.config import get_settings
@@ -17,7 +19,14 @@ from app.ratelimit import get_usage
 from app.repository import STALE_MESSAGE
 from app.routes.analyses import get_repository, get_storage
 from tests.fakes import FakeRepository, FakeStorage, FakeUsage
-from tests.rasters import ADDITIONAL_IMAGE, ADDITIONAL_SCL, KIT_IMAGE, KIT_SCL
+from tests.rasters import (
+    ADDITIONAL_IMAGE,
+    ADDITIONAL_SCL,
+    KIT_IMAGE,
+    KIT_ORIGIN,
+    KIT_SCL,
+    make_tiff,
+)
 
 OWNER = CurrentUser(id=UUID("11111111-1111-1111-1111-111111111111"), email="dono@test")
 OTHER = CurrentUser(id=UUID("22222222-2222-2222-2222-222222222222"), email="outro@test")
@@ -103,16 +112,20 @@ def test_second_scl_without_second_image_is_422(api):
 
 def test_second_image_on_another_grid_fails_with_message(api):
     client, _, _, _ = api
+    # GeoTIFF válido (passa na validação da rota), mas 1 km a leste do kit.
+    elsewhere = make_tiff(
+        np.full((4, 8, 8), 1000), transform=from_origin(KIT_ORIGIN[0] + 1000, KIT_ORIGIN[1], 10, 10)
+    )
     files = {
         "image": ("k.tif", KIT_IMAGE.read_bytes(), "image/tiff"),
-        "image_2": ("x.tif", KIT_SCL.read_bytes(), "image/tiff"),
+        "image_2": ("x.tif", elsewhere, "image/tiff"),
     }
 
     analysis_id = client.post("/analyses", files=files).json()["id"]
 
     detail = client.get(f"/analyses/{analysis_id}").json()
     assert detail["status"] == "failed"
-    assert detail["error"].startswith("Segunda imagem:")
+    assert detail["error"].startswith("A segunda imagem precisa ter a mesma grade da primeira")
 
 
 def test_second_image_over_the_limit_is_413(api, monkeypatch):
@@ -139,15 +152,14 @@ def test_processing_analysis_has_no_result_yet(api):
     assert detail["created_at"]
 
 
-def test_unreadable_file_ends_as_failed_with_message(api):
-    client, _, _, _ = api
+def test_non_tiff_is_rejected_before_creating_the_analysis(api):
+    client, repository, _, _ = api
 
     response = client.post("/analyses", files={"image": ("x.tif", b"nao e tiff", "image/tiff")})
 
-    detail = client.get(f"/analyses/{response.json()['id']}").json()
-    assert detail["status"] == "failed"
-    assert detail["error"] == "Não foi possível ler a imagem enviada como GeoTIFF."
-    assert detail["urls"] is None
+    # Recusado na rota (T6.1); antes virava uma análise `failed`.
+    assert response.status_code == 415
+    assert repository.rows == {}
 
 
 def test_upload_over_the_limit_is_413_and_creates_nothing(api, monkeypatch):
@@ -173,7 +185,9 @@ def test_missing_image_is_422(api):
 def test_filename_keeps_only_the_name(api):
     client, repository, _, _ = api
 
-    client.post("/analyses", files={"image": ("../../etc/kit.tif", b"x", "image/tiff")})
+    client.post(
+        "/analyses", files={"image": ("../../etc/kit.tif", KIT_IMAGE.read_bytes(), "image/tiff")}
+    )
 
     assert [row["filename"] for row in repository.rows.values()] == ["kit.tif"]
 

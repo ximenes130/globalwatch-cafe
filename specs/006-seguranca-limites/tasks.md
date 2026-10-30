@@ -9,7 +9,7 @@ status: em-implementacao
 Bloco do dia: 18h às 19h (validação e auth entram antes, junto de 001 e 002).
 Corte se estourar: retenção automática (fica documentada).
 
-- [ ] **T6.1** (P0) Validação de upload completa e testes.
+- [x] **T6.1** (P0) Validação de upload completa e testes.
   - _Req: R6.5, R6.6, R6.7_
   - Arquivos: `backend/app/validation.py`, `backend/tests/test_upload.py`
   - Verificação: `pytest backend/tests/test_upload.py`.
