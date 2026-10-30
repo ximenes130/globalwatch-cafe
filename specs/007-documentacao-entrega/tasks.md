@@ -26,7 +26,7 @@ A comparação com o MapBiomas já foi feita (T2.5, T3.3); aqui ela só é resum
   - Arquivos: `README.md`
   - Verificação: checklist de seções do R7.1 a R7.3; cotas com data da
     consulta; diagrama renderizado no GitHub.
-- [ ] **T7.4** (P0) Fechar o relato de uso de IA.
+- [x] **T7.4** (P0) Fechar o relato de uso de IA.
   - _Req: R7.9_
   - Arquivos: `docs/uso-de-ia.md`
   - Verificação: tem ferramentas, validação e casos concretos de erro.

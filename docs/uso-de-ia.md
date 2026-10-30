@@ -4,7 +4,30 @@ Preenchido durante o trabalho, não no fim (C6.4). Requisito: R7.9.
 
 ## Ferramentas
 
-- Claude Code (Claude Opus) — specs, código e testes, em fluxo SDD com aprovação humana entre fases.
+- **Claude Code com Claude Opus 5.5** (CLI, no terminal): specs, código, testes, scripts de
+  pesquisa e documentação, em fluxo SDD com aprovação humana entre as fases e uma task por vez.
+  Dentro dele:
+  - busca e leitura na web, para fontes, licenças, cotas e documentação de bibliotecas;
+  - visão, para ler capturas de tela, figuras de calibração e a prancha da inspeção visual;
+  - skills de apoio: `claude-api` (uso do SDK da Anthropic no chat), `dataviz` (paleta da
+    legenda, validada por script) e `frontend-design` (direção visual).
+- **playwright-core** com o Chrome local: harness de capturas em 375 e 1440 px para conferir a
+  interface a cada task de UI.
+- **Claude Haiku 5.5** é o modelo *da aplicação* (o chat), não ferramenta de desenvolvimento.
+
+## Como as entregas foram validadas
+
+- **Gate humano:** requisitos, design e tarefas de cada spec só avançaram com aprovação explícita;
+  decisões de método (faixa de NDVI, limiar de amplitude, ordem das tasks) foram escolhidas pelo
+  usuário entre opções apresentadas.
+- **Testes automatizados:** 325 testes no backend (incluindo Postgres real para SQL e RLS),
+  teste de RLS em SQL e build do front, todos no CI a cada push. Várias tasks usaram mutação
+  manual (quebrar a regra de propósito e ver o teste falhar).
+- **Números conferidos fora dos testes:** sanidade de área do kit, execuções em produção com os
+  mesmos números da execução local, conferência com o MapBiomas e inspeção visual de 15 pontos.
+- **Interface:** capturas do harness olhadas a cada task, em celular e desktop.
+- **Produção:** smoke de upload pela API publicada, CORS, `/docs` fechado e auditoria de
+  segredos no histórico, no bundle e no Render.
 
 ## Diário
 
@@ -68,6 +91,7 @@ Preenchido durante o trabalho, não no fim (C6.4). Requisito: R7.9.
 | 30/10 | T7.1 | `scripts/inspect_points.py`: funções do pipeline sobre o kit, 15 pontos com semente fixa (10 potenciais, 3 de dossel denso, 2 de NDVI baixo), prancha de recortes de 600 m com a área potencial contornada; primeira leitura dos recortes pela IA, com visão | Prancha conferida ampliada, ponto a ponto; revisão do usuário registrada em `inspecao-visual.md` | Contorno de 1 px sumia na prancha reduzida: engrossado para 2 px antes da leitura |
 | 30/10 | T7.2 | Cortar a nota de ~5 para 2 páginas, mover tabelas e figuras para `docs/metodo.md`, conferir na fonte as condições de uso (Sentinel, MapBiomas, Anthropic, OpenFreeMap) e exportar PDF (`scripts/export_note.sh`) | `pdfinfo`: 2 páginas; PDF conferido visualmente; 5 DOIs resolvem; soma da cascata refeita pelo pipeline (2.621,44 ha) | Licença do MapBiomas citada como CC BY 4.0 desde a T2.5: os termos de uso dizem CC BY-SA 4.0 |
 | 30/10 | T7.3 | README completo: links, fluxo, arquitetura em Mermaid, método com a cascata do kit, execução local, testes por tema, segurança, cotas conferidas nas páginas oficiais (Render, Supabase, GitHub, OpenFreeMap), limites, retenção e limitações | Checklist de R7.1 a R7.3; cada afirmação conferida no código (`ALL_FILES`, `is_anonymous`, `ServerWaking`, `max_upload_mb`) | O rascunho dizia que o arquivo enviado não era guardado; o Storage guarda `original.tif` até a análise ser apagada |
+| 30/10 | T7.4 | Fechar o relato: ferramentas usadas, resumo de como as entregas foram validadas e casos de erro trazidos da tabela para a seção própria | Cada caso conferido contra a linha original do diário | Um caso resumido dizia que o erro do EVI fora visto na releitura contra a fonte; o registro original diz que foi na revisão do rascunho: texto corrigido |
 
 ## Casos em que a IA errou
 
@@ -80,3 +104,25 @@ Preenchido durante o trabalho, não no fim (C6.4). Requisito: R7.9.
   as specs e no backend, testes e build refeitos.
 
 - **Licença do MapBiomas (30/10, T2.5 → T7.2):** a IA conferiu só o rodapé da página de downloads (CC BY 4.0) e gravou essa licença no script de calibração e nas evidências, embora a cópia usada (Source Cooperative) declarasse CC BY-SA 4.0. Percebido ao conferir a página de termos de uso para a nota. Correção: adotada a licença mais restritiva (CC BY-SA 4.0) no script, nas evidências e na nota, com a divergência registrada em `docs/metodo.md`.
+
+- **Afirmação técnica invertida (30/10, design 002):** ao comparar índices, a IA escreveu que o
+  EVI é mais sensível a ruído atmosférico; é o contrário (a banda azul do EVI existe para
+  corrigir o efeito atmosférico), e citou um "relato da Embrapa" que não tinha aberto. Pegos
+  na revisão do rascunho, antes de mostrá-lo ao usuário. Correção: trecho reescrito e citação
+  removida; desde então só entra referência aberta e conferida.
+- **Requisito sem sustentação na pesquisa (30/10, requisitos 002):** a IA disse que os
+  requisitos não precisavam mudar depois da pesquisa, mas o R2.9 atribuía ao GNDVI a separação
+  entre mata e café, o que nenhuma fonte sustenta. Percebido ao reler os requisitos contra o
+  design. Correção: R2.9 reescrito, e o GNDVI só vira condição se a calibração mostrar ganho
+  (não mostrou: r = 0,96 com o NDVI).
+- **Hipótese errada sobre a imagem da chuva (30/10, T3.3):** o design previa que a cena de
+  janeiro aumentaria a área potencial com pasto verde. Ela diminuiu (139 ha), porque o NDVI de
+  quase tudo passa do teto de 0,72. Percebido ao rodar a comparação. Correção: a conclusão da
+  nota foi escrita a partir do número medido, não da hipótese.
+- **Bug que só aparecia com Postgres real (30/10, T5.5):** a IA fez `conn.row_factory =
+  dict_row` numa conexão do pool; a configuração vazava para o próximo uso e o `create`
+  seguinte quebrava com `KeyError`. Os dublês em memória não pegavam; o teste contra Postgres
+  pegou. Correção: `row_factory` passou a ser do cursor.
+- **Busca de polígono só nos tiles visíveis (30/10, T5.6):** a IA usou `querySourceFeatures`
+  para achar o polígono pedido pelo card do chat; depois de um zoom, polígonos fora da tela não
+  eram encontrados. Percebido no harness. Correção: o polígono é lido do GeoJSON da fonte.
