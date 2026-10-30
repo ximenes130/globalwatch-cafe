@@ -193,6 +193,42 @@ NDVI = (NIR − vermelho)/(NIR + vermelho), NDWI = (verde − NIR)/(verde + NIR)
 - A máscara só marca pixels de `valid`: o NoData já conta em `no_data` (N0) e
   não pode contar de novo em `quality_mask` (N1).
 
+### Cascata e morfologia (`classification.py`)
+
+- **Utilizável** = `valid` e fora da máscara de qualidade.
+- **Limiar:** pixel utilizável com `ndvi_min ≤ NDVI ≤ ndvi_max`.
+- **Morfologia:** abertura e depois fechamento, `morphology_iterations` vezes,
+  com elemento em cruz 3 x 3 (vizinhança 4). A abertura vem primeiro para
+  tirar pontos isolados e o anel fino de pixels mistos na borda da mata; o
+  fechamento depois preenche falhas pequenas dentro do talhão (entrelinha com
+  solo exposto).
+- **Bordas da imagem:** o scipy trata o lado de fora como "não candidato", e
+  o fechamento apagaria a borda inteira de um talhão que encosta no limite do
+  recorte (numa imagem 6 x 6 toda candidata, perde 20 pixels; conferido em
+  30/10). Por isso a máscara é estendida pela borda (`np.pad`, modo `edge`)
+  em `2 x morphology_iterations` pixels (alcance da abertura somada ao
+  fechamento) antes e recortada depois. Com só `1 x`, a abertura apagava a
+  faixa estendida e o fechamento não fechava a entrelinha na borda (pego no
+  teste da T2.6).
+- O fechamento pode ligar pixels fora do limiar, mas nunca NoData nem pixel
+  mascarado: o resultado é cortado por **utilizável**.
+- **Manchas pequenas:** componentes com vizinhança 4, a mesma que o
+  `rasterio.features.shapes` usa na vetorização, para que cada componente vire
+  um polígono. Fica o componente com pelo menos
+  `ceil(min_area_ha / área do pixel)` pixels (50 no kit).
+- **Contagem por nível (exclusiva):** cada pixel recebe um código em
+  `levels` (uint8): 0 = área potencial; 1 = `no_data`; 2 = `quality_mask`;
+  3 = `low_vegetation`; 4 = `dense_canopy`; 5 = `low_chlorophyll` (só com a
+  T2.3); 6 = `small_patch`. Um pixel utilizável fora do resultado final vai
+  para o primeiro nível cuja regra o exclui (N2, N3, N3b); se passou nos
+  limiares e saiu na morfologia ou por tamanho, vai para `small_patch`. Pixel
+  que o fechamento incluiu conta como área potencial. A soma das áreas por
+  código é a área total do recorte.
+- **Área do pixel:** `|det(transform)|` em m² / 10.000. Exige CRS projetado
+  em metros (`ProcessingError` no leitor para CRS geográfico) e recusa Web
+  Mercator (EPSG:3857), que é métrico mas distorce a área (cerca de +15% a
+  21°S).
+
 ### Exploração preliminar do kit (30/10, script descartável)
 
 Feita para checar se os valores de partida fazem sentido; **não substitui a
@@ -277,6 +313,24 @@ não verdade de campo: serve para comparar variantes, não para medir acerto.
 - **Sobra para a T2.6:** anel de pixels mistos na borda dos fragmentos de mata,
   com um a dois pixels de largura; a abertura morfológica deve remover a maior
   parte.
+- **Com a cascata da T2.6** (abertura, fechamento e manchas ≥ 0,5 ha), a área
+  potencial do kit é **214,54 ha** (de 457 ha sem morfologia). Conferência com
+  o MapBiomas 2024, refeita com a regra real e sem mudar parâmetros:
+
+  | Classe MapBiomas 2024 | Sem morfologia | Com morfologia |
+  | --- | --- | --- |
+  | Formação Florestal (907 ha) | 13% | 5% |
+  | Mosaico de Usos (564 ha) | 33% | 15% |
+  | Outras Lavouras Temporárias (342 ha) | 20% | 12% |
+  | Pastagem (470 ha) | 8% | 2% |
+  | Café (49 ha) | 48% | 42% |
+
+  Da área marcada, 10% cai em café do MapBiomas (5% sem morfologia), e 42% do
+  café dele fica marcado. O que sobra fora do café do MapBiomas está sobretudo
+  em Mosaico de Usos, onde pode haver café pequeno demais para 30 m, e em
+  lavoura temporária e cana, que uma única data de agosto não separa de café
+  (ver amplitude entre datas, R3.8). Concordância baixa e declarada: o
+  resultado é triagem por vigor, não mapa de café.
 
 ## Contratos
 

@@ -34,6 +34,9 @@ ROLE_TOKENS = {
 
 ACQUISITION_TAG = "ACQUISITION_UTC"
 
+# Web Mercator é métrico, mas a área cresce com a latitude (cerca de +15% a 21°S).
+WEB_MERCATOR = {3857, 900913}
+
 
 @dataclass(frozen=True)
 class Radiometry:
@@ -71,6 +74,11 @@ class ImageData:
     def shape(self) -> tuple[int, int]:
         return self.valid.shape
 
+    @property
+    def pixel_area_ha(self) -> float:
+        """Área de um pixel; o CRS é projetado em metros (conferido na leitura)."""
+        return abs(self.transform.determinant) / 10_000
+
 
 def read_image(data: bytes) -> ImageData:
     """Lê o GeoTIFF em memória e devolve as quatro bandas em reflectância."""
@@ -85,6 +93,7 @@ def read_image(data: bytes) -> ImageData:
         dn = ds.read(indexes=list(bands.indexes))
         nodata = ds.nodata
         crs, transform = ds.crs, ds.transform
+        _check_crs(crs)
         acquired_at = _acquired_at(ds.tags().get(ACQUISITION_TAG))
 
     # Pixel inválido se qualquer banda for NoData: sem as quatro, não há índice.
@@ -110,6 +119,17 @@ def read_image(data: bytes) -> ImageData:
         radiometry=radiometry,
         bands=bands,
     )
+
+
+def _check_crs(crs: CRS | None) -> None:
+    """A área (R2.12) é medida no CRS da imagem, que precisa ser projetado em metros."""
+    if crs is None:
+        raise ProcessingError("A imagem não tem sistema de coordenadas.")
+    if not crs.is_projected or crs.linear_units != "metre" or crs.to_epsg() in WEB_MERCATOR:
+        raise ProcessingError(
+            "A imagem precisa estar num sistema de coordenadas projetado em metros que "
+            "preserve a área, como UTM (o Sentinel-2 já vem assim)."
+        )
 
 
 def _band_order(descriptions: tuple[str | None, ...]) -> BandOrder:

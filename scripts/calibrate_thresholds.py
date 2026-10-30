@@ -40,6 +40,7 @@ from rasterio.windows import Window, from_bounds  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
+from app.processing.classification import classify  # noqa: E402
 from app.processing.indices import ndvi, normalized_difference  # noqa: E402
 from app.processing.masking import quality_mask  # noqa: E402
 from app.processing.params import Params  # noqa: E402
@@ -234,6 +235,12 @@ def main() -> None:
     plt.close(fig)
 
     rule = f"NDVI {params.ndvi_min}–{params.ndvi_max}{gndvi_text}"
+    # Resultado com a regra real do pipeline (morfologia e manchas pequenas). As
+    # opções exploratórias (vermelho, GNDVI) não existem no pipeline: aí só
+    # vale a coluna sem morfologia.
+    potential = candidate
+    if args.red_min is None and params.gndvi_min is None:
+        potential = classify(image, quality, nd, params).potential
     lines = [
         f"rótulo: {args.label} ({rule})",
         f"  máscara de qualidade ({quality.source}): {quality.excluded.sum() * pixel_ha:9.2f} ha",
@@ -242,24 +249,25 @@ def main() -> None:
         f"  vermelho baixo (dossel escuro): {dark.sum() * pixel_ha:9.2f} ha",
         f"  GNDVI baixo:                    {low_chlorophyll.sum() * pixel_ha:9.2f} ha",
         f"  candidato (sem morfologia):     {candidate.sum() * pixel_ha:9.2f} ha",
+        f"  área potencial (cascata T2.6):  {potential.sum() * pixel_ha:9.2f} ha",
         f"  r(NDVI, GNDVI) nos válidos:     {r:9.3f}",
         "  fração de candidato nas amostras:",
     ]
     for name, (r0, r1, c0, c1) in SAMPLES.items():
         lines.append(f"    {name:28} {candidate[r0:r1, c0:c1].mean():6.0%}")
     if args.mapbiomas:
-        lines += mapbiomas_section(image, nd, candidate, rgb, rule, args.label, pixel_ha)
+        lines += mapbiomas_section(image, nd, candidate, potential, rgb, rule, args.label, pixel_ha)
     report = "\n".join(lines)
     (OUT / f"resumo-{args.label}.txt").write_text(report + "\n")
     print(report)
     print(f"  arquivos em {OUT.relative_to(ROOT)}/")
 
 
-def mapbiomas_section(image, nd, candidate, rgb, rule, label, pixel_ha) -> list[str]:
+def mapbiomas_section(image, nd, candidate, potential, rgb, rule, label, pixel_ha) -> list[str]:
     classes = read_mapbiomas(image)
     lines = [
         "  MapBiomas 2024 (conferência, não gabarito):",
-        f"    {'classe':28} {'área':>8} {'candidato':>10}  NDVI p5/mediana/p95",
+        f"    {'classe':28} {'área':>8} {'sem morf.':>10} {'com morf.':>10}  NDVI p5/mediana/p95",
     ]
     present = [c for c in np.unique(classes) if c != 0]
     for code in sorted(present, key=lambda c: -(classes == c).sum()):
@@ -268,8 +276,15 @@ def mapbiomas_section(image, nd, candidate, rgb, rule, label, pixel_ha) -> list[
         p5, p50, p95 = np.percentile(nd[inside], [5, 50, 95])
         lines.append(
             f"    {name:28} {inside.sum() * pixel_ha:6.0f} ha {candidate[inside].mean():9.0%}"
-            f"   {p5:.2f}/{p50:.2f}/{p95:.2f}"
+            f" {potential[inside].mean():10.0%}   {p5:.2f}/{p50:.2f}/{p95:.2f}"
         )
+    coffee = classes == MAPBIOMAS_COFFEE
+    for title, mask in (("sem morfologia", candidate), ("com morfologia", potential)):
+        if mask.any():
+            lines.append(
+                f"    {title}: {(mask & coffee).sum() / mask.sum():.0%} da área marcada cai em café"
+                f" do MapBiomas; {(mask & coffee).sum() / coffee.sum():.0%} do café dele marcado"
+            )
     lines.append(f"    fonte: {MAPBIOMAS_ATTRIBUTION}")
 
     fig, axes = plt.subplots(1, 2, figsize=(16, 8.8), constrained_layout=True)
@@ -284,8 +299,9 @@ def mapbiomas_section(image, nd, candidate, rgb, rule, label, pixel_ha) -> list[
         )
     )
     axes[0].set_title("MapBiomas 2024: café (lilás), formação florestal (verde), mosaico (amarelo)")
-    axes[1].imshow(overlay(rgb, [(candidate, CHERRY, 0.55)]))
-    axes[1].set_title(f"Candidato {rule} (sem morfologia)")
+    axes[1].imshow(overlay(rgb, [(potential, CHERRY, 0.55)]))
+    stage = "sem morfologia" if potential is candidate else "com morfologia e manchas ≥ mínimo"
+    axes[1].set_title(f"Área potencial {rule} ({stage})")
     for ax in axes:
         ax.set_xticks(range(0, 513, 64))
         ax.set_yticks(range(0, 513, 64))

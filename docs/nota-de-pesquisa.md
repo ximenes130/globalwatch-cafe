@@ -156,7 +156,14 @@ candidato caiu de 42% para 13% com o teto de 0,72. A classe Café (49 ha no
 recorte) tem NDVI mediano de 0,63, próximo dos talhões delimitados na imagem
 (0,64), e 48% dela fica dentro da faixa final. O p95 de 0,79 mostra que café
 mais vigoroso fica de fora. O MapBiomas é de 2024 e tem resolução e erros
-próprios: o número é concordância, não acurácia. Figura:
+próprios: o número é concordância, não acurácia.
+
+Com a regra completa (abertura, fechamento e manchas de pelo menos 0,5 ha), a
+área potencial do kit fica em 214,54 ha. Dessa área, 10% cai em café do
+MapBiomas, e 42% do café dele fica marcado; a mata do MapBiomas marcada cai
+para 5%. A maior parte do restante está em "Mosaico de Usos", que pode conter
+café em talhões pequenos demais para 30 m, e em lavouras temporárias e cana,
+que uma única imagem de agosto não separa de café. Figura:
 `docs/evidencias/calibracao/mapbiomas-final.jpg`.
 
 **Limitações.**

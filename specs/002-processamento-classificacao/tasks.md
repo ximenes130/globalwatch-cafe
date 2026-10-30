@@ -25,9 +25,9 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - Arquivos: `scripts/calibrate_thresholds.py`, `docs/evidencias/`
   - Passos: (1) histograma de NDVI e GNDVI com os limiares marcados; (2) máscara sobre o RGB, conferindo talhões, mata ciliar e eucalipto; (3) decisão sobre `gndvi_min` registrada com o motivo; (4) antes/depois do ajuste salvo para o "erro encontrado" da nota; (5) conferência com o MapBiomas 2024, sem ajustar os limiares a ele.
   - Verificação: histogramas, máscaras e antes/depois em `docs/evidencias/`; valores atualizados em `params.py`, no `design.md` e em `frontend/src/lib/method.ts` (régua do login). Sem percentual de acerto.
-- [ ] **T2.6** (P0) `classification.py`: cascata N2–N4 (limiares, morfologia, manchas pequenas) com área excluída por nível.
+- [x] **T2.6** (P0) `classification.py`: cascata N2–N4 (limiares, morfologia, manchas pequenas) com área excluída por nível.
   - _Req: R2.10, R2.11, R2.14_
-  - Arquivos: `backend/app/processing/classification.py`, `backend/tests/test_classification.py`
+  - Arquivos: `backend/app/processing/classification.py`, `backend/app/processing/reader.py` (área do pixel e CRS), `backend/pyproject.toml` (scipy), `backend/tests/test_classification.py`, `backend/tests/test_reader.py`
   - Verificação: `pytest backend/tests/test_classification.py` (faixas sintéticas caem em `low_vegetation`, candidato e `dense_canopy`; mancha < 50 px em `small_patch`; cada pixel contado em um só nível).
 - [ ] **T2.7** (P0) `vectorization.py`: polígonos, área em UTM, GeoJSON RFC 7946, estatísticas.
   - _Req: R2.12, R2.13, R2.14, R2.15_

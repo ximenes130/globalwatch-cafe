@@ -150,3 +150,22 @@ def test_kit_image():
     assert image.bands.indexes == (1, 2, 3, 4)
     # Pixel (0, 0) do azul: DN 2012 → 2012 * 0,0001 − 0,1.
     assert image.blue[0, 0] == pytest.approx(0.1012, abs=1e-6)
+
+
+def test_pixel_area_comes_from_transform():
+    image = read_image(make_tiff(known_pixel_stack()))
+
+    assert image.pixel_area_ha == pytest.approx(0.01)
+
+
+@pytest.mark.parametrize(
+    ("crs", "message"),
+    [
+        (None, "não tem sistema de coordenadas"),
+        ("EPSG:4326", "projetado em metros"),
+        ("EPSG:3857", "projetado em metros"),
+    ],
+)
+def test_crs_without_reliable_area_is_rejected(crs, message):
+    with pytest.raises(ProcessingError, match=message):
+        read_image(make_tiff(known_pixel_stack(), crs=crs))
