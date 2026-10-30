@@ -1,0 +1,36 @@
+# Retenção de 7 dias (specs/006-seguranca-limites, T6.7, R6.15): apaga arquivos e linhas
+# das análises antigas. Precisa dos secrets DATABASE_URL e SUPABASE_SERVICE_ROLE_KEY.
+name: Retenção
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 03h em Brasília
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: retention
+  cancel-in-progress: false
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install .
+      - run: python -m app.retention
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_URL: https://dkuwafzzkvcxxphdtmyl.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

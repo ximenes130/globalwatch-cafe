@@ -34,5 +34,7 @@ Corte se estourar: retenção automática (fica documentada).
   - Verificação: grep no histórico e no bundle; print do teto (sem a chave) em `docs/evidencias/`.
 - [ ] **T6.7** (P1) Retenção de 7 dias automatizada.
   - _Req: R6.15_
-  - Arquivos: `.github/workflows/retention.yml`
-  - Verificação: análise com `created_at` antigo é removida.
+  - Arquivos: `.github/workflows/retention.yml`, `backend/app/retention.py`, `backend/tests/test_retention.py`
+  - Verificação: análise com `created_at` antigo é removida (testes com dublês e Postgres);
+    primeira execução do workflow com os secrets `DATABASE_URL` e
+    `SUPABASE_SERVICE_ROLE_KEY` no GitHub termina verde.

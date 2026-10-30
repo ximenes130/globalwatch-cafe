@@ -1,5 +1,6 @@
 """Dublês em memória do banco e do Storage para testar worker e rotas."""
 
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
@@ -119,6 +120,11 @@ class FakeRepository:
             del self.rows[analysis_id]
             return True
         return False
+
+    def list_expired(self, days: int) -> Sequence[tuple[UUID, UUID]]:
+        limit = datetime.now(UTC) - timedelta(days=days)
+        rows = sorted(self.rows.values(), key=lambda r: r["created_at"])
+        return [(r["id"], r["user_id"]) for r in rows if r["created_at"] < limit]
 
 
 class FakeChatRepository:

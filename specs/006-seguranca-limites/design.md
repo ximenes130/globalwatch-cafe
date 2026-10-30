@@ -15,7 +15,8 @@ status: em-implementacao
 | `backend/app/ratelimit.py` | `consume(user_id, kind)`: `insert … on conflict do update … returning` atômico |
 | `backend/app/storage.py` | Caminhos com `user_id`, URLs assinadas de 300 s |
 | `backend/app/errors.py` | Middleware ASGI, por dentro do CORS, que converte exceções inesperadas em 500 neutro (JSON em português) e registra o detalhe no log |
-| `.github/workflows/retention.yml` | *(P1)* agenda diária que chama a limpeza |
+| `.github/workflows/retention.yml` | *(P1)* agenda diária (e disparo manual) que roda `python -m app.retention` com `DATABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` dos secrets do GitHub |
+| `backend/app/retention.py` | *(P1)* apaga as análises com mais de 7 dias, de qualquer usuário: arquivos no Storage primeiro, depois a linha (mensagens por cascata); análise cujo Storage falhar fica para o dia seguinte e o job termina com erro |
 
 ## Decisões
 
@@ -26,6 +27,7 @@ status: em-implementacao
 | 404 para recurso alheio | 403 | Não revela que o id existe |
 | URL assinada curta | Bucket público | Isolamento também nos arquivos |
 | Documentação da API (`/docs`, `/redoc`, `/openapi.json`) desligada por padrão; `API_DOCS=true` liga no desenvolvimento | Deixar pública | R6.1 só abre `/health`; o schema descreve todas as rotas e não é útil a quem usa o front |
+| Retenção por GitHub Actions com os secrets do banco e do Storage | `pg_cron` no Supabase; limpeza na subida da API | O `pg_cron` apaga linhas, mas os arquivos do Storage só saem pela API; o Render free dorme e não tem agenda própria |
 | Validação na rota, só o cabeçalho do raster, antes da cota | Deixar para o worker (análise `failed`) | R6.6 e R6.7 pedem 415/422 na resposta; recusar antes não cria linha nem gasta envio do dia. O worker continua tratando o que só aparece nos pixels ou na comparação entre arquivos (grade da SCL e da segunda data) |
 
 ## Estratégia de testes
@@ -40,3 +42,4 @@ status: em-implementacao
 | R6.11 | `git log -p \| grep -iE "key\|secret"` e busca no bundle do front |
 | R6.12 | `test_errors.py`: exceção forçada → corpo sem traceback |
 | R6.14 | `test_isolation.py`: após DELETE, arquivos não existem |
+| R6.15 | `test_retention.py`: só as antigas saem, arquivos antes da linha, falha do Storage preserva a linha e dá código de saída 1; `test_repository.py`: seleção por idade contra Postgres |

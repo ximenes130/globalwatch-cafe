@@ -247,3 +247,24 @@ def test_concurrent_requests_do_not_pass_the_limit(pool, users):
 def test_unknown_usage_kind_is_rejected(pool, users):
     with pytest.raises(ValueError):
         UsageRepository(pool).consume(users[0], "uploads; drop table usage_daily", 5)
+
+
+def test_list_expired_by_age_across_users(pool, users):
+    owner, other = users
+    repo = AnalysisRepository(pool)
+    old_owner = repo.create(owner, "velha.tif")
+    old_other = repo.create(other, "velha.tif")
+    recent = repo.create(owner, "nova.tif")
+    with pool.connection() as conn:
+        conn.execute(
+            "update analyses set created_at = now() - interval '8 days' where id = any(%s)",
+            ([old_owner, old_other],),
+        )
+        conn.execute(
+            "update analyses set created_at = now() - interval '6 days 23 hours' where id = %s",
+            (recent,),
+        )
+
+    expired = [row for row in repo.list_expired(7) if row[1] in (owner, other)]
+
+    assert sorted(expired) == sorted([(old_owner, owner), (old_other, other)])

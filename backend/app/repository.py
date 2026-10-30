@@ -5,6 +5,7 @@ por `user_id` explicitamente (C3.2). Análise de outro usuário e análise
 inexistente dão o mesmo resultado (`None`/`False`), que a rota traduz em 404.
 """
 
+from collections.abc import Sequence
 from typing import Protocol
 from uuid import UUID
 
@@ -119,6 +120,19 @@ class AnalysisRepository:
                 "delete from analyses where id = %s and user_id = %s", (analysis_id, user_id)
             )
             return cursor.rowcount == 1
+
+    # `Sequence`: dentro da classe, `list` é o método acima, não o tipo.
+    def list_expired(self, days: int) -> Sequence[tuple[UUID, UUID]]:
+        """`(id, user_id)` das análises criadas há mais de `days` dias, de todos os usuários.
+
+        Só a retenção (R6.15) usa esta consulta sem filtro de usuário; nenhuma rota a chama.
+        """
+        with self.pool.connection() as conn:
+            return conn.execute(
+                "select id, user_id from analyses "
+                "where created_at < now() - make_interval(days => %s) order by created_at",
+                (days,),
+            ).fetchall()
 
 
 class ChatRepository(Protocol):
