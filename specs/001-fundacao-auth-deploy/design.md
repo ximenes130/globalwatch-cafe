@@ -9,7 +9,7 @@ status: aprovado
 ## Visão geral
 
 ```text
-Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
+Navegador (SPA estática no Render, CDN) ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
    │
    └──(Authorization: Bearer <jwt>)──> FastAPI (Render, Docker)
                                          ├─ valida JWT via JWKS do Supabase
@@ -32,6 +32,7 @@ Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
 | `frontend/src/pages/Login.tsx` | Tela de login |
 | `supabase/migrations/001_init.sql` | Tabelas e RLS |
 | `.github/workflows/ci.yml` | Lint, testes, build |
+| `render.yaml` | Blueprint: `globalwatch-cafe` (Static Site) e `globalwatch-cafe-api` (Web Service Docker) |
 
 ## Contratos
 
@@ -84,6 +85,7 @@ Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
 | Supabase (Auth + Postgres + Storage) | Firebase; Auth0 + Neon + R2 | Um serviço resolve login, RLS e storage privado no plano free |
 | Vite + React | Next.js | Mais rápido de montar e publicar num dia; SPA basta |
 | Render (Docker) | Fly.io; HF Spaces | Free sem cartão, deploy pelo GitHub; HF Spaces fica de plano B (mais RAM) |
+| Front como Static Site no Render | Vercel; servir o front pelo FastAPI | Um Blueprint e um provedor a menos para configurar e documentar (R7.2); static site não hiberna, então a tela de "acordando o servidor" aparece na hora. Servir pelo FastAPI prenderia a página ao cold start da API |
 | Validar JWT por JWKS | Chamar `auth.getUser` a cada request | Sem ida à rede por request; valida assinatura localmente |
 
 ### Execução local (`compose.yaml`)
@@ -105,6 +107,10 @@ Navegador ──(Supabase JS: OAuth Google)──> Supabase Auth ──> JWT
 - Redirects errados no Supabase/Google → cadastrar a URL de produção do front
   nos dois.
 - Render dorme após ~15 min → front mostra "acordando o servidor" (spec 004).
+- Front e API em subdomínios diferentes do `onrender.com` → CORS restrito à
+  origem do front (`CORS_ORIGINS`).
+- Rebuild do static site com variável `VITE_*` errada publica front quebrado →
+  conferir as variáveis antes do primeiro deploy; `VITE_*` entram no build.
 
 ## Estratégia de testes
 

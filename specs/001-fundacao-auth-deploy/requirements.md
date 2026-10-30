@@ -44,9 +44,10 @@ identidade do usuário. Todo o resto é construído em cima disso.
   DEVE responder 401 sem detalhes internos.
 - **R1.7** — O backend DEVE expor `GET /health` público que executa `select 1`
   no banco e responde 200 com status do banco.
-- **R1.8** — O front DEVE estar publicado em hospedagem gratuita (Vercel ou
-  Cloudflare Pages) e o back em hospedagem gratuita (Render; plano B Hugging
-  Face Spaces), sem custo para o avaliador.
+- **R1.8** — Front e back DEVEM estar publicados em hospedagem gratuita no
+  Render (front como Static Site, back como Web Service Docker; plano B do back:
+  Hugging Face Spaces), criados por um único Blueprint, sem custo para o
+  avaliador.
 - **R1.9** — O repositório DEVE ter `.env.example` para front e back, e nenhum
   segredo versionado.
 - **R1.10** — O banco DEVE ter as tabelas `analyses`, `chat_messages` e
@@ -65,4 +66,4 @@ identidade do usuário. Todo o resto é construído em cima disso.
 
 ## Questões abertas
 
-- Vercel ou Cloudflare Pages para o front? (padrão: Vercel)
+- Nenhuma. (Front no Render em vez do Vercel: decidido em 30/10, ver design.)
