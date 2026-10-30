@@ -13,7 +13,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
   - _Req: R4.12, R4.13, R4.14, R4.17_
   - Arquivos: `frontend/src/App.tsx`, `frontend/src/components/states/`
   - Verificação: backend parado mostra aviso de servidor e erro com "tentar de novo".
-- [ ] **T4.2** (P0) Lista de análises com estado vazio e link do kit.
+- [x] **T4.2** (P0) Lista de análises com estado vazio e link do kit.
   - _Req: R4.1, R4.2_
   - Arquivos: `frontend/src/pages/Analyses.tsx`
   - Verificação: conta nova vê o estado vazio.
