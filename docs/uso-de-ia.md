@@ -16,3 +16,9 @@ Preenchido durante o trabalho, não no fim (C6.4). Requisito: R7.9.
 ## Casos em que a IA errou
 
 <!-- pelo menos um caso concreto: o que gerou, como percebeu, como corrigiu -->
+
+- **Identificadores em português (30/10, T1.2):** a IA escreveu specs e código
+  com nomes em pt-BR (`leitura.py`, `db.verificar()`, `"nao_configurado"`,
+  `obter_poligono`). Percebido na revisão do T1.2. Correção: regra C6.5 na
+  constituição (identificadores em en-US, textos em pt-BR), renomeação em todas
+  as specs e no backend, testes e build refeitos.

@@ -13,22 +13,22 @@ Router; dados com TanStack Query (cache, retry e estados prontos).
 
 ```text
 /login            Login.tsx
-/                 Analises.tsx      (lista + upload)
-/analises/:id     Analise.tsx       (mapa + painel + chat da spec 005)
+/                 Analyses.tsx      (lista + upload)
+/analyses/:id     Analysis.tsx      (mapa + painel + chat da spec 005)
 ```
 
 ## Componentes e arquivos
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `frontend/src/pages/Analises.tsx` | Lista, estado vazio, upload |
-| `frontend/src/pages/Analise.tsx` | Layout mapa + painel (grid responsivo) |
+| `frontend/src/pages/Analyses.tsx` | Lista, estado vazio, upload |
+| `frontend/src/pages/Analysis.tsx` | Layout mapa + painel (grid responsivo) |
 | `frontend/src/components/Upload.tsx` | Drag and drop, validação no cliente, progresso |
-| `frontend/src/components/Mapa.tsx` | MapLibre GL: `image` source com 4 cantos, `geojson` source, popup |
-| `frontend/src/components/Legenda.tsx` | Legenda e controles de camada/opacidade |
-| `frontend/src/components/Resumo.tsx` | Cartões de números, data, aviso, justificativa |
+| `frontend/src/components/MapView.tsx` | MapLibre GL: `image` source com 4 cantos, `geojson` source, popup |
+| `frontend/src/components/Legend.tsx` | Legenda e controles de camada/opacidade |
+| `frontend/src/components/Summary.tsx` | Cartões de números, data, aviso, justificativa |
 | `frontend/src/components/Downloads.tsx` | Botões de PNG e GeoJSON (URLs assinadas) |
-| `frontend/src/components/estados/` | `Carregando`, `Erro`, `Vazio`, `ServidorAcordando` |
+| `frontend/src/components/states/` | `Loading`, `ErrorState`, `EmptyState`, `ServerWaking` |
 | `frontend/src/lib/api.ts` | Chamadas tipadas; timer de 5 s para o aviso de servidor frio |
 
 ## Contratos

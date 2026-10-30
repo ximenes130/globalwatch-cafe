@@ -32,6 +32,8 @@ Leia `specs/README.md` e `specs/000-constituicao.md` antes de qualquer tarefa.
 - Segredos só em env; no repositório, só `.env.example`.
 - Só serviços gratuitos. Dados de terceiros sempre com atribuição.
 - DN → reflectância **uma vez só**; área em UTM antes de reprojetar; kit = 2.621,44 ha.
+- Identificadores de código em inglês (en-US); comentários, docstrings, textos de UI,
+  specs e docs em pt-BR (C6.5).
 
 ## Stack
 

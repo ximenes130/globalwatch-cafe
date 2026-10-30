@@ -16,7 +16,7 @@ contrarie um deles está errada e volta para revisão antes de virar código.
 - **C1.2** Nenhum percentual de acurácia, confiança ou probabilidade é exibido
   sem evidência medida e documentada. O kit não tem gabarito.
 - **C1.3** Índice de vegetação sozinho não comprova café. Toda saída deixa
-  claro que a classificação é potencial e não validada (`validado: false`).
+  claro que a classificação é potencial e não validada (`validated: false`).
 - **C1.4** Limitações do método são parte do produto: aparecem na UI, no chat
   e no README.
 
@@ -63,5 +63,9 @@ contrarie um deles está errada e volta para revisão antes de virar código.
   defensável pelo autor. Código gerado por IA é revisado linha a linha.
 - **C6.4** O uso de IA é registrado em `docs/uso-de-ia.md` durante o trabalho,
   não no fim.
-- **C6.5** Documentação em português do Brasil. Código segue os nomes definidos
-  no `design.md` de cada spec.
+- **C6.5** Idiomas: identificadores de código em inglês (en-US): módulos,
+  arquivos de código, classes, funções, variáveis, constantes, testes, rotas,
+  campos de API e de banco, propriedades de GeoJSON, chaves de `params`,
+  valores de enum e nomes de ferramentas do chat. Comentários, docstrings,
+  mensagens ao usuário, specs e docs em português do Brasil. Os nomes vêm do
+  `design.md` de cada spec.

@@ -10,7 +10,7 @@ Bloco do dia: 13h às 14h. Corte se estourar: regra temporal na app (fica na not
 
 - [ ] **T3.1** (P0) Script de busca e download no formato do kit, com SCL.
   - _Req: R3.1, R3.2, R3.3, R3.4_
-  - Arquivos: `scripts/baixar_cena_adicional.py`
+  - Arquivos: `scripts/download_additional_scene.py`
   - Verificação: TIFF com shape (4, 512, 512), CRS e transform iguais ao kit.
 - [ ] **T3.2** (P0) Atribuição, metadados e SHA256 da cena adicional.
   - _Req: R3.5_
@@ -18,10 +18,10 @@ Bloco do dia: 13h às 14h. Corte se estourar: regra temporal na app (fica na not
   - Verificação: `sha256sum -c SHA256SUMS.txt`.
 - [ ] **T3.3** (P0) Processar a imagem adicional pela aplicação.
   - _Req: R3.6_
-  - Verificação: análise `concluida` em produção; print em `docs/evidencias/`.
+  - Verificação: análise `completed` em produção; print em `docs/evidencias/`.
 - [ ] **T3.4** (P0) Script de comparação entre datas.
   - _Req: R3.7_
-  - Arquivos: `scripts/comparar_datas.py`, `docs/evidencias/comparacao-datas.*`
+  - Arquivos: `scripts/compare_dates.py`, `docs/evidencias/comparacao-datas.*`
   - Verificação: tabela e figura geradas.
 - [ ] **T3.5** (P1) Regra temporal de amplitude no backend.
   - _Req: R3.8_

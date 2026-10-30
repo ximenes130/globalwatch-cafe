@@ -49,7 +49,7 @@ carregamento, erro e ausência de resultado.
   mascarada, limite da imagem), a data da imagem e cartões com área total,
   área potencial (ha e %), e número de polígonos.
 - **R4.7** — QUANDO o usuário clicar em um polígono, O SISTEMA DEVE mostrar
-  `id`, `area_ha` e `ndvi_medio` do polígono.
+  `id`, `area_ha` e `ndvi_mean` do polígono.
 - **R4.8** — O SISTEMA DEVE oferecer download do PNG com polígonos e do
   GeoJSON.
 - **R4.9** — O SISTEMA DEVE exibir de forma visível o aviso de que o resultado

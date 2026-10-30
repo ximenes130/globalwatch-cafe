@@ -28,8 +28,8 @@ processamento.
   SISTEMA DEVE enviar ao modelo o PNG da classificação e devolver uma
   apresentação da imagem e do resultado.
 - **R5.2** — O modelo DEVE obter números e geometrias apenas por ferramentas
-  do backend: `obter_resumo_analise`, `obter_poligono(id)` e
-  `obter_limitacoes`, que leem do banco filtrando por `user_id`.
+  do backend: `get_analysis_summary`, `get_polygon(id)` e
+  `get_limitations`, que leem do banco filtrando por `user_id`.
 - **R5.3** — O SISTEMA DEVE instruir o modelo a responder em português, chamar
   o resultado de "área potencial", citar só números das ferramentas e dizer
   que não sabe quando o dado não existir.

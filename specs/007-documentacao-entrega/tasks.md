@@ -24,7 +24,7 @@ Corte se estourar: comparação com MapBiomas (vira limitação na nota).
   - Verificação: tabela de pontos preenchida; antes/depois do ajuste salvo.
 - [ ] **T7.4** (P1) Comparação com MapBiomas.
   - _Req: R7.8_
-  - Arquivos: `scripts/comparar_mapbiomas.py`
+  - Arquivos: `scripts/compare_mapbiomas.py`
   - Verificação: tabela de concordância em `docs/evidencias/`.
 - [ ] **T7.5** (P0) Nota de pesquisa com fontes conferidas.
   - _Req: R7.4, R7.5, R7.6, R7.7_

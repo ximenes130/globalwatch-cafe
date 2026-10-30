@@ -14,7 +14,7 @@ status: rascunho
 | `docs/nota-de-pesquisa.md` | Nota de até 2 páginas (exportável para PDF) |
 | `docs/uso-de-ia.md` | Diário preenchido durante o dia |
 | `docs/evidencias/` | Saída de testes, prints de UI, figuras de calibração e comparação |
-| `scripts/comparar_mapbiomas.py` | *(P1)* Concordância com a classe café do MapBiomas |
+| `scripts/compare_mapbiomas.py` | *(P1)* Concordância com a classe café do MapBiomas |
 | `.github/workflows/keepalive.yml` | Cron a cada 3 dias chamando `/health` |
 | `LICENSE` | Licença do código |
 

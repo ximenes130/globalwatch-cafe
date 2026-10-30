@@ -30,7 +30,7 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
 
 - **R2.1** — QUANDO receber um GeoTIFF que passou na validação (R6.5–R6.7), O
   SISTEMA DEVE processar o próprio arquivo enviado e registrar a análise com
-  status `concluida` ou `erro`.
+  status `completed` ou `failed`.
 - **R2.2** — O SISTEMA DEVE converter DN em reflectância **uma única vez**,
   `reflectância = DN * scale + offset`, com scale/offset lidos do arquivo e,
   na ausência deles, os valores do kit (0,0001 e -0,1), registrando em
@@ -61,7 +61,7 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
   dentro de `[ndvi_min, ndvi_max]` (ponto de partida 0,55–0,78), excluindo o
   topo da distribuição associado a mata e eucalipto.
 - **R2.11** — O SISTEMA DEVE aplicar abertura e fechamento morfológico e
-  remover manchas menores que `area_min_ha` (padrão 0,5 ha).
+  remover manchas menores que `min_area_ha` (padrão 0,5 ha).
 
 ### Vetorização e áreas
 
@@ -69,8 +69,8 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
   tolerância de meio pixel e calcular `area_ha` no CRS projetado (UTM) antes
   de reprojetar para WGS84.
 - **R2.13** — O GeoJSON DEVE seguir a RFC 7946 (WGS84, lon/lat) e cada feição
-  DEVE ter `id`, `area_ha`, `ndvi_medio`, `classe: "area_potencial_cafe"` e
-  `validado: false`.
+  DEVE ter `id`, `area_ha`, `ndvi_mean`, `class: "potential_coffee_area"` e
+  `validated: false`.
 - **R2.14** — O SISTEMA DEVE calcular e salvar: área total do recorte, área
   válida, área mascarada, área potencial, número de polígonos e estatísticas
   do NDVI (mín., p5, mediana, p95, máx.).
@@ -89,7 +89,7 @@ hectares, parâmetros salvos e uma justificativa técnica da classificação.
   (regras aplicadas, limiares, máscaras, limitações) a partir de `params` e
   das estatísticas, usada pela UI e pelo chat.
 - **R2.19** — SE o processamento falhar, ENTÃO O SISTEMA DEVE salvar a análise
-  com status `erro` e uma mensagem compreensível, sem stack trace.
+  com status `failed` e uma mensagem compreensível, sem stack trace.
 - **R2.20** — QUANDO a máscara final estiver vazia, O SISTEMA DEVE concluir a
   análise com zero polígonos (não é erro).
 

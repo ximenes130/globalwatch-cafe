@@ -24,16 +24,16 @@ MGRS (23KLS), a leitura é por janela, sem reamostragem.
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `scripts/baixar_cena_adicional.py` | Busca, recorte, empilhamento, tags, atribuição |
-| `scripts/comparar_datas.py` | Lê os dois GeoJSON/rasters e gera tabela e figura de variação |
+| `scripts/download_additional_scene.py` | Busca, recorte, empilhamento, tags, atribuição |
+| `scripts/compare_dates.py` | Lê os dois GeoJSON/rasters e gera tabela e figura de variação |
 | `data/adicional/<item_id>/` | Saída versionada (arquivos pequenos) |
 | `backend/app/processing/temporal.py` | *(P1)* regra de amplitude |
 
 ## Contratos
 
-- CLI: `python scripts/baixar_cena_adicional.py --inicio 2026-01-01 --fim
-  2026-03-31 --nuvem-max 10 [--item <id>]`.
-- *(P1)* `POST /analyses` aceita `imagem_2` opcional; exige mesmo CRS e mesma
+- CLI: `python scripts/download_additional_scene.py --start 2026-01-01 --end
+  2026-03-31 --max-cloud 10 [--item <id>]`.
+- *(P1)* `POST /analyses` aceita `image_2` opcional; exige mesmo CRS e mesma
   grade, senão 422.
 
 ## Decisões
@@ -56,6 +56,6 @@ MGRS (23KLS), a leitura é por janela, sem reamostragem.
 | --- | --- |
 | R3.2 | Abrir o TIFF gerado: shape (4, 512, 512), CRS, transform igual ao kit, tags presentes |
 | R3.5 | `sha256sum -c` na pasta de saída |
-| R3.6 | Upload pela app em produção; análise `concluida` |
+| R3.6 | Upload pela app em produção; análise `completed` |
 | R3.7 | Tabela e figura salvas em `docs/evidencias/` |
 | R3.8 | `test_temporal.py` com dois rasters sintéticos |
