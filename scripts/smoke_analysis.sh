@@ -1,25 +1,29 @@
 #!/usr/bin/env sh
-# Verificação da T2.11 em produção: envia o kit, acompanha até terminar e
-# mostra o resultado e o tempo. O token não passa pelo chat nem fica no
+# Verificação em produção (T2.11, T3.4): envia uma imagem (padrão: o kit),
+# acompanha até terminar e mostra o resultado e o tempo. O token não passa pelo chat nem fica no
 # histórico do shell se for colado com `read`:
 #
 #   read -rs TOKEN && export TOKEN      # cole o access_token da sessão e Enter
 #   scripts/smoke_analysis.sh            # API padrão: produção no Render
 #   API=http://localhost:8000 scripts/smoke_analysis.sh
+#   IMAGE=data/adicional/<item>/imagem_multiespectral.tif \
+#     SCL=data/adicional/<item>/qualidade_scl.tif scripts/smoke_analysis.sh
 #
 # O access_token está no localStorage do front (chave sb-<ref>-auth-token).
 set -eu
 
 API="${API:-https://globalwatch-cafe-api.onrender.com}"
 KIT="$(dirname "$0")/../data/exemplo"
+IMAGE="${IMAGE:-$KIT/imagem_multiespectral.tif}"
+SCL="${SCL:-$KIT/qualidade_scl.tif}"
 : "${TOKEN:?defina TOKEN com o access_token da sessão (veja o topo do script)}"
 
 auth="Authorization: Bearer $TOKEN"
 start=$(date +%s)
 
 created=$(curl -sS -f -H "$auth" \
-  -F "image=@$KIT/imagem_multiespectral.tif;type=image/tiff" \
-  -F "scl=@$KIT/qualidade_scl.tif;type=image/tiff" \
+  -F "image=@$IMAGE;type=image/tiff" \
+  -F "scl=@$SCL;type=image/tiff" \
   "$API/analyses")
 id=$(printf '%s' "$created" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
 echo "POST /analyses -> 202, id $id"
@@ -36,6 +40,7 @@ printf '%s' "$detail" | python3 -c '
 import json, sys
 d = json.load(sys.stdin)
 s = d.get("stats") or {}
+print("data da imagem:", d.get("acquired_at"))
 print("área total:", s.get("total_area_ha"), "ha | área potencial:", s.get("potential_area_ha"),
       "ha | polígonos:", s.get("polygon_count"))
 print("erro:", d.get("error"))
