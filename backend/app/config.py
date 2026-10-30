@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     max_upload_mb: int = 20
     # Chat (spec 005): sem a chave, a rota do chat responde 503.
     anthropic_api_key: str | None = None
+    # Limites diários por usuário (R6.8, R6.9).
+    max_uploads_per_day: int = 5
+    max_messages_per_day: int = 30
 
     @property
     def cors_origins_list(self) -> list[str]:

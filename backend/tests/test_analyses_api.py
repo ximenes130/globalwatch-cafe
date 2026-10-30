@@ -13,9 +13,10 @@ from fastapi.testclient import TestClient
 from app.auth import CurrentUser, current_user
 from app.config import get_settings
 from app.main import app
+from app.ratelimit import get_usage
 from app.repository import STALE_MESSAGE
 from app.routes.analyses import get_repository, get_storage
-from tests.fakes import FakeRepository, FakeStorage
+from tests.fakes import FakeRepository, FakeStorage, FakeUsage
 from tests.rasters import ADDITIONAL_IMAGE, ADDITIONAL_SCL, KIT_IMAGE, KIT_SCL
 
 OWNER = CurrentUser(id=UUID("11111111-1111-1111-1111-111111111111"), email="dono@test")
@@ -30,6 +31,7 @@ def api():
     app.dependency_overrides[current_user] = lambda: state["user"]
     app.dependency_overrides[get_repository] = lambda: repository
     app.dependency_overrides[get_storage] = lambda: storage
+    app.dependency_overrides[get_usage] = FakeUsage
     with TestClient(app) as client:
         yield client, repository, storage, state
     app.dependency_overrides.clear()

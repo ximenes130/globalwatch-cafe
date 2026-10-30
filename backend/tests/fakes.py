@@ -148,3 +148,17 @@ class FakeChatRepository:
                     "created_at": datetime.now(UTC),
                 }
             )
+
+
+class FakeUsage:
+    """Contador de uso em memória, com o mesmo contrato do `UsageRepository`."""
+
+    def __init__(self):
+        self.counts: dict[tuple[UUID, str], int] = {}
+
+    def consume(self, user_id: UUID, kind: str, limit: int) -> bool:
+        used = self.counts.get((user_id, kind), 0)
+        if used >= limit:
+            return False
+        self.counts[(user_id, kind)] = used + 1
+        return True

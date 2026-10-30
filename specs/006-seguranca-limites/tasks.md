@@ -1,7 +1,7 @@
 ---
 id: "006"
 titulo: Segurança, isolamento e limites de uso
-status: aprovado
+status: em-implementacao
 ---
 
 # 006 — Segurança e limites: tarefas
@@ -21,7 +21,7 @@ Corte se estourar: retenção automática (fica documentada).
   - _Req: R6.1_
   - Arquivos: `backend/tests/test_auth.py`
   - Verificação: `pytest backend/tests/test_auth.py`.
-- [ ] **T6.4** (P0) Limites diários de upload e chat.
+- [x] **T6.4** (P0) Limites diários de upload e chat.
   - _Req: R6.8, R6.9_
   - Arquivos: `backend/app/ratelimit.py`, `backend/tests/test_ratelimit.py`
   - Verificação: `pytest backend/tests/test_ratelimit.py`.

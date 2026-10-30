@@ -22,6 +22,7 @@ from fastapi import (
 from app import db
 from app.auth import CurrentUser, current_user
 from app.config import Settings, get_settings
+from app.ratelimit import Usage, consume_or_429
 from app.repository import AnalysisRepository, Repository
 from app.storage import Storage, StorageError, SupabaseStorage, object_prefix
 from app.worker import run_analysis
@@ -71,6 +72,7 @@ def create_analysis(
     repository: Repo,
     storage: Store,
     settings: Config,
+    usage: Usage,
     image: Annotated[UploadFile, File()],
     scl: Annotated[UploadFile | None, File()] = None,
     image_2: Annotated[UploadFile | None, File()] = None,
@@ -90,6 +92,8 @@ def create_analysis(
         for upload in (image, scl, image_2, scl_2)
     )
 
+    # Conta quando o envio é aceito: uma análise que falha depois continua contando (R6.8).
+    consume_or_429(usage, user.id, "uploads", settings.max_uploads_per_day)
     analysis_id = repository.create(user.id, _clean_filename(image.filename))
     background.add_task(
         run_analysis,

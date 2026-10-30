@@ -1,4 +1,4 @@
-"""SQL de `analyses` e `chat_messages` contra Postgres de verdade (T2.10, T5.5, R2.24, C3.2).
+"""SQL de `analyses`, `chat_messages` e `usage_daily` contra Postgres (T2.10, T5.5, T6.4, C3.2).
 
 Precisa de `TEST_DATABASE_URL` apontando para um banco com as migrations e o
 stub de `supabase/tests/` (o `rls_test` que o `run.sh` cria). Sem a variável,
@@ -12,6 +12,7 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.processing.pipeline import AnalysisResult
+from app.ratelimit import UsageRepository
 from app.repository import STALE_MESSAGE, AnalysisRepository, ChatMessageRepository
 
 DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
@@ -35,6 +36,7 @@ def users(pool):
     yield ids
     with pool.connection() as conn:
         conn.execute("delete from analyses where user_id = any(%s)", (ids,))
+        conn.execute("delete from usage_daily where user_id = any(%s)", (ids,))
         conn.execute("delete from auth.users where id = any(%s)", (ids,))
 
 
@@ -198,3 +200,50 @@ def test_chat_exchange_is_all_or_nothing(pool, users):
         )
 
     assert chat.history(owner, analysis_id) == []
+
+
+def test_usage_stops_at_the_limit_per_kind_and_user(pool, users):
+    owner, other = users
+    usage = UsageRepository(pool)
+
+    assert [usage.consume(owner, "uploads", 5) for _ in range(6)] == [True] * 5 + [False]
+    # Mensagens e outro usuário têm contadores próprios.
+    assert usage.consume(owner, "messages", 30) is True
+    assert usage.consume(other, "uploads", 5) is True
+    with pool.connection() as conn:
+        row = conn.execute(
+            "select uploads, messages from usage_daily where user_id = %s and day = current_date",
+            (owner,),
+        ).fetchone()
+    # O contador não passa do limite com as tentativas recusadas.
+    assert row == (5, 1)
+
+
+def test_usage_of_yesterday_does_not_count(pool, users):
+    owner, _ = users
+    with pool.connection() as conn:
+        conn.execute(
+            "insert into usage_daily (user_id, day, uploads) values (%s, current_date - 1, 5)",
+            (owner,),
+        )
+
+    assert UsageRepository(pool).consume(owner, "uploads", 5) is True
+
+
+def test_concurrent_requests_do_not_pass_the_limit(pool, users):
+    from concurrent.futures import ThreadPoolExecutor
+
+    from psycopg_pool import ConnectionPool
+
+    owner, _ = users
+    with ConnectionPool(DATABASE_URL, min_size=10, max_size=10) as wide:
+        usage = UsageRepository(wide)
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            results = list(executor.map(lambda _: usage.consume(owner, "uploads", 5), range(10)))
+
+    assert results.count(True) == 5
+
+
+def test_unknown_usage_kind_is_rejected(pool, users):
+    with pytest.raises(ValueError):
+        UsageRepository(pool).consume(users[0], "uploads; drop table usage_daily", 5)

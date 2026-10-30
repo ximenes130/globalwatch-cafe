@@ -17,6 +17,7 @@ from app.chat.client import ChatUnavailable, converse, make_client
 from app.chat.prompt import intro_content
 from app.chat.tools import AnalysisTools
 from app.config import Settings, get_settings
+from app.ratelimit import Usage, consume_or_429
 from app.repository import ChatMessageRepository, ChatRepository
 from app.routes.analyses import NOT_FOUND, Config, Repo, Store, User
 from app.storage import StorageError, object_prefix
@@ -92,6 +93,7 @@ def chat(
     settings: Config,
     client: ChatClient,
     stored: Messages,
+    usage: Usage,
 ) -> dict:
     repository.expire_stale(user.id, settings.stale_after_minutes)
     row = repository.get(user.id, analysis_id)
@@ -101,6 +103,9 @@ def chat(
         raise HTTPException(
             status.HTTP_409_CONFLICT, "O chat abre quando a análise termina de processar."
         )
+
+    # Cada pedido ao modelo conta, a apresentação inclusive (R6.9).
+    consume_or_429(usage, user.id, "messages", settings.max_messages_per_day)
 
     prefix = object_prefix(user.id, analysis_id)
     tools = AnalysisTools(row, storage, prefix)

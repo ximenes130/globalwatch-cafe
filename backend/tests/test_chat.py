@@ -18,11 +18,12 @@ from fastapi.testclient import TestClient
 from app.auth import CurrentUser, current_user
 from app.chat.client import BUSY, MAX_TOOL_ROUNDS, UNAVAILABLE
 from app.main import app
+from app.ratelimit import get_usage
 from app.routes.analyses import get_repository, get_storage
 from app.routes.chat import HISTORY_LIMIT, HISTORY_OPENER, get_chat_client, get_chat_repository
 from app.storage import object_prefix
 from app.worker import run_analysis
-from tests.fakes import FakeChatRepository, FakeRepository, FakeStorage
+from tests.fakes import FakeChatRepository, FakeRepository, FakeStorage, FakeUsage
 from tests.rasters import KIT_IMAGE, KIT_SCL
 
 OWNER = CurrentUser(id=UUID("11111111-1111-1111-1111-111111111111"), email="dono@test")
@@ -89,6 +90,7 @@ def chat(kit):
     app.dependency_overrides[current_user] = lambda: state["user"]
     app.dependency_overrides[get_repository] = lambda: repository
     app.dependency_overrides[get_storage] = lambda: storage
+    app.dependency_overrides[get_usage] = FakeUsage
     app.dependency_overrides[get_chat_client] = lambda: model
     app.dependency_overrides[get_chat_repository] = lambda: stored
     with TestClient(app) as client:
