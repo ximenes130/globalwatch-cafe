@@ -1,4 +1,4 @@
-"""Índices espectrais por diferença normalizada (R2.8).
+"""Índices espectrais por diferença normalizada (R2.8, R2.9).
 
 Recebem reflectância (já convertida pelo `reader`) e a máscara `valid`.
 """
@@ -35,3 +35,8 @@ def ndvi(red: np.ndarray, nir: np.ndarray, valid: np.ndarray) -> np.ndarray:
 def ndwi(green: np.ndarray, nir: np.ndarray, valid: np.ndarray) -> np.ndarray:
     """NDWI = (verde − NIR) / (verde + NIR) (McFeeters, 1996); água fica positiva."""
     return normalized_difference(green, nir, valid)
+
+
+def gndvi(green: np.ndarray, nir: np.ndarray, valid: np.ndarray) -> np.ndarray:
+    """GNDVI = (NIR − verde) / (NIR + verde) (Gitelson, Kaufman e Merzlyak, 1996)."""
+    return normalized_difference(nir, green, valid)

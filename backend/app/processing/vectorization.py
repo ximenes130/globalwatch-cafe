@@ -56,19 +56,31 @@ def patch_polygons(
 
 
 def vectorize(
-    image: ImageData, classification: Classification, ndvi: np.ndarray, params: Params
+    image: ImageData,
+    classification: Classification,
+    ndvi: np.ndarray,
+    params: Params,
+    gndvi: np.ndarray | None = None,
 ) -> dict:
-    """FeatureCollection RFC 7946 (WGS84, lon/lat) com uma feição por mancha."""
+    """FeatureCollection RFC 7946 (WGS84, lon/lat) com uma feição por mancha.
+
+    Sem `gndvi`, `gndvi_mean` sai `null` (só se o GNDVI não for calculado).
+    """
     patches = patch_polygons(image, classification, params)
     if not patches:
         return {"type": "FeatureCollection", "features": []}
 
     labels, _ = ndimage.label(classification.potential, structure=CROSS)
-    ndvi_means = ndimage.mean(ndvi, labels, [p.label for p in patches])
+    patch_labels = [p.label for p in patches]
+    ndvi_means = ndimage.mean(ndvi, labels, patch_labels)
+    gndvi_means = (
+        ndimage.mean(gndvi, labels, patch_labels) if gndvi is not None else [None] * len(patches)
+    )
     to_wgs84 = Transformer.from_crs(image.crs, "EPSG:4326", always_xy=True)
 
     features = []
-    for feature_id, (patch, ndvi_mean) in enumerate(zip(patches, ndvi_means, strict=True), 1):
+    rows = zip(patches, ndvi_means, gndvi_means, strict=True)
+    for feature_id, (patch, ndvi_mean, gndvi_mean) in enumerate(rows, start=1):
         features.append(
             {
                 "type": "Feature",
@@ -77,8 +89,8 @@ def vectorize(
                 "properties": {
                     "id": feature_id,
                     "area_ha": round(patch.pixels * image.pixel_area_ha, AREA_DECIMALS),
-                    "ndvi_mean": round(float(ndvi_mean), INDEX_DECIMALS),
-                    "gndvi_mean": None,  # T2.3
+                    "ndvi_mean": _round_index(ndvi_mean),
+                    "gndvi_mean": _round_index(gndvi_mean),
                     "class": FEATURE_CLASS,
                     "validated": False,
                 },
@@ -111,7 +123,11 @@ def corners_wgs84(image: ImageData) -> list[list[float]]:
 
 
 def build_stats(
-    image: ImageData, classification: Classification, ndvi: np.ndarray, polygon_count: int
+    image: ImageData,
+    classification: Classification,
+    ndvi: np.ndarray,
+    polygon_count: int,
+    gndvi: np.ndarray | None = None,
 ) -> dict:
     """Números da análise; a soma potencial + excluídas fecha com o total (R2.14)."""
     excluded = classification.excluded_area_ha
@@ -123,7 +139,7 @@ def build_stats(
         "potential_area_ha": round(classification.potential_area_ha, AREA_DECIMALS),
         "polygon_count": polygon_count,
         "ndvi": index_summary(ndvi, image.valid),
-        "gndvi": None,  # T2.3
+        "gndvi": index_summary(gndvi, image.valid) if gndvi is not None else None,
         "excluded_area_ha": {name: round(area, AREA_DECIMALS) for name, area in excluded.items()},
     }
 
@@ -141,4 +157,8 @@ def index_summary(index: np.ndarray, valid: np.ndarray) -> dict | None:
         "p95": p95,
         "max": values.max(),
     }
-    return {key: round(float(value), INDEX_DECIMALS) for key, value in summary.items()}
+    return {key: _round_index(value) for key, value in summary.items()}
+
+
+def _round_index(value) -> float | None:
+    return None if value is None else round(float(value), INDEX_DECIMALS)

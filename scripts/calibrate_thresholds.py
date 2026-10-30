@@ -41,7 +41,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
 from app.processing.classification import classify  # noqa: E402
-from app.processing.indices import ndvi, normalized_difference  # noqa: E402
+from app.processing.indices import gndvi, ndvi  # noqa: E402
 from app.processing.masking import quality_mask  # noqa: E402
 from app.processing.params import Params  # noqa: E402
 from app.processing.reader import read_image  # noqa: E402
@@ -165,7 +165,7 @@ def main() -> None:
     usable = image.valid & ~quality.excluded
 
     nd = ndvi(image.red, image.nir, image.valid)
-    gn = normalized_difference(image.nir, image.green, image.valid)
+    gn = gndvi(image.green, image.nir, image.valid)
     pixel_ha = abs(image.transform.a * image.transform.e) / 10_000
 
     low = usable & (nd < params.ndvi_min)
@@ -235,12 +235,12 @@ def main() -> None:
     plt.close(fig)
 
     rule = f"NDVI {params.ndvi_min}–{params.ndvi_max}{gndvi_text}"
-    # Resultado com a regra real do pipeline (morfologia e manchas pequenas). As
-    # opções exploratórias (vermelho, GNDVI) não existem no pipeline: aí só
-    # vale a coluna sem morfologia.
+    # Resultado com a regra real do pipeline (morfologia e manchas pequenas). A
+    # opção exploratória de vermelho não existe no pipeline: aí só vale a
+    # coluna sem morfologia.
     potential = candidate
-    if args.red_min is None and params.gndvi_min is None:
-        potential = classify(image, quality, nd, params).potential
+    if args.red_min is None:
+        potential = classify(image, quality, nd, params, gndvi=gn).potential
     lines = [
         f"rótulo: {args.label} ({rule})",
         f"  máscara de qualidade ({quality.source}): {quality.excluded.sum() * pixel_ha:9.2f} ha",

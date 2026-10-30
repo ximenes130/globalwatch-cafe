@@ -28,12 +28,19 @@ def no_quality_mask(img, excluded: np.ndarray | None = None) -> QualityMask:
     return QualityMask(excluded=excluded, source="ndwi", classes_excluded=None)
 
 
-def run(ndvi_values: np.ndarray, params: Params | None = None, nodata=None, masked=None):
+def run(
+    ndvi_values: np.ndarray,
+    params: Params | None = None,
+    nodata=None,
+    masked=None,
+    gndvi_values: np.ndarray | None = None,
+):
     params = params or Params()
     img = image(*ndvi_values.shape, nodata=nodata)
     values = ndvi_values.astype(np.float32)
     values[~img.valid] = np.nan
-    return classify(img, no_quality_mask(img, masked), values, params)
+    gndvi = None if gndvi_values is None else gndvi_values.astype(np.float32)
+    return classify(img, no_quality_mask(img, masked), values, params, gndvi=gndvi)
 
 
 def test_synthetic_bands_fall_in_their_levels():
@@ -178,3 +185,37 @@ def test_kit_areas_add_up_to_total():
     assert result.excluded_area_ha["low_chlorophyll"] == 0  # GNDVI só na T2.3
     # Sem morfologia a faixa marcava 457 ha (T2.5); a morfologia tira o ruído.
     assert 0 < result.potential_area_ha < 457
+
+
+def test_gndvi_min_null_does_not_change_the_result():
+    rng = np.random.default_rng(7)
+    values = rng.uniform(0.1, 0.9, size=(40, 40))
+    gndvi_values = rng.uniform(0.1, 0.9, size=(40, 40))
+
+    without = run(values)
+    with_gndvi = run(values, Params(gndvi_min=None), gndvi_values=gndvi_values)
+
+    np.testing.assert_array_equal(with_gndvi.levels, without.levels)
+    assert with_gndvi.excluded_area_ha["low_chlorophyll"] == 0
+
+
+def test_gndvi_min_moves_candidates_to_low_chlorophyll():
+    # Faixa candidata de 10 colunas; metade esquerda com GNDVI baixo.
+    values = np.repeat([[LOW] * 10 + [MID] * 20 + [HIGH] * 10], 30, axis=0)
+    gndvi_values = np.full((30, 40), 0.6)
+    gndvi_values[:, 10:20] = 0.3
+    gndvi_values[:, :10] = 0.1  # NDVI baixo e GNDVI baixo: conta como NDVI baixo (N2)
+    gndvi_values[:, 30:] = 0.1  # NDVI alto e GNDVI baixo: conta como dossel denso (N3)
+
+    result = run(values, Params(gndvi_min=0.4), gndvi_values=gndvi_values)
+
+    assert (result.levels[:, :10] == CODES["low_vegetation"]).all()
+    assert (result.levels[:, 10:20] == CODES["low_chlorophyll"]).all()
+    assert (result.levels[:, 20:30] == POTENTIAL).all()
+    assert (result.levels[:, 30:] == CODES["dense_canopy"]).all()
+    assert result.excluded_area_ha["low_chlorophyll"] == pytest.approx(3.0)
+
+
+def test_gndvi_min_without_gndvi_is_a_programming_error():
+    with pytest.raises(ValueError, match="gndvi_min"):
+        run(np.full((5, 5), MID), Params(gndvi_min=0.4))

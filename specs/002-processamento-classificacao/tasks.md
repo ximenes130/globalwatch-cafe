@@ -33,7 +33,7 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.12, R2.13, R2.14, R2.15_
   - Arquivos: `backend/app/processing/vectorization.py`, `backend/pyproject.toml` (shapely, pyproj), `backend/tests/test_area.py`, `backend/tests/test_vectorization.py`
   - Verificação: `pytest backend/tests/test_area.py backend/tests/test_vectorization.py` (kit = 2.621,44 ha; total = potencial + Σ `excluded_area_ha`; soma das feições = potencial; propriedades obrigatórias; coordenadas dentro de `area_estudo.geojson`; cantos do kit iguais aos da área de estudo).
-- [ ] **T2.3** (P1) GNDVI em `indices.py`, estatísticas, `gndvi_mean` por feição e condição opcional `gndvi_min` na regra. Feita depois da T2.7 porque depende de `classification.py` e `vectorization.py`.
+- [x] **T2.3** (P1) GNDVI em `indices.py`, estatísticas, `gndvi_mean` por feição e condição opcional `gndvi_min` na regra. Feita depois da T2.7 porque depende de `classification.py` e `vectorization.py`.
   - _Req: R2.9, R2.13, R2.14_
   - Verificação: `pytest backend/tests/test_indices.py backend/tests/test_classification.py` (`gndvi_min = null` não altera o resultado).
 - [ ] **T2.8** (P0) `render.py`: PNG RGB, classificação e polígonos.

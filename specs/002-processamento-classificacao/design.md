@@ -218,8 +218,9 @@ NDVI = (NIR − vermelho)/(NIR + vermelho), NDWI = (verde − NIR)/(verde + NIR)
   `ceil(min_area_ha / área do pixel)` pixels (50 no kit).
 - **Contagem por nível (exclusiva):** cada pixel recebe um código em
   `levels` (uint8): 0 = área potencial; 1 = `no_data`; 2 = `quality_mask`;
-  3 = `low_vegetation`; 4 = `dense_canopy`; 5 = `low_chlorophyll` (só com a
-  T2.3); 6 = `small_patch`. Um pixel utilizável fora do resultado final vai
+  3 = `low_vegetation`; 4 = `dense_canopy`; 5 = `low_chlorophyll` (só com
+  `gndvi_min` definido; pixel com NDVI fora da faixa conta em N2 ou N3, não
+  aqui); 6 = `small_patch`. Um pixel utilizável fora do resultado final vai
   para o primeiro nível cuja regra o exclui (N2, N3, N3b); se passou nos
   limiares e saiu na morfologia ou por tamanho, vai para `small_patch`. Pixel
   que o fechamento incluiu conta como área potencial. A soma das áreas por
@@ -408,8 +409,9 @@ Invariante: `total_area_ha = potential_area_ha + Σ excluded_area_ha`.
 o mesmo número que fecha a soma; `area_ha` de cada feição também vem dos pixels
 dela, então a soma das feições é exatamente `potential_area_ha`. A
 simplificação só muda o desenho (ver Vetorização). Áreas arredondadas a 2
-casas, índices a 4. `ndvi` resume os pixels de `valid`. `gndvi` é `null` até a
-T2.3 (ou se ela for cortada). Exclusão por nível é **exclusiva**: o pixel conta só no primeiro
+casas, índices a 4. `ndvi` e `gndvi` resumem os pixels de `valid`; o pipeline sempre calcula o
+GNDVI (R2.9). `gndvi` e `gndvi_mean` só sairiam `null` se o GNDVI não fosse
+passado (corte do P1). Exclusão por nível é **exclusiva**: o pixel conta só no primeiro
 nível que o remove, na ordem N0 → N4.
 
 ### Feição do GeoJSON

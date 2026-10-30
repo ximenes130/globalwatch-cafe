@@ -7,7 +7,7 @@ import pytest
 from shapely.geometry import shape
 
 from app.processing.classification import CODES, POTENTIAL, Classification, classify
-from app.processing.indices import ndvi
+from app.processing.indices import gndvi, ndvi
 from app.processing.masking import quality_mask
 from app.processing.params import Params
 from app.processing.reader import read_image
@@ -173,3 +173,37 @@ def test_kit_stats_shape():
 
 def test_index_summary_without_valid_pixels_is_none():
     assert index_summary(np.zeros((2, 2)), np.zeros((2, 2), dtype=bool)) is None
+
+
+def test_gndvi_mean_per_feature_and_stats():
+    image = read_image(make_tiff(np.full((4, 20, 20), 2000)))
+    levels = np.full(image.shape, CODES["low_vegetation"], dtype=np.uint8)
+    levels[2:12, 2:12] = POTENTIAL
+    classification = Classification(levels=levels, pixel_area_ha=image.pixel_area_ha)
+    ndvi_values = np.full(image.shape, 0.6, dtype=np.float32)
+    gndvi_values = np.full(image.shape, 0.2, dtype=np.float32)
+    gndvi_values[2:12, 2:12] = 0.55
+
+    geojson = vectorize(image, classification, ndvi_values, Params(), gndvi=gndvi_values)
+    stats = build_stats(image, classification, ndvi_values, 1, gndvi=gndvi_values)
+
+    assert geojson["features"][0]["properties"]["gndvi_mean"] == 0.55
+    assert stats["gndvi"]["min"] == pytest.approx(0.2)
+    assert stats["gndvi"]["max"] == pytest.approx(0.55)
+
+
+def test_kit_reports_gndvi():
+    image = read_image(KIT_IMAGE.read_bytes())
+    params = Params()
+    index = ndvi(image.red, image.nir, image.valid)
+    green_index = gndvi(image.green, image.nir, image.valid)
+    quality = quality_mask(image, params, KIT_SCL.read_bytes())
+    classification = classify(image, quality, index, params, gndvi=green_index)
+
+    geojson = vectorize(image, classification, index, params, gndvi=green_index)
+    stats = build_stats(image, classification, index, len(geojson["features"]), gndvi=green_index)
+
+    assert all(isinstance(f["properties"]["gndvi_mean"], float) for f in geojson["features"])
+    assert -1 <= stats["gndvi"]["min"] < stats["gndvi"]["median"] < stats["gndvi"]["max"] <= 1
+    # Calibração (T2.5): gndvi_min = null, então o GNDVI não exclui nada no kit.
+    assert stats["excluded_area_ha"]["low_chlorophyll"] == 0

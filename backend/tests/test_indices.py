@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from app.processing.indices import ndvi, ndwi, normalized_difference
+from app.processing.indices import gndvi, ndvi, ndwi, normalized_difference
 from app.processing.reader import read_image
 from tests.rasters import KIT_IMAGE
 
@@ -33,6 +33,15 @@ def test_ndwi_known_values_water_is_positive():
     result = ndwi(green, nir, all_valid(2))
 
     assert result == pytest.approx([0.6, -0.6666667], abs=1e-6)
+
+
+def test_gndvi_known_values_uses_green_not_red():
+    green = arr(0.06, 0.10)
+    nir = arr(0.30, 0.10)
+
+    result = gndvi(green, nir, all_valid(2))
+
+    assert result == pytest.approx([0.6666667, 0.0], abs=1e-6)
 
 
 def test_order_of_bands_matters():

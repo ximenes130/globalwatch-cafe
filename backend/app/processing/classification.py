@@ -52,13 +52,23 @@ class Classification:
 
 
 def classify(
-    image: ImageData, quality: QualityMask, ndvi: np.ndarray, params: Params
+    image: ImageData,
+    quality: QualityMask,
+    ndvi: np.ndarray,
+    params: Params,
+    gndvi: np.ndarray | None = None,
 ) -> Classification:
+    """`gndvi` só é usado com `params.gndvi_min` definido (nível N3b, R2.9)."""
+    if params.gndvi_min is not None and gndvi is None:
+        raise ValueError("gndvi_min definido sem o GNDVI calculado")
     usable = image.valid & ~quality.excluded
     # Com NaN fora de `valid`, as comparações já dão False; o `usable` deixa explícito.
     low = usable & (ndvi < params.ndvi_min)
     dense = usable & (ndvi > params.ndvi_max)
-    within = usable & ~low & ~dense
+    low_chlorophyll = np.zeros_like(usable)
+    if params.gndvi_min is not None:
+        low_chlorophyll = usable & ~low & ~dense & (gndvi < params.gndvi_min)
+    within = usable & ~low & ~dense & ~low_chlorophyll
 
     # O fechamento pode preencher NoData ou pixel mascarado; cortar antes de
     # medir as manchas, senão esses pixels ajudariam a mancha a passar do mínimo.
@@ -67,9 +77,10 @@ def classify(
 
     levels = np.full(image.shape, CODES["small_patch"], dtype=np.uint8)
     levels[potential] = POTENTIAL
-    # `low` e `dense` só existem dentro de utilizável, então os conjuntos são
-    # disjuntos; quem passou nos limiares e não ficou cai em `small_patch`.
+    # `low`, `dense` e `low_chlorophyll` só existem dentro de utilizável e não
+    # se sobrepõem; quem passou nos limiares e não ficou cai em `small_patch`.
     levels[~potential & dense] = CODES["dense_canopy"]
+    levels[~potential & low_chlorophyll] = CODES["low_chlorophyll"]
     levels[~potential & low] = CODES["low_vegetation"]
     levels[quality.excluded & image.valid] = CODES["quality_mask"]
     levels[~image.valid] = CODES["no_data"]
