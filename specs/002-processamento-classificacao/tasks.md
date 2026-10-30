@@ -44,10 +44,10 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.1, R2.17, R2.18, R2.19, R2.20_
   - Arquivos: `backend/app/processing/rationale.py`, `backend/app/processing/params.py`, `backend/app/processing/pipeline.py`, `backend/tests/test_rationale.py`, `backend/tests/test_pipeline.py`
   - Verificação: `pytest backend/tests/test_rationale.py backend/tests/test_pipeline.py` (números da justificativa batem com `params`/`stats`; referências só da lista fixa; sem "café detectado" nem percentual de acurácia; duas execuções iguais → mesmo resultado; arquivo diferente → stats diferentes; arquivo corrompido → `ProcessingError` com mensagem legível; sem vegetação → 0 polígonos).
-- [ ] **T2.10** (P0) `storage.py` e `worker.py`: `run_analysis` com semáforo, escrita no storage antes do `update` final, captura de falhas e log da duração; `expire_stale` para órfãs.
+- [x] **T2.10** (P0) `storage.py` e `worker.py`: `run_analysis` com semáforo, escrita no storage antes do `update` final, captura de falhas e log da duração; `expire_stale` para órfãs.
   - _Req: R2.1, R2.16, R2.19, R2.23, R2.24_
-  - Arquivos: `backend/app/storage.py`, `backend/app/worker.py`, `backend/tests/test_worker.py`
-  - Verificação: `pytest backend/tests/test_worker.py` (exceção no pipeline → `failed` sem o texto da exceção; semáforo ocupado faz a segunda execução esperar; `expire_stale` só afeta `processing` antigas do próprio usuário).
+  - Arquivos: `backend/app/storage.py`, `backend/app/worker.py`, `backend/app/repository.py`, `backend/app/config.py`, `supabase/migrations/002_analysis_results.sql`, `supabase/tests/local_auth_stub.sql`, `.github/workflows/ci.yml`, `backend/tests/test_worker.py`, `backend/tests/test_storage.py`, `backend/tests/test_repository.py`
+  - Verificação: `pytest backend/tests/test_worker.py` (exceção no pipeline → `failed` sem o texto da exceção; semáforo ocupado faz a segunda execução esperar; `expire_stale` só afeta `processing` antigas do próprio usuário, em `test_repository.py` contra Postgres; storage monta as requisições certas); migration aplicada no Supabase.
 - [ ] **T2.11** (P0) Rotas `/analyses`: `POST` com `202` e agendamento, `GET` lista e id com expiração de órfãs, `DELETE` com `409` em `processing`.
   - _Req: R2.1, R2.21, R2.22, R2.24, R2.25_
   - Arquivos: `backend/app/routes/analyses.py`, `backend/app/main.py`, `backend/tests/test_analyses_api.py`

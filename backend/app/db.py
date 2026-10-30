@@ -25,6 +25,10 @@ def open_pool(database_url: str | None) -> None:
     )
 
 
+def get_pool() -> ConnectionPool | None:
+    return _pool
+
+
 def close_pool() -> None:
     global _pool
     if _pool is not None:

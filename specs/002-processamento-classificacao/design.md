@@ -121,9 +121,11 @@ Referências conferidas em [Referências](#referências). A nota de pesquisa
 | `backend/app/processing/params.py` | `Params` (dataclass/pydantic) + `METHOD_VERSION` + `METHOD_REFERENCES` |
 | `backend/app/processing/errors.py` | `ProcessingError`: erro esperado com mensagem legível ao usuário |
 | `backend/app/processing/pipeline.py` | Orquestra e devolve `AnalysisResult` (função pura: bytes e `Params` → resultado, sem banco nem storage) |
-| `backend/app/worker.py` | `run_analysis`: semáforo, pipeline, storage, `update` final e captura de falhas; `expire_stale` para órfãs |
+| `backend/app/worker.py` | `run_analysis`: semáforo, pipeline, storage, `update` final e captura de falhas |
+| `backend/app/repository.py` | SQL de `analyses`, sempre filtrado por `user_id` (C3.2): criar, concluir, falhar, listar, ler, apagar e `expire_stale` |
 | `backend/app/routes/analyses.py` | Endpoints; `POST` valida, cria a linha e agenda `run_analysis` |
-| `backend/app/storage.py` | Upload/download no Supabase Storage, URLs assinadas |
+| `backend/app/storage.py` | Supabase Storage pela API REST: upload, URLs assinadas e remoção |
+| `supabase/migrations/002_analysis_results.sql` | Coluna `rationale` e bucket privado `analyses` |
 
 ## Parâmetros versionados
 
@@ -398,8 +400,39 @@ não verdade de campo: serve para comparar variantes, não para medir acerto.
   deixaria o worker gravando arquivos de uma análise que não existe mais.
   Uma órfã vira `failed` após `stale_after` e pode ser apagada.
 
-Storage: `analyses/<user_id>/<analysis_id>/{original.tif, scl.tif, rgb.png,
-classification.png, polygons.png, result.geojson}`.
+Storage: bucket privado `analyses`, objetos em `<user_id>/<analysis_id>/{original.tif,
+scl.tif, rgb.png, classification.png, polygons.png, result.geojson}` (R6.4).
+
+### Storage, banco e rotas (T2.10, T2.11)
+
+- **Migration `002_analysis_results.sql`:** `analyses.rationale jsonb` (o
+  contrato devolve a justificativa e a tabela não tinha onde guardá-la) e o
+  bucket `analyses` em `storage.buckets`: privado, limite de 25 MB por objeto
+  e tipos `image/tiff`, `image/png`, `application/geo+json`. No Postgres local
+  dos testes, o stub cria uma tabela `storage.buckets` mínima.
+- **`storage.py`:** API REST do Storage com `urllib` (biblioteca padrão; o
+  cliente `httpx2` tem 9 dias de publicado e fica só nos testes). Chave
+  `SUPABASE_SERVICE_ROLE_KEY` no header `apikey`; com chave antiga (JWT)
+  também em `Authorization: Bearer`, com chave nova (`sb_secret_…`) só em
+  `apikey`, como a documentação do Supabase pede. Upload com `x-upsert`, URLs
+  assinadas em lote com **300 s** de validade (R6.4: até 5 minutos) e remoção
+  por lista de caminhos. Sem a chave, as rotas de análise respondem 503.
+- **`repository.py`:** psycopg com o pool do `db.py`. Toda consulta filtra
+  `user_id` além da RLS (C3.2); recurso de outro usuário e inexistente dão o
+  mesmo `None`, que vira 404.
+- **`POST /analyses`:** `image` obrigatório e `scl` opcional. Nesta spec só há
+  o limite de tamanho (20 MB, 413, R6.5) para não segurar arquivo grande na
+  memória de 512 MB; assinatura TIFF, checagens do raster (415/422) e cota
+  (429) são da spec 006.
+- **`GET /analyses`:** `[{id, filename, created_at, status, acquired_at,
+  potential_area_ha}]`, mais recentes primeiro. `GET /analyses/{id}`: campos
+  do contrato; `urls` só com `status = completed`.
+- **`DELETE /analyses/{id}`:** remove os arquivos e depois a linha (as
+  mensagens do chat caem em cascata). Se o Storage falhar, responde 503 e a
+  linha fica, para não deixar arquivo sem dono.
+- **Testes do SQL:** `tests/test_repository.py` roda contra Postgres de verdade
+  quando `TEST_DATABASE_URL` existe (CI: banco `rls_test` criado pelo
+  `run.sh`); sem a variável, os testes são pulados.
 
 ### `stats`
 

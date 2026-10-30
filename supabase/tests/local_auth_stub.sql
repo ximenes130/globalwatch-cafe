@@ -28,3 +28,13 @@ $$;
 
 -- Equivalente aos privilégios padrão do Supabase, que a migration precisa revogar.
 alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+
+-- Mínimo de `storage.buckets` para a migration do bucket rodar fora do Supabase.
+create schema storage;
+create table storage.buckets (
+  id text primary key,
+  name text not null,
+  public boolean default false,
+  file_size_limit bigint,
+  allowed_mime_types text[]
+);
