@@ -1,7 +1,7 @@
 ---
 id: "004"
 titulo: Mapa, telas e estados da interface
-status: aprovado
+status: em-implementacao
 ---
 
 # 004 — Mapa e UI: design
@@ -30,6 +30,11 @@ Router; dados com TanStack Query (cache, retry e estados prontos).
 | `frontend/src/components/Downloads.tsx` | Botões de PNG e GeoJSON (URLs assinadas) |
 | `frontend/src/components/states/` | `Loading`, `ErrorState`, `EmptyState`, `ServerWaking` |
 | `frontend/src/lib/api.ts` | Chamadas tipadas; timer de 5 s para o aviso de servidor frio |
+| `frontend/src/lib/format.ts` | Hectares, porcentagem e datas em pt-BR |
+
+Segunda data: o `Upload` tem uma seção recolhida com `image_2` e `scl_2`; o
+`Summary` mostra a data da segunda imagem quando `stats.second_acquired_at`
+existe.
 
 ## Contratos
 
@@ -51,6 +56,9 @@ inferior-esquerdo.
 | shadcn/ui + Tailwind | MUI | Visual consistente sem peso de tema; componentes no próprio repo |
 | PNG gerado no backend | Renderizar canvas no front | Download idêntico ao que foi processado; menos código no cliente |
 | TanStack Query | `useEffect` manual | Estados de loading/erro/retry consistentes |
+| OpenFreeMap Positron | CARTO; Esri World Imagery; OSM raster | Sem chave nem limite; tons neutros não competem com o overlay e o vermelho cereja; CARTO pede chave, Esri pede conta ArcGIS |
+| Upload por `XMLHttpRequest` | `fetch` | `fetch` não informa progresso do envio (R4.4) |
+| Download por `fetch` + blob | `<a download>` na URL assinada | `download` é ignorado entre origens; o blob garante o nome do arquivo |
 | CSS + `tw-animate-css` + transições do MapLibre | `framer-motion` / `motion` | Cobre o que a UI precisa sem dependência nova (regra de cadeia de suprimentos) |
 | Número final direto | Contagem animada de hectares | Valores intermediários não vêm do processamento (C2) |
 | Barra indeterminada | Barra com porcentagem | O backend não mede progresso; porcentagem seria inventada |

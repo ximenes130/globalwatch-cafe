@@ -1,7 +1,7 @@
 ---
 id: "004"
 titulo: Mapa, telas e estados da interface
-status: aprovado
+status: em-implementacao
 desafio: [4, 6]
 pontos: UI/UX e responsividade (20)
 prioridade: P0
@@ -101,10 +101,15 @@ carregamento, erro e ausência de resultado.
 - Edição de polígonos no mapa.
 - Tema escuro (só se sobrar tempo).
 
-## Questões abertas
+## Questões resolvidas
 
-- Basemap: OSM raster ou Esri World Imagery (satélite ajuda a inspecionar,
-  conferir termos de uso).
-- Segunda data (spec 003, R3.10, já no backend): o upload aceita `image_2` e
-  `scl_2` opcionais. Falta decidir como a UI oferece o campo, mostra as duas
-  datas e o nível `high_amplitude` na legenda e na justificativa.
+- **Basemap:** OpenFreeMap, estilo Positron (vetorial, sem chave, sem limite
+  de uso, uso comercial permitido; atribuição OpenFreeMap, OpenMapTiles e
+  OpenStreetMap adicionada pelo MapLibre). CARTO foi descartado porque passou a
+  exigir chave de API; Esri World Imagery, porque os termos pedem conta ArcGIS.
+  Conferido em <https://openfreemap.org/> e
+  <https://github.com/CartoDB/basemap-styles> em 30/10/2026.
+- **Segunda data (R3.10):** o upload tem uma seção recolhida "Segunda data
+  (opcional)" com `image_2` e `scl_2`; o painel mostra as duas datas, e o
+  nível `high_amplitude` aparece pela justificativa, que já vem do backend. O
+  mapa não ganha camada nova: a amplitude não tem raster próprio.
