@@ -7,6 +7,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /srv
 
+# O wheel do rasterio traz o GDAL, mas depende da libexpat do sistema, que a
+# imagem slim não tem.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libexpat1 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml ./
 COPY app ./app
 RUN pip install . && useradd --create-home --uid 10001 api

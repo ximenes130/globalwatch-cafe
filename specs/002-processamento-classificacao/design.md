@@ -1,7 +1,7 @@
 ---
 id: "002"
 titulo: Processamento da imagem e classificação de áreas potenciais
-status: aprovado
+status: em-implementacao
 ---
 
 # 002 — Processamento e classificação: design
@@ -119,6 +119,7 @@ Referências conferidas em [Referências](#referências). A nota de pesquisa
 | `backend/app/processing/render.py` | PNG RGB (realce p2–p98), PNG da classificação, PNG com polígonos |
 | `backend/app/processing/rationale.py` | Monta a justificativa estruturada, incluindo referências e limitações |
 | `backend/app/processing/params.py` | `Params` (dataclass/pydantic) + `METHOD_VERSION` + `METHOD_REFERENCES` |
+| `backend/app/processing/errors.py` | `ProcessingError`: erro esperado com mensagem legível ao usuário |
 | `backend/app/processing/pipeline.py` | Orquestra e devolve `AnalysisResult` (função pura: bytes e `Params` → resultado, sem banco nem storage) |
 | `backend/app/worker.py` | `run_analysis`: semáforo, pipeline, storage, `update` final e captura de falhas; `expire_stale` para órfãs |
 | `backend/app/routes/analyses.py` | Endpoints; `POST` valida, cria a linha e agenda `run_analysis` |
@@ -129,7 +130,9 @@ Referências conferidas em [Referências](#referências). A nota de pesquisa
 ```json
 {
   "method_version": "spectral-rules-1.0",
-  "radiometry": {"scale": 0.0001, "offset": -0.1, "source": "file_tags"},
+  "radiometry": {"scale": [0.0001, 0.0001, 0.0001, 0.0001],
+                 "offset": [-0.1, -0.1, -0.1, -0.1], "source": "file_tags"},
+  "bands": {"indexes": [1, 2, 3, 4], "source": "descriptions"},
   "scl_exclude": [0, 1, 3, 6, 8, 9, 10, 11],
   "ndwi_water_min": 0.0,
   "ndvi_min": 0.55,
@@ -143,6 +146,20 @@ Referências conferidas em [Referências](#referências). A nota de pesquisa
 
 Valores de partida; os finais saem da calibração (T2.5) e são registrados
 aqui. `ndwi_water_min = 0,0` segue a leitura de McFeeters (água positiva).
+
+`radiometry` e `bands` não são escolhas do método: registram o que o leitor
+encontrou no arquivo, para a análise ser reproduzível (C2.3). Ambos seguem a
+ordem azul, verde, vermelho, NIR.
+
+- `radiometry.source`: `file_tags` quando as quatro bandas têm scale/offset no
+  GeoTIFF; senão `kit_default` (0,0001 e −0,1 nas quatro). O rasterio devolve
+  `1.0`/`0.0` para banda sem a tag, e esse par é lido como "ausente".
+- `bands.source`: `descriptions` quando as descrições das bandas identificam
+  sem ambiguidade azul, verde, vermelho e NIR (tokens `B02`/`B2`/`blue`,
+  `B03`/`B3`/`green`, `B04`/`B4`/`red`, `B08`/`B8`/`nir`, sem diferenciar
+  maiúsculas; `B8A` não conta como NIR); senão `default`, com as bandas 1 a 4.
+- NoData: pixel com DN 0 (ou igual ao `nodata` do arquivo) em qualquer uma das
+  quatro bandas fica fora de `valid` e com reflectância `NaN`.
 
 ### Exploração preliminar do kit (30/10, script descartável)
 

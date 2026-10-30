@@ -1,16 +1,16 @@
 ---
 id: "002"
 titulo: Processamento da imagem e classificação de áreas potenciais
-status: aprovado
+status: em-implementacao
 ---
 
 # 002 — Processamento e classificação: tarefas
 
 Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
 
-- [ ] **T2.1** (P0) `params.py` e `reader.py` com conversão única, NoData, ordem das bandas e data de aquisição.
+- [x] **T2.1** (P0) `params.py` e `reader.py` com conversão única, NoData, ordem das bandas e data de aquisição.
   - _Req: R2.2, R2.3, R2.4, R2.5_
-  - Arquivos: `backend/app/processing/params.py`, `backend/app/processing/reader.py`, `backend/tests/test_reader.py`
+  - Arquivos: `backend/app/processing/params.py`, `backend/app/processing/reader.py`, `backend/app/processing/errors.py`, `backend/tests/test_reader.py`
   - Verificação: `pytest backend/tests/test_reader.py` (pixel conhecido → NDVI 0,9375; DN 0 mascarado; bandas reordenadas pela descrição; `ACQUISITION_UTC` ausente → `null`).
 - [ ] **T2.2** (P0) `indices.py` (NDVI, NDWI) com divisão segura.
   - _Req: R2.8_
