@@ -17,12 +17,15 @@ dependencies = [
     "pillow>=12.3,<13",
     "python-multipart>=0.0.32,<1",
     "rasterio>=1.5.2,<2",
+    # Chat (spec 005). Versões com mais de duas semanas de publicadas: a 2.x do SDK e o
+    # httpx2 2.14+ são de outubro de 2026. O httpx2 também serve ao TestClient.
+    "anthropic>=1.15,<1.16",
+    "httpx2>=2.13.1,<2.14",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=9.2,<10",
-    "httpx2>=2.16,<3",
     "ruff>=0.17,<1",
 ]
 # Scripts de pesquisa em `scripts/` (calibração, comparações); fora da imagem de produção.

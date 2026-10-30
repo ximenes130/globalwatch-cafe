@@ -13,6 +13,7 @@ def test_settings(monkeypatch):
     monkeypatch.setenv("SUPABASE_URL", TEST_SUPABASE_URL)
     monkeypatch.setenv("DATABASE_URL", "")
     monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     get_settings.cache_clear()
     auth.get_jwks_client.cache_clear()
     yield

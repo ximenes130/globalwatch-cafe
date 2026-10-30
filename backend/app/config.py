@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     stale_after_minutes: int = 15
     # R6.5: limite do upload (a validação completa é da spec 006).
     max_upload_mb: int = 20
+    # Chat (spec 005): sem a chave, a rota do chat responde 503.
+    anthropic_api_key: str | None = None
 
     @property
     def cors_origins_list(self) -> list[str]:
