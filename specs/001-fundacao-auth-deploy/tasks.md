@@ -27,7 +27,7 @@ Bloco do dia: 8h às 10h. Nada aqui é cortável.
   - _Req: R1.1, R1.2, R1.4_
   - Arquivos: `frontend/src/pages/Login.tsx`, `frontend/src/lib/supabase.ts`, `frontend/src/lib/api.ts`
   - Verificação: login local mostra o e-mail vindo de `/me`.
-- [ ] **T1.6** (P0) `.env.example` de front e back.
+- [x] **T1.6** (P0) `.env.example` de front e back.
   - _Req: R1.9_
   - Verificação: revisão manual; nenhum valor real.
 - [ ] **T1.7** (P0) Deploy: back no Render, front no Vercel, redirects no Supabase e no Google, OAuth "In production".
