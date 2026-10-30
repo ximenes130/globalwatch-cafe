@@ -25,7 +25,7 @@ Corte se estourar: retenção automática (fica documentada).
   - _Req: R6.8, R6.9_
   - Arquivos: `backend/app/ratelimit.py`, `backend/tests/test_ratelimit.py`
   - Verificação: `pytest backend/tests/test_ratelimit.py`.
-- [ ] **T6.5** (P0) CORS restrito, handler de erros neutro.
+- [x] **T6.5** (P0) CORS restrito, handler de erros neutro.
   - _Req: R6.10, R6.12_
   - Arquivos: `backend/app/main.py`, `backend/app/errors.py`, `backend/tests/test_errors.py`
   - Verificação: `pytest backend/tests/test_errors.py` + `curl` com Origin estranha.

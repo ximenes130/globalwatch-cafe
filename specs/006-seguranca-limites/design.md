@@ -14,7 +14,7 @@ status: em-implementacao
 | `backend/app/validation.py` | Tamanho em streaming, assinatura TIFF, checagens do raster |
 | `backend/app/ratelimit.py` | `consume(user_id, kind)`: `insert … on conflict do update … returning` atômico |
 | `backend/app/storage.py` | Caminhos com `user_id`, URLs assinadas de 300 s |
-| `backend/app/errors.py` | Handler global que converte exceções em mensagens neutras |
+| `backend/app/errors.py` | Middleware ASGI, por dentro do CORS, que converte exceções inesperadas em 500 neutro (JSON em português) e registra o detalhe no log |
 | `.github/workflows/retention.yml` | *(P1)* agenda diária que chama a limpeza |
 
 ## Decisões

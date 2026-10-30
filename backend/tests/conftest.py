@@ -7,6 +7,8 @@ import pytest
 # Lida na importação do app (main.py), antes de qualquer fixture: a documentação da
 # API fica desligada nos testes mesmo com `API_DOCS=true` no `.env` local.
 os.environ["API_DOCS"] = "false"
+# Também lida na importação: a origem do front em desenvolvimento, como no `.env.example`.
+os.environ["CORS_ORIGINS"] = "http://localhost:5173"
 
 from app import auth
 from app.config import get_settings

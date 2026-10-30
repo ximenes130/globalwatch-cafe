@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import db
 from app.auth import CurrentUser, current_user
 from app.config import get_settings
+from app.errors import NeutralErrors
 from app.routes import analyses, chat
 
 settings = get_settings()
@@ -41,6 +42,9 @@ app = FastAPI(
     openapi_url="/openapi.json" if docs else None,
 )
 
+# Antes do CORS: o último registrado fica por fora, e o 500 neutro precisa dos cabeçalhos
+# de CORS (ver app/errors.py).
+app.add_middleware(NeutralErrors)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
