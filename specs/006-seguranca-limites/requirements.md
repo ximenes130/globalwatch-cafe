@@ -53,6 +53,18 @@ produz a evidência de testes para o README.
 - **R6.9** — O SISTEMA DEVE limitar a 30 mensagens de chat por usuário por dia,
   com o mesmo mecanismo.
 
+### Limites visíveis na interface
+
+- **R6.16** — A interface DEVE mostrar quantos envios e quantas mensagens de chat
+  restam hoje e quando o contador renova, no horário local do usuário.
+- **R6.17** — QUANDO não restar envio (ou mensagem), A interface DEVE desabilitar o
+  envio (ou o campo do chat) e dizer quando libera, em vez de deixar o usuário
+  esbarrar no 429.
+- **R6.18** — A interface DEVE informar que as análises ficam guardadas por 7 dias
+  e mostrar, em cada análise, quando ela será apagada (R6.15).
+- **R6.19** — Os números de R6.16 DEVEM vir do backend (`usage_daily` e os limites
+  configurados), nunca de uma conta feita no front.
+
 ### Configuração e segredos
 
 - **R6.10** — O CORS DEVE aceitar apenas a origem do front (e `localhost` em

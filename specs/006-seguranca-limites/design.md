@@ -18,6 +18,33 @@ status: em-implementacao
 | `.github/workflows/retention.yml` | *(P1)* agenda diária (e disparo manual) que roda `python -m app.retention` com `DATABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` dos secrets do GitHub |
 | `backend/app/retention.py` | *(P1)* apaga as análises com mais de 7 dias, de qualquer usuário: arquivos no Storage primeiro, depois a linha (mensagens por cascata); análise cujo Storage falhar fica para o dia seguinte e o job termina com erro |
 
+## Limites na interface (R6.16 a R6.19, T6.8)
+
+`GET /me/usage` (com JWT, R6.1) lê a linha de hoje em `usage_daily` sem incrementar:
+
+```json
+{
+  "uploads": {"used": 2, "limit": 5},
+  "messages": {"used": 7, "limit": 30},
+  "resets_at": "2026-10-31T00:00:00Z",
+  "retention_days": 7
+}
+```
+
+`resets_at` é a próxima meia-noite UTC (o `current_date` do Supabase). O front guarda a
+resposta no TanStack Query e a invalida depois de cada envio, de cada mensagem e de
+cada 429.
+
+| Onde | O que aparece |
+| --- | --- |
+| Área de envio | "3 de 5 envios restantes hoje · renova às 21:00" (hora local) e "As análises ficam guardadas por 7 dias." Com 0: zona de soltar e botão desabilitados e "Você usou os 5 envios de hoje. Libera às 21:00." |
+| Rodapé do chat | "27 mensagens restantes hoje"; a partir de 5 restantes, em destaque (cor de aviso, sem vermelho); com 0, campo e sugestões desabilitados com "Libera às 21:00." |
+| Lista e painel da análise | "Apagada em 6 dias" (ou "amanhã", "hoje") a partir de `created_at` + 7 dias; na lista, só quando faltar 2 dias ou menos, para não poluir |
+
+Sem número inventado: o restante é `limit - used` vindo da API, e a data de exclusão
+usa o `created_at` do banco com o `retention_days` da API. Se `GET /me/usage` falhar, os
+avisos de cota somem e o envio continua liberado: o 429 do backend segue valendo.
+
 ## Decisões
 
 | Decisão | Alternativa recusada | Motivo |
@@ -42,4 +69,6 @@ status: em-implementacao
 | R6.11 | `git log -p \| grep -iE "key\|secret"` e busca no bundle do front |
 | R6.12 | `test_errors.py`: exceção forçada → corpo sem traceback |
 | R6.14 | `test_isolation.py`: após DELETE, arquivos não existem |
+| R6.16, R6.19 | `test_usage.py`: `GET /me/usage` igual ao contador depois de envios e mensagens, sem incrementar; outro usuário vê os próprios números; sem token → 401 |
+| R6.16 a R6.18 | Harness: textos com 5, 1 e 0 restantes em 375 e 1440 px; com 0, envio e chat desabilitados; prazo de exclusão de uma análise de 6 dias atrás |
 | R6.15 | `test_retention.py`: só as antigas saem, arquivos antes da linha, falha do Storage preserva a linha e dá código de saída 1; `test_repository.py`: seleção por idade contra Postgres |
