@@ -21,7 +21,7 @@ A comparação com o MapBiomas já foi feita (T2.5, T3.3); aqui ela só é resum
     `docs/metodo.md`
   - Verificação: `pdfinfo` com até 2 páginas; condições de uso conferidas na
     fonte; nenhuma acurácia ou confiança.
-- [ ] **T7.3** (P0) README completo.
+- [x] **T7.3** (P0) README completo.
   - _Req: R7.1, R7.2, R7.3_
   - Arquivos: `README.md`
   - Verificação: checklist de seções do R7.1 a R7.3; cotas com data da
