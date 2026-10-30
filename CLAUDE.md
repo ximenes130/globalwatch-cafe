@@ -41,7 +41,7 @@ Leia `specs/README.md` e `specs/000-constituicao.md` antes de qualquer tarefa.
 - Backend: FastAPI, rasterio, numpy, scipy, shapely, pyproj.
 - Supabase: Auth (Google), Postgres com RLS, Storage privado.
 - LLM: Claude Haiku 5.5 (`claude-haiku-5-5`) com tool use e visão.
-- Deploy: Vercel (front), Render Docker free (back).
+- Deploy: Render free, por um Blueprint (`render.yaml`): front como Static Site, back como Docker.
 
 ## Layout
 
@@ -103,6 +103,6 @@ Frontend (em `frontend/`, variáveis em `frontend/.env.local`):
 - Lint, tipos e build: `npm run lint && npm run build`
 
 CI: `.github/workflows/ci.yml` roda backend (ruff, pytest), banco (migrations + teste de RLS em
-Postgres 17) e frontend (oxlint, build). Deploy: `render.yaml` (back) e `frontend/vercel.json`.
+Postgres 17) e frontend (oxlint, build). Deploy: `render.yaml` (front e back).
 
 Kit: integridade com `cd data/exemplo && sha256sum -c SHA256SUMS.txt`

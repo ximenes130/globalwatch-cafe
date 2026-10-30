@@ -1,8 +1,47 @@
-# Blueprint do Render: New → Blueprint → este repositório.
-# Variáveis com `sync: false` são pedidas no painel na criação (segredos nunca aqui).
+# Blueprint do Render: New → Blueprint → este repositório (specs/001, R1.8).
+# Cria o front (Static Site) e a API (Web Service Docker), ambos no plano free.
+# Variáveis com `sync: false` são pedidas no painel na criação; segredos nunca aqui.
 services:
   - type: web
-    name: globalwatch-api
+    name: globalwatch-cafe
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    buildFilter:
+      paths:
+        - frontend/**
+    # SPA: caminhos sem arquivo correspondente caem no index.html.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: VITE_SUPABASE_URL
+        value: https://dkuwafzzkvcxxphdtmyl.supabase.co
+      # Chave pública (anon ou publishable).
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      # URL pública da API, ex.: https://globalwatch-cafe-api.onrender.com
+      - key: VITE_API_URL
+        sync: false
+
+  - type: web
+    name: globalwatch-cafe-api
     runtime: docker
     plan: free
     # Mesma região do Supabase (aws us-west-2): menos latência no banco.
@@ -20,5 +59,6 @@ services:
         value: authenticated
       - key: DATABASE_URL
         sync: false
+      # Origem do front, ex.: https://globalwatch-cafe.onrender.com
       - key: CORS_ORIGINS
         sync: false
