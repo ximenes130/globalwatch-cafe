@@ -1,7 +1,7 @@
 ---
 id: "004"
 titulo: Mapa, telas e estados da interface
-status: em-implementacao
+status: concluido
 desafio: [4, 6]
 pontos: UI/UX e responsividade (20)
 prioridade: P0

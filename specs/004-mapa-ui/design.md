@@ -1,7 +1,7 @@
 ---
 id: "004"
 titulo: Mapa, telas e estados da interface
-status: em-implementacao
+status: concluido
 ---
 
 # 004 — Mapa e UI: design
