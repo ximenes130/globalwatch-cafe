@@ -1,7 +1,7 @@
 """Supabase Storage pela API REST (bucket privado, R6.4).
 
 Só o backend fala com o Storage, com a chave secreta. O front recebe URLs
-assinadas de curta duração. `urllib` basta para as três operações usadas.
+assinadas de curta duração. `urllib` basta para as operações usadas.
 """
 
 import json
@@ -27,6 +27,8 @@ class Storage(Protocol):
     def signed_urls(self, paths: list[str]) -> dict[str, str]: ...
 
     def remove(self, paths: list[str]) -> None: ...
+
+    def download(self, path: str) -> bytes: ...
 
 
 def object_prefix(user_id: UUID, analysis_id: UUID) -> str:
@@ -72,7 +74,18 @@ class SupabaseStorage:
             "DELETE", f"/object/{self.bucket}", body, {"Content-Type": "application/json"}
         )
 
-    def _request(self, method: str, path: str, body: bytes, headers: dict[str, str]):
+    def download(self, path: str) -> bytes:
+        """Conteúdo do objeto; o chat lê o GeoJSON e o PNG da classificação (spec 005)."""
+        return self._request("GET", f"/object/{self.bucket}/{quote(path)}", None, {}, raw=True)
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        body: bytes | None,
+        headers: dict[str, str],
+        raw: bool = False,
+    ):
         request = urllib.request.Request(
             self.base + path, data=body, method=method, headers={**self.headers, **headers}
         )
@@ -87,4 +100,6 @@ class SupabaseStorage:
             ) from exc
         except (urllib.error.URLError, TimeoutError) as exc:
             raise StorageError(f"Storage inacessível em {method} {path}: {exc}") from exc
+        if raw:
+            return payload
         return json.loads(payload) if payload else None

@@ -29,6 +29,11 @@ class FakeStorage:
         for path in paths:
             self.objects.pop(path, None)
 
+    def download(self, path: str) -> bytes:
+        if path not in self.objects:
+            raise StorageError(f"Objeto não encontrado: {path}")
+        return self.objects[path][0]
+
 
 class FakeRepository:
     def __init__(self, events: list | None = None):

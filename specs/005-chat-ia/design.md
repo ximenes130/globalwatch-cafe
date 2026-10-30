@@ -1,7 +1,7 @@
 ---
 id: "005"
 titulo: Chat com IA sobre a análise
-status: aprovado
+status: em-implementacao
 ---
 
 # 005 — Chat com IA: design
@@ -140,7 +140,7 @@ resposta leva um único card `summary` montado pelo backend com o mesmo resumo.
 | Requisito | Teste |
 | --- | --- |
 | R5.2 | `test_chat_tools.py`: `data` do resumo e do polígono iguais a `GET /analyses/{id}` e ao GeoJSON; com segunda data, `second_acquired_at` e `ndvi_amplitude_max` presentes |
-| R5.5 | `test_chat_tools.py`: usuário B no chat da análise de A → 404 |
+| R5.5 | `test_chat.py`: usuário B no chat da análise de A → 404; `test_chat_tools.py`: nenhuma ferramenta aceita id de análise |
 | R5.10, R5.11 | `test_chat.py` com cliente mockado: o `tool_result` enviado ao modelo é o JSON do `data` do card; um texto do modelo com número inventado não altera o card |
 | R5.12 | `test_chat.py`: duas chamadas iguais → um card; chamadas a polígonos diferentes → dois |
 | R5.13 | `test_chat.py`: `get_polygon(999)` → `is_error` ao modelo e nenhum card |

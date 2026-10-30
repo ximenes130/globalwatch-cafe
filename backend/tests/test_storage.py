@@ -124,3 +124,17 @@ def test_http_and_network_errors_become_storage_error(sent):
         storage().upload("p", b"", "image/png")
     with pytest.raises(StorageError, match="inacessível"):
         storage().upload("p", b"", "image/png")
+
+
+def test_download_returns_raw_bytes(sent):
+    requests, replies = sent
+    replies.append(b'{"type": "FeatureCollection"}')
+
+    data = storage().download("u/a/result.geojson")
+
+    request = requests[0]
+    assert request.get_method() == "GET"
+    assert request.full_url == f"{URL}/storage/v1/object/analyses/u/a/result.geojson"
+    assert request.data is None
+    # Bytes como vieram: o chamador decide se é JSON ou PNG.
+    assert data == b'{"type": "FeatureCollection"}'
