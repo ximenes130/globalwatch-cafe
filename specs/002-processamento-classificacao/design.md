@@ -179,6 +179,20 @@ NDVI = (NIR − vermelho)/(NIR + vermelho), NDWI = (verde − NIR)/(verde + NIR)
   nenhum denominador ≤ 0, índices dentro de [−1, 1]); a regra protege outros
   arquivos.
 
+### Máscara de qualidade (`masking.py`)
+
+- Com SCL: `rasterio.warp.reproject` para a grade da imagem (mesmo CRS,
+  transform e tamanho) com `Resampling.nearest`. Isso cobre os 20 m da SCL e
+  também uma SCL em outro CRS ou com outra extensão. No kit, o resultado é
+  exatamente o bloco 2 x 2 de cada pixel da SCL (conferido em 30/10).
+- Pixel da imagem sem cobertura da SCL recebe classe 0 (sem dado) e é
+  excluído: sem a SCL não há como saber a qualidade dele. SE a SCL não cobrir
+  nenhum pixel, ENTÃO `ProcessingError` ("A SCL enviada não cobre a imagem").
+  SCL ilegível ou sem CRS também vira `ProcessingError`.
+- Sem SCL: exclui o pixel com NDWI `>` `ndwi_water_min`.
+- A máscara só marca pixels de `valid`: o NoData já conta em `no_data` (N0) e
+  não pode contar de novo em `quality_mask` (N1).
+
 ### Exploração preliminar do kit (30/10, script descartável)
 
 Feita para checar se os valores de partida fazem sentido; **não substitui a

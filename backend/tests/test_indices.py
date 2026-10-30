@@ -1,14 +1,11 @@
 """Índices espectrais com divisão segura (T2.2)."""
 
-from pathlib import Path
-
 import numpy as np
 import pytest
 
 from app.processing.indices import ndvi, ndwi, normalized_difference
 from app.processing.reader import read_image
-
-KIT_IMAGE = Path(__file__).resolve().parents[2] / "data" / "exemplo" / "imagem_multiespectral.tif"
+from tests.rasters import KIT_IMAGE
 
 
 def arr(*values: float) -> np.ndarray:

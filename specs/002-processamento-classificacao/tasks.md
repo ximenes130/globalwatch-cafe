@@ -16,10 +16,7 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.8_
   - Arquivos: `backend/app/processing/indices.py`, `backend/tests/test_indices.py`
   - Verificação: `pytest backend/tests/test_indices.py` (valores conhecidos; denominador zero sem `inf`/`nan` em pixel válido).
-- [ ] **T2.3** (P1) GNDVI em `indices.py`, estatísticas, `gndvi_mean` por feição e condição opcional `gndvi_min` na regra.
-  - _Req: R2.9, R2.13, R2.14_
-  - Verificação: `pytest backend/tests/test_indices.py backend/tests/test_classification.py` (`gndvi_min = null` não altera o resultado).
-- [ ] **T2.4** (P0) `masking.py`: SCL reamostrada e NDWI como fallback.
+- [x] **T2.4** (P0) `masking.py`: SCL reamostrada e NDWI como fallback.
   - _Req: R2.6, R2.7_
   - Arquivos: `backend/app/processing/masking.py`, `backend/tests/test_masking.py`
   - Verificação: `pytest backend/tests/test_masking.py`.
@@ -36,6 +33,9 @@ Bloco do dia: 10h às 13h. Corte se estourar: GNDVI (fica só NDVI).
   - _Req: R2.12, R2.13, R2.14, R2.15_
   - Arquivos: `backend/app/processing/vectorization.py`, `backend/tests/test_area.py`, `backend/tests/test_vectorization.py`
   - Verificação: `pytest backend/tests/test_area.py backend/tests/test_vectorization.py` (kit = 2.621,44 ha; total = potencial no raster + Σ `excluded_area_ha`; propriedades obrigatórias nas feições).
+- [ ] **T2.3** (P1) GNDVI em `indices.py`, estatísticas, `gndvi_mean` por feição e condição opcional `gndvi_min` na regra. Feita depois da T2.7 porque depende de `classification.py` e `vectorization.py`.
+  - _Req: R2.9, R2.13, R2.14_
+  - Verificação: `pytest backend/tests/test_indices.py backend/tests/test_classification.py` (`gndvi_min = null` não altera o resultado).
 - [ ] **T2.8** (P0) `render.py`: PNG RGB, classificação e polígonos.
   - _Req: R2.16_
   - Arquivos: `backend/app/processing/render.py`, `backend/tests/test_render.py`

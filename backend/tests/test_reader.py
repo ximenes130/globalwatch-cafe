@@ -1,56 +1,16 @@
 """Leitura do GeoTIFF: conversão única, NoData, ordem das bandas e data (T2.1)."""
 
 from datetime import UTC, datetime
-from pathlib import Path
 
 import numpy as np
 import pytest
-from rasterio.io import MemoryFile
-from rasterio.transform import from_origin
 
 from app.processing.errors import ProcessingError
 from app.processing.reader import read_image
-
-KIT_IMAGE = Path(__file__).resolve().parents[2] / "data" / "exemplo" / "imagem_multiespectral.tif"
+from tests.rasters import KIT_IMAGE, make_tiff
 
 # DN do pixel conhecido: B02, B03, B04, B08.
 KNOWN_DN = (1500, 1800, 1100, 4100)
-
-
-def make_tiff(
-    dn: np.ndarray,
-    *,
-    scales: tuple[float, ...] | None = (0.0001,) * 4,
-    offsets: tuple[float, ...] | None = (-0.1,) * 4,
-    descriptions: tuple[str, ...] | None = ("B02_blue", "B03_green", "B04_red", "B08_nir"),
-    tags: dict[str, str] | None = None,
-    nodata: float | None = 0,
-) -> bytes:
-    """GeoTIFF uint16 em memória no mesmo formato do kit (EPSG:32723, 10 m)."""
-    count, height, width = dn.shape
-    profile = {
-        "driver": "GTiff",
-        "dtype": "uint16",
-        "count": count,
-        "height": height,
-        "width": width,
-        "crs": "EPSG:32723",
-        "transform": from_origin(323200, 7642980, 10, 10),
-        "nodata": nodata,
-    }
-    with MemoryFile() as memfile:
-        with memfile.open(**profile) as dst:
-            dst.write(dn.astype(np.uint16))
-            if scales is not None:
-                dst.scales = scales
-            if offsets is not None:
-                dst.offsets = offsets
-            if descriptions is not None:
-                for i, description in enumerate(descriptions, start=1):
-                    dst.set_band_description(i, description)
-            if tags:
-                dst.update_tags(**tags)
-        return memfile.read()
 
 
 def known_pixel_stack(height: int = 2, width: int = 2) -> np.ndarray:
