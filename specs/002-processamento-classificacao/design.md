@@ -101,7 +101,7 @@ o kit (uma data, bandas B02, B03, B04, B08, sem rótulos).
 | NDWI como máscara sem SCL | McFeeters (1996) | NDWI = (verde − NIR)/(verde + NIR); água fica positiva | MNDWI (Xu, 2006) precisa de SWIR, ausente no kit |
 | SCL como máscara | Documentação da SCL do Sentinel-2 L2A (classes 0–11) | Exclusão de sem dado, saturado, sombra de nuvem, água, nuvem, cirrus e neve; reamostragem por vizinho mais próximo | A SCL não é mapa de uso do solo; não é usada como classe de vegetação |
 | Textura (GLCM) | Parreiras et al. (2025) | Não adotada: lá a textura teve importância média menor que bandas e índices, e centenas de variáveis com importância ≤ 0 | Custo e explicação não se pagam num recorte de 10 m |
-| Amplitude entre datas | Souza et al. (2019) | Amplitude sazonal do NDVI do café é a mais estreita entre café, pasto e vegetação nativa (componente sazonal de −0,05 a 0,06 contra −0,15 a 0,10 no pasto). Base de R3.8 (spec 003) | A amplitude separa café de pasto, não de mata (a de mata também é estreita); o teto de NDVI continua necessário |
+| Amplitude entre datas | Souza et al. (2019) | Amplitude sazonal do NDVI do café é a mais estreita entre café, pasto e vegetação nativa (componente sazonal de −0,05 a 0,06 contra −0,15 a 0,10 no pasto). Base de R3.10 (spec 003) | A amplitude separa café de pasto, não de mata (a de mata também é estreita); o teto de NDVI continua necessário |
 | Estágios de manejo | Parreiras et al. (2025); Maskell et al. (2021) | Limitação declarada: café recém-plantado, esqueletado ou recepado expõe solo e fica abaixo de `ndvi_min`. Maskell obteve acurácia de usuário de 71% para café jovem e 56% para consorciado mesmo com RF e radar | Separar estágios exige série temporal densa |
 
 Referências conferidas em [Referências](#referências). A nota de pesquisa
@@ -377,7 +377,7 @@ não verdade de campo: serve para comparar variantes, não para medir acerto.
   café dele fica marcado. O que sobra fora do café do MapBiomas está sobretudo
   em Mosaico de Usos, onde pode haver café pequeno demais para 30 m, e em
   lavoura temporária e cana, que uma única data de agosto não separa de café
-  (ver amplitude entre datas, R3.8). Concordância baixa e declarada: o
+  (ver amplitude entre datas, R3.10). Concordância baixa e declarada: o
   resultado é triagem por vigor, não mapa de café.
 
 ## Contratos
@@ -539,7 +539,7 @@ AnalysisResult`, função pura (sem banco nem storage):
 | --- | --- | --- |
 | Cascata de limiares explícitos, inspirada na hierarquia de Parreiras et al. (2025) | Random Forest com amostras do MapBiomas (abordagem de Maskell et al., 2021 e Parreiras et al., 2025) | Auditável e explicável; o kit não tem rótulos, o RF herdaria erros do MapBiomas (30 m, Landsat) e tornaria a verificação circular |
 | Processar o arquivo enviado | Modelo pronto Coffee Probability 2026a (Forest Data Partnership) como classificador | O modelo roda no Earth Engine sobre embeddings anuais do AlphaEarth, não sobre o arquivo enviado (violaria C2.2); exige conta no Earth Engine; cobre 2018–2024 e o kit é de 2025. Fica como referência externa de comparação, fora da app |
-| Data única da seca | Exigir duas datas | A app recebe um arquivo; a seca já é a época mais informativa entre pasto e perene. A segunda data é opcional (R3.8) |
+| Data única da seca | Exigir duas datas | A app recebe um arquivo; a seca já é a época mais informativa entre pasto e perene. A segunda data é opcional (R3.10) |
 | Contagem de área por nível de exclusão | Só a máscara final | Fecha uma soma testável e permite ao chat explicar exclusões com números do processamento |
 | Sem textura GLCM | GLCM sobre NIR | Em Parreiras et al. (2025) a textura teve importância média menor que bandas e índices; custo e explicação não compensam |
 | NDVI + GNDVI (GNDVI condicional) | EVI | GNDVI usa a banda verde (Gitelson et al., 1996) e foi o índice mais importante em Parreiras et al. (2025); EVI tem coeficientes (G, C1, C2, L) a justificar e não tem, nas fontes lidas, evidência específica para café. Condicional porque, no kit, repete o NDVI (r = 0,96) |
@@ -557,7 +557,7 @@ AnalysisResult`, função pura (sem banco nem storage):
   antes/depois na nota (é o "erro encontrado" mais provável). Sem SWIR, o
   teto também corta café adensado: declarado em `limitations`.
 - Pasto verde, cana ou capoeira na faixa do café → limitação de uma data só;
-  mitigação parcial pela amplitude entre datas (R3.8, spec 003).
+  mitigação parcial pela amplitude entre datas (R3.10, spec 003).
 - GNDVI redundante com o NDVI (r = 0,96 no kit) → decisão condicional na T2.5,
   registrada com o motivo; nada de usar só para "parecer mais completo".
 - Overlay deslocado no mapa → bounds calculados a partir do transform e
