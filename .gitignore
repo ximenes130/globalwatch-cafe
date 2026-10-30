@@ -1,0 +1,39 @@
+# Notas pessoais (fora do repositório público)
+.notes/
+
+# Segredos
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.vite/
+*.log
+
+# Saídas locais de processamento
+backend/output/
+scripts/output/
+*.aux.xml
+
+# Editor e SO
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Claude Code (configuração local)
+.claude/settings.local.json

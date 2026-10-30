@@ -1,0 +1,40 @@
+---
+id: "004"
+titulo: Mapa, telas e estados da interface
+status: rascunho
+---
+
+# 004 — Mapa e UI: tarefas
+
+Bloco do dia: 14h às 16h30. Corte se estourar: alternância RGB/classificação e opacidade.
+
+- [ ] **T4.1** (P0) Roteamento, layout base, TanStack Query e componentes de estado.
+  - _Req: R4.12, R4.13, R4.14, R4.17_
+  - Arquivos: `frontend/src/App.tsx`, `frontend/src/components/estados/`
+  - Verificação: backend parado mostra aviso de servidor e erro com "tentar de novo".
+- [ ] **T4.2** (P0) Lista de análises com estado vazio e link do kit.
+  - _Req: R4.1, R4.2_
+  - Arquivos: `frontend/src/pages/Analises.tsx`
+  - Verificação: conta nova vê o estado vazio.
+- [ ] **T4.3** (P0) Upload com drag and drop, validação no cliente e progresso.
+  - _Req: R4.3, R4.4_
+  - Arquivos: `frontend/src/components/Upload.tsx`
+  - Verificação: `.png` e arquivo grande rejeitados; kit processa.
+- [ ] **T4.4** (P0) Mapa com overlay, polígonos, limite e popup.
+  - _Req: R4.5, R4.7_
+  - Arquivos: `frontend/src/components/Mapa.tsx`
+  - Verificação: overlay alinhado ao limite da área de estudo.
+- [ ] **T4.5** (P0) Painel: legenda, data, cartões, aviso, justificativa, resultado vazio.
+  - _Req: R4.6, R4.9, R4.15_
+  - Arquivos: `frontend/src/components/Legenda.tsx`, `frontend/src/components/Resumo.tsx`
+  - Verificação: números iguais ao JSON da API.
+- [ ] **T4.6** (P0) Downloads e apagar análise.
+  - _Req: R4.8, R4.11_
+  - Arquivos: `frontend/src/components/Downloads.tsx`
+  - Verificação: PNG e GeoJSON baixados abrem; GeoJSON válido no geojson.io.
+- [ ] **T4.7** (P1) Alternância RGB/classificação e opacidade.
+  - _Req: R4.10_
+  - Verificação: manual.
+- [ ] **T4.8** (P0) Revisão responsiva em 375 px e desktop.
+  - _Req: R4.16_
+  - Verificação: prints em `docs/evidencias/ui-375.png` e `ui-desktop.png`.
