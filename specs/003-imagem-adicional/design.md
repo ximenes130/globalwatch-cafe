@@ -1,7 +1,7 @@
 ---
 id: "003"
 titulo: Imagem adicional e comparação entre datas
-status: em-implementacao
+status: concluido
 ---
 
 # 003 — Imagem adicional e comparação entre datas: design

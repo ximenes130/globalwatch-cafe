@@ -1,7 +1,7 @@
 ---
 id: "003"
 titulo: Imagem adicional e comparação entre datas
-status: em-implementacao
+status: concluido
 ---
 
 # 003 — Imagem adicional e comparação entre datas: tarefas
@@ -28,7 +28,7 @@ aprovação.
     `docs/nota-de-pesquisa.md`
   - Verificação: tabela e figura geradas; soma das transições igual à base
     comum.
-- [ ] **T3.4** (P0) Processar a imagem adicional pela aplicação em produção.
+- [x] **T3.4** (P0) Processar a imagem adicional pela aplicação em produção.
   - _Req: R3.7_
   - Arquivos: `scripts/smoke_analysis.sh` (variáveis `IMAGE` e `SCL`)
   - Verificação: análise `completed` em produção, com área potencial e

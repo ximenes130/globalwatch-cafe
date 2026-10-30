@@ -1,7 +1,7 @@
 ---
 id: "003"
 titulo: Imagem adicional e comparação entre datas
-status: em-implementacao
+status: concluido
 desafio: [pesquisa]
 pontos: Pesquisa e justificativa (15, parcial) + Geoprocessamento (20, parcial)
 prioridade: P0 (download, processamento e comparação) / P1 (regra temporal na app)
