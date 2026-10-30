@@ -3,10 +3,17 @@ import type { ReactNode } from 'react'
 import type { Analysis, Rationale, RationaleStep, Stats } from '@/lib/api'
 import { formatHa, formatImageDate, formatPercent } from '@/lib/format'
 
-type Props = { analysis: Analysis; stats: Stats; rationale: Rationale; legend: ReactNode }
+type Props = {
+  analysis: Analysis
+  stats: Stats
+  rationale: Rationale
+  legend: ReactNode
+  actions: ReactNode
+  footer: ReactNode
+}
 
 /** Números, datas, aviso e justificativa da análise (R4.6, R4.9, R4.15). */
-export function Summary({ analysis, stats, rationale, legend }: Props) {
+export function Summary({ analysis, stats, rationale, legend, actions, footer }: Props) {
   const empty = stats.polygon_count === 0
 
   return (
@@ -29,6 +36,8 @@ export function Summary({ analysis, stats, rationale, legend }: Props) {
 
       <Notice />
 
+      {actions}
+
       <section aria-labelledby="legend-title">
         <h2 id="legend-title" className="mb-2 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
           Legenda
@@ -39,6 +48,7 @@ export function Summary({ analysis, stats, rationale, legend }: Props) {
       <Cascade stats={stats} rationale={rationale} />
       <Limitations items={rationale.limitations} />
       <References rationale={rationale} />
+      {footer}
     </div>
   )
 }

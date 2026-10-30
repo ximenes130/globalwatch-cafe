@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { DeleteAnalysis } from '@/components/DeleteAnalysis'
+import { Downloads } from '@/components/Downloads'
 import { Legend } from '@/components/Legend'
 import { ErrorState } from '@/components/states/ErrorState'
 import { Processing } from '@/components/states/Processing'
@@ -77,6 +79,7 @@ export function Analysis() {
           <Button asChild>
             <Link to="/">Enviar outra imagem</Link>
           </Button>
+          <DeleteAnalysis id={data.id} filename={data.filename} />
         </ErrorState>
       </main>
     )
@@ -112,6 +115,8 @@ function Result({ analysis }: { analysis: AnalysisData }) {
             stats={analysis.stats}
             rationale={analysis.rationale}
             legend={<Legend stats={analysis.stats} />}
+            actions={<Downloads id={analysis.id} filename={analysis.filename} />}
+            footer={<DeleteAnalysis id={analysis.id} filename={analysis.filename} />}
           />
         ) : (
           <p className="text-sm text-muted-foreground">A análise não tem estatísticas gravadas.</p>

@@ -29,7 +29,7 @@ movimento e acabamento (T4.9), que entra por último porque refina telas prontas
   - _Req: R4.6, R4.9, R4.15_
   - Arquivos: `frontend/src/components/Legend.tsx`, `frontend/src/components/Summary.tsx`
   - Verificação: números iguais ao JSON da API.
-- [ ] **T4.6** (P0) Downloads e apagar análise.
+- [x] **T4.6** (P0) Downloads e apagar análise.
   - _Req: R4.8, R4.11_
   - Arquivos: `frontend/src/components/Downloads.tsx`
   - Verificação: PNG e GeoJSON baixados abrem; GeoJSON válido no geojson.io.
