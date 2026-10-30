@@ -52,7 +52,7 @@ MapBiomas 2024 em cada classe de transição (concordância, não acurácia):
   Rio, Lago e Oceano                                0.00                      0.00                      0.00                      2.02   0.170
   Outras Lavouras Perenes                           0.00                      0.22                      0.00                      0.71   0.152
   Outras Áreas não Vegetadas                        0.00                      0.00                      0.00                      0.33   0.134
-  fonte: Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, ano 2024, acessado em 30/10/2026 (CC BY 4.0) através de https://data.source.coop/tristangruppwri/mapbiomas/mapbiomas-brazil/mapbiomas_brazil_2024/mapbiomas_brazil_2024.tif
+  fonte: Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, ano 2024, acessado em 30/10/2026 (CC BY-SA 4.0) através de https://data.source.coop/tristangruppwri/mapbiomas/mapbiomas-brazil/mapbiomas_brazil_2024/mapbiomas_brazil_2024.tif
 
 Análise de duas datas da app (seca + chuva, |ΔNDVI| < 0.25):
   área potencial: 103.04 ha em 68 polígonos (só a seca: 214.54 ha)

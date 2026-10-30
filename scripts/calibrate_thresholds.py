@@ -75,7 +75,7 @@ MAPBIOMAS_URL = (
 )
 MAPBIOMAS_ATTRIBUTION = (
     "Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra "
-    "do Brasil, ano 2024, acessado em 30/10/2026 (CC BY 4.0) através de " + MAPBIOMAS_URL
+    "do Brasil, ano 2024, acessado em 30/10/2026 (CC BY-SA 4.0) através de " + MAPBIOMAS_URL
 )
 # Nomes da legenda da Coleção 10 para as classes que aparecem no recorte.
 MAPBIOMAS_CLASSES = {

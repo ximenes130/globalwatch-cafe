@@ -28,4 +28,4 @@ rótulo: final (NDVI 0.55–0.72)
     Outras Áreas não Vegetadas        0 ha        9%         0%   0.16/0.28/0.72
     sem morfologia: 5% da área marcada cai em café do MapBiomas; 48% do café dele marcado
     com morfologia: 10% da área marcada cai em café do MapBiomas; 42% do café dele marcado
-    fonte: Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, ano 2024, acessado em 30/10/2026 (CC BY 4.0) através de https://data.source.coop/tristangruppwri/mapbiomas/mapbiomas-brazil/mapbiomas_brazil_2024/mapbiomas_brazil_2024.tif
+    fonte: Projeto MapBiomas – Coleção 10 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil, ano 2024, acessado em 30/10/2026 (CC BY-SA 4.0) através de https://data.source.coop/tristangruppwri/mapbiomas/mapbiomas-brazil/mapbiomas_brazil_2024/mapbiomas_brazil_2024.tif

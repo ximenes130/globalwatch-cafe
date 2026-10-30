@@ -15,7 +15,7 @@ A comparação com o MapBiomas já foi feita (T2.5, T3.3); aqui ela só é resum
   - Arquivos: `scripts/inspect_points.py`, `docs/evidencias/inspecao/`
   - Verificação: prancha gerada pelo pipeline do app; tabela preenchida e
     revisada pelo usuário.
-- [ ] **T7.2** (P0) Nota de pesquisa em duas páginas e método detalhado.
+- [x] **T7.2** (P0) Nota de pesquisa em duas páginas e método detalhado.
   - _Req: R7.4, R7.5, R7.6, R7.7, R7.8, R7.13_
   - Arquivos: `docs/nota-de-pesquisa.md`, `docs/nota-de-pesquisa.pdf`,
     `docs/metodo.md`
