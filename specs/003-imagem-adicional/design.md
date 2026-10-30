@@ -40,7 +40,8 @@ reamostra nada. O script confere isso e para se não for o caso (R3.5).
 | `data/adicional/<item_id>/` | Saída versionada (cerca de 1,5 MB, como o kit) |
 | `docs/evidencias/comparacao-datas/` | Evidência da comparação |
 | `docs/nota-de-pesquisa.md` | Parágrafo da imagem adicional (dados, verificação, limitações) |
-| `backend/app/processing/temporal.py` | *(P1)* regra de amplitude |
+| `backend/app/processing/temporal.py` | *(P1)* leitura da segunda imagem, checagem de grade e máscara de amplitude |
+| `backend/app/processing/{params,classification,pipeline,rationale}.py`, `backend/app/{worker,routes/analyses}.py` | *(P1)* parâmetro, nível N3c, segunda imagem no pipeline, passo na justificativa, arquivos extras no Storage, campos do upload |
 
 ## Contratos
 
@@ -111,13 +112,73 @@ backend/.venv/bin/python scripts/compare_dates.py [--additional data/adicional/<
 
 ### Regra temporal *(P1)*
 
-- `POST /analyses` aceita `image_2` e `scl_2` opcionais. Os dois arquivos
-  precisam ter o mesmo CRS e a mesma grade; caso contrário, 422.
-- `temporal.py`: `amplitude_mask(ndvi_a, ndvi_b, usable, max_amplitude)`
-  entra na cascata como nível `N3c high_amplitude`, antes da morfologia.
-- `ndvi_amplitude_max` é escolhido pelo histograma de amplitude dos
-  candidatos da seca, gerado em T3.3, e não para concordar com o MapBiomas,
-  pelo mesmo motivo da calibração.
+Proposta revisada depois da T3.3: a versão aprovada era curta demais para
+implementar e escolhia o limiar por um histograma que não tem vale.
+
+- **API:** `POST /analyses` aceita `image_2` e `scl_2` opcionais. A imagem
+  principal (`image`) é a classificada. A segunda serve só para medir a
+  amplitude, e a ordem das datas não importa porque a amplitude é absoluta.
+- **Grade diferente:** a checagem é feita no pipeline. Se as duas imagens não
+  tiverem o mesmo CRS, o mesmo transform e o mesmo tamanho, a análise termina
+  `failed` com "A segunda imagem precisa ter a mesma grade da primeira (mesmo
+  recorte, CRS e resolução)."
+  - Muda o "422" da versão anterior: hoje toda leitura de raster acontece no
+    worker, e o 422 síncrono fica para a validação de upload da spec 006, que
+    vai abrir os cabeçalhos no request.
+- **Qualidade:** a máscara de qualidade (N1) passa a juntar as duas datas.
+  Pixel com nuvem, sombra, água ou sem dado em qualquer uma delas sai em N1.
+  Assim, nenhum pixel é aprovado sem ter sido medido nas duas datas.
+- **Cascata:** um nível novo, `N3c high_amplitude`, logo depois de N3/N3b e
+  antes da morfologia. O pixel que passou na faixa de NDVI da imagem principal
+  sai se `|NDVI_2 − NDVI_1| ≥ ndvi_amplitude_max`. Sem segunda imagem, o nível
+  existe com 0 ha.
+  - O código `uint8` do nível é 7 e é acrescentado ao fim de `CODES`, para não
+    mudar os códigos existentes.
+  - Em `EXCLUSION_LEVELS`, a ordem segue a cascata.
+- **Parâmetro:** `ndvi_amplitude_max = 0.25`, vindo da literatura e não do
+  dado. Em Souza et al. (2019), o componente sazonal do NDVI vai de −0,05 a
+  0,06 no café (0,11 de pico a pico) e de −0,15 a 0,10 no pasto (0,25).
+  - Regra: sai o que oscila pelo menos tanto quanto o pasto típico oscila no
+    ano.
+  - Por que não pelo histograma: os candidatos da seca têm amplitude unimodal
+    (pico em 0,18–0,20), sem vale para separar classes.
+  - Por que não pelo MapBiomas: escolher por ele tornaria a comparação
+    circular.
+  - Limitação declarada: uma diferença entre duas datas Sentinel-2 não é o
+    mesmo que o componente sazonal de uma série. Ela também carrega diferença
+    de iluminação e de fenologia do ano.
+- **Rastreabilidade (C2.3):**
+  - `method_version` passa a `spectral-rules-1.1`, porque a cascata ganhou um
+    nível.
+  - `params` registra `ndvi_amplitude_max` e, com a segunda imagem, um bloco
+    `second_image` com data de aquisição, radiometria e ordem das bandas.
+  - `stats.excluded_area_ha` ganha `high_amplitude`.
+  - `stats` ganha `second_acquired_at` (`null` sem segunda imagem).
+  - Nenhuma migration: tudo cabe nos `jsonb` existentes.
+- **Justificativa:** o passo N3c entra no `rationale` só quando há segunda
+  imagem, com a regra, o limiar, os hectares, o porquê e a referência
+  `souza2019`. A limitação "uma única data" é trocada por "duas datas, sem
+  série temporal".
+- **Storage:** com a segunda imagem, o worker também grava `original_2.tif` e
+  `scl_2.tif`. O `DELETE` apaga os dois.
+- **Fora desta task:** o campo de segunda imagem na UI (spec 004) e a menção
+  no chat (spec 005). Elas leem `stats` e `rationale`, que já trazem tudo.
+
+Efeito no kit com a cena de 10/01/2026, calculado com a mesma morfologia e a
+mesma área mínima (simulação da T3.3, antes de implementar):
+
+| `ndvi_amplitude_max` | Área potencial | Café do MapBiomas marcado | Área marcada em café do MapBiomas |
+| --- | --- | --- | --- |
+| sem regra | 214,5 ha | 42% | 10% |
+| 0,30 | 168,6 ha | 41% | 12% |
+| **0,25** | **103,0 ha** | **35%** | **17%** |
+| 0,20 | 47,5 ha | 24% | 24% |
+| 0,15 | 17,9 ha | 6% | 15% |
+
+As colunas do MapBiomas são conferência depois da escolha, não o critério. Com
+0,25, a cana quase some (de 10,1 para 0,2 ha), a lavoura temporária cai de
+41,9 para 13,6 ha e a mata de 43,4 para 18,4 ha. O café do MapBiomas cai menos:
+de 20,7 para 17,1 ha.
 
 ## Decisões
 
@@ -160,4 +221,4 @@ backend/.venv/bin/python scripts/compare_dates.py [--additional data/adicional/<
 | R3.6 | `sha256sum -c SHA256SUMS.txt` na pasta de saída |
 | R3.7 | Upload pela app em produção; análise `completed` com os mesmos números do `resumo.txt` |
 | R3.8, R3.9 | `resumo.txt` e `comparacao.jpg` gerados; soma das classes de transição igual à base comum |
-| R3.10 | `test_temporal.py` com dois rasters sintéticos |
+| R3.10 | `test_temporal.py` (amplitude, grade diferente, máscara das duas datas) com rasters sintéticos; testes de classificação, pipeline, justificativa, worker e API estendidos; kit + cena de janeiro dá 103,0 ha |

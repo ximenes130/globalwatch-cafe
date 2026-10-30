@@ -71,6 +71,9 @@ estação chuvosa.
   SISTEMA DEVE manter como candidato apenas o pixel cuja amplitude de NDVI
   entre as datas fique abaixo de `ndvi_amplitude_max`, registrando a regra em
   `params`.
+- **R3.11** *(P1)* — SE a segunda imagem não tiver o mesmo CRS, transform e
+  tamanho da principal, ENTÃO a análise DEVE terminar `failed` com mensagem
+  que explique o motivo.
 
 ## Fora de escopo
 

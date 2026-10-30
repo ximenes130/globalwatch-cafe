@@ -35,6 +35,9 @@ aprovação.
     polígonos iguais aos do `resumo.txt`. Depende da chave do Storage no
     Render (T2.11) e de um token do usuário.
 - [ ] **T3.5** (P1) Regra temporal de amplitude no backend.
-  - _Req: R3.10_
-  - Arquivos: `backend/app/processing/temporal.py`, `backend/tests/test_temporal.py`
-  - Verificação: `pytest backend/tests/test_temporal.py`.
+  - _Req: R3.10, R3.11_
+  - Arquivos: `backend/app/processing/{temporal,params,classification,pipeline,rationale}.py`,
+    `backend/app/{worker,routes/analyses}.py`, `backend/tests/`
+  - Verificação: `pytest` completo; `test_temporal.py` novo; kit + cena de
+    janeiro dá 103,0 ha de área potencial; teste de mutação no limiar e na
+    união das máscaras.
